@@ -1037,7 +1037,10 @@ class Theme {
   // The import above is aliased to `fontModule` rather than the bare `font`
   // its scheme suggests — see the other note below for why that is not
   // optional.
-  loadFonts(path, native) {
+  // `native` carries a default so this stays callable as loadFonts(path).
+  // Ghost requires every parameter that has no default, so adding a bare
+  // second parameter silently breaks every existing one-argument call.
+  loadFonts(path, native = null) {
     if (native != null) {
       this.native = native
     }
@@ -1337,7 +1340,7 @@ function load() {
   window.setMode(1280, 800)
   window.setResizable(true)
 
-  app.theme = asepriteDark().useScale(2).loadFonts(null)
+  app.theme = asepriteDark().useScale(1).loadFonts(null)
   app.painter = new Painter(app.theme)
 }
 
@@ -1999,7 +2002,7 @@ function load() {
   window.setResizable(true)
   window.setVsync(true)
 
-  theme = asepriteDark().useScale(2).loadFonts(null)
+  theme = asepriteDark().useScale(1).loadFonts(null)
 
   app.ui = new Ui(theme, new Painter(theme))
   app.ui.mount(new Panel('hello').well())
@@ -2257,7 +2260,7 @@ function load() {
   window.setResizable(true)
   window.setVsync(true)
 
-  theme = asepriteDark().useScale(2).loadFonts(null)
+  theme = asepriteDark().useScale(1).loadFonts(null)
 
   app.ui = new Ui(theme, new Painter(theme))
 
@@ -2975,7 +2978,7 @@ function registerSpriteCommands(studio) {
       Build a <code>Studio</code> in <code>load()</code>, register one throwaway command, bind it,
       and forward keys to the shell:
     </p>
-<pre><code class="gs">app.studio = new Studio(asepriteDark().useScale(2).loadFonts(null))
+<pre><code class="gs">app.studio = new Studio(asepriteDark().useScale(1).loadFonts(null))
 app.ui = app.studio.ui
 
 app.studio.commands.add(new Command('hello', 'Say Hello')
@@ -3787,7 +3790,7 @@ class SpriteEditor {
   window.setResizable(true)
   window.setVsync(true)
 
-  app.studio = new Studio(asepriteDark().useScale(2).loadFonts(null))
+  app.studio = new Studio(asepriteDark().useScale(1).loadFonts(null))
 
   editor = app.studio.register(new SpriteEditor(app.studio))
 
@@ -3944,7 +3947,7 @@ class Stamp extends Tool {
 
 <figure class="code">
   <figcaption><span>main.gs</span><span class="chip edit">edit</span></figcaption>
-<pre><code class="gs">  app.studio = new Studio(asepriteDark().useScale(2).loadFonts(null))
+<pre><code class="gs">  app.studio = new Studio(asepriteDark().useScale(1).loadFonts(null))
 
   sprites = app.studio.register(new SpriteEditor(app.studio))
   maps = app.studio.register(new MapEditor(app.studio))

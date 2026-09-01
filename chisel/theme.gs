@@ -91,7 +91,11 @@ class Theme {
   // it ever reaches the file's imports - so `font.system(...)` here would
   // silently resolve to the method object instead of the module, and raise
   // `no method \`system\`` the moment it was called.
-  loadFonts(path, native) {
+  // `native` carries a default so this stays callable as loadFonts(path).
+  // Ghost requires every parameter without one, so adding a bare second
+  // parameter silently broke every existing one-argument call - at the moment
+  // it ran, which for this method is app startup.
+  loadFonts(path, native = null) {
     if (native != null) {
       this.native = native
     }
