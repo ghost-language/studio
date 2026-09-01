@@ -5,12 +5,14 @@ import { Tabs } from "chisel/widgets/tabs"
 import { Menubar } from "chisel/widgets/menubar"
 import { Toolbar } from "chisel/widgets/toolbar"
 import { Colorbar } from "studio/sprite/colorbar"
+import { Contextbar } from "studio/sprite/contextbar"
 import { Timeline } from "studio/sprite/timeline"
 import { Statusbar } from "chisel/widgets/statusbar"
 import { Viewport } from "studio/viewport"
 import { Pencil } from "studio/sprite/tools/pencil"
 import { Eraser } from "studio/sprite/tools/eraser"
 import { Picker } from "studio/sprite/tools/picker"
+import { Bucket } from "studio/sprite/tools/bucket"
 import { registerSpriteCommands } from "studio/sprite/commands"
 
 // Closure factories. Ghost cannot capture a loop variable, so anything built
@@ -45,12 +47,13 @@ function makeActivator(studio) {
 class SpriteEditor {
   constructor(studio) {
     this.studio = studio
-    this.tools = ['pencil', 'eraser', 'picker']
+    this.tools = ['pencil', 'eraser', 'bucket', 'picker']
   }
 
   boot() {
     this.studio.tools.add(new Pencil())
     this.studio.tools.add(new Eraser())
+    this.studio.tools.add(new Bucket())
     this.studio.tools.add(new Picker())
 
     // One command per tool, so a menu row, a shortcut and the tool bar are all
@@ -64,6 +67,7 @@ class SpriteEditor {
     this.studio.keymap.group(['editing'], function (keys) {
       keys.bind('b', 'tool.pencil')
       keys.bind('e', 'tool.eraser')
+      keys.bind('g', 'tool.bucket')
       keys.bind('i', 'tool.picker')
     })
 
@@ -96,6 +100,7 @@ class SpriteEditor {
       .menu('Tools', function (menu) {
         menu.item('tool.pencil')
         menu.item('tool.eraser')
+        menu.item('tool.bucket')
         menu.item('tool.picker')
       })
   }
@@ -138,7 +143,7 @@ class SpriteEditor {
 
     dock.top(this.menus().named('menubar'), theme.metric('bar'))
     dock.top(this.tabs().named('tabs'), theme.metric('tab'))
-    dock.top(new Panel('Pixel-perfect   Alpha   Opacity 255').named('context'), theme.metric('bar'))
+    dock.top(new Contextbar(studio, document).named('context'), theme.metric('tab') + theme.metric('gutter') * 2)
 
     // The colour bar asks for its own width rather than being handed a guess -
     // the guess used to fit two of its four columns.

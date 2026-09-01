@@ -108,6 +108,12 @@ exact at **19px, 38px, 57px** and blurry at everything in between. The theme dra
 `19 × ui.scale`, and the interface metrics are sized around the 21px line height that
 produces.
 
+**This is a property of the rasteriser, not of the font.**
+[ghost-language/lumen#21](https://github.com/ghost-language/lumen/pull/21) renders the
+built-in font with hard edges instead of blending it, after which *every* size is crisp —
+measured at zero mid-grey pixels from 8px to 38px — and `theme.native` can drop to 16 or 14
+for chrome as tight as Aseprite's. Until that lands, 19 is the only sharp size.
+
 To use your own, set two preferences — or call `theme.loadFonts(path, native)` directly:
 
 ```

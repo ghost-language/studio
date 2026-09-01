@@ -31,7 +31,10 @@ class Widget {
   enable()   { this.enabled = true;         return this }
   disable()  { this.enabled = false;        return this }
 
-  tooltip(text, keys) {
+  // `keys` is optional, so it carries a default: Ghost requires every
+  // parameter that has none, and a bare second parameter silently breaks every
+  // existing one-argument call at the moment it runs.
+  tooltip(text, keys = null) {
     this.hint = text
 
     if (keys != null) {

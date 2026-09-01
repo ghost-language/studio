@@ -83,8 +83,11 @@ class Theme {
   // Loads the interface font. Pass a path to a pixel TTF and the size that
   // font is drawn at natively, or null for Lumen's built-in face.
   //
-  // A PIXEL FONT IS ONLY CRISP AT WHOLE MULTIPLES OF ITS NATIVE SIZE, and
-  // getting this wrong is the whole of "why does the text look blurry".
+  // A PIXEL FONT IS ONLY CRISP AT WHOLE MULTIPLES OF ITS NATIVE SIZE *if the
+  // engine antialiases it*, and getting this wrong is the whole of "why does
+  // the text look blurry". ghost-language/lumen#21 turns antialiasing off for
+  // the built-in font, after which any size is crisp and this can drop to 16
+  // or 14 for tighter chrome. Until that lands, 19 is the only safe choice.
   // Lumen's built-in silver.ttf has unitsPerEm 1900 and draws its glyphs on a
   // 100-unit grid, so one font pixel is exactly one screen pixel at 19px, 38px,
   // 57px - and at nothing in between. At 16px or 32px every glyph edge lands
