@@ -1,0 +1,7 @@
+# Built and packaged games. `lumen build . -o dist/studio` keeps the binary
+# here; note that ignoring a bare `studio` would also ignore the studio/ source
+# folder, so builds go in dist/.
+dist/
+*.lumen
+
+.DS_Store

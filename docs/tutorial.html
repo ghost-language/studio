@@ -1,0 +1,4236 @@
+<title>Chisel &amp; Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Silkscreen:wght@400;700&display=swap">
+
+<style>
+/* ---------------------------------------------------------------------------
+   :root carries the complete light palette — Aseprite's classic grey/teal.
+   Dark redefines tokens only, twice: once for the OS preference, once for an
+   explicit toggle.
+   --------------------------------------------------------------------------- */
+:root {
+  --ground:      #cfcabb;
+  --surface:     #ded9cc;
+  --raised:      #e9e5da;
+  --sunken:      #bdb8a9;
+  --well:        #c6c1b2;
+  --bevel-light: #f6f3ec;
+  --bevel-dark:  #8d897c;
+  --line:        #a9a496;
+  --ink:         #1d1b17;
+  --ink-soft:    #46433b;
+  --muted:       #6a665b;
+  --accent:      #a8560a;
+  --select:      #3d6ea8;
+  --select-ink:  #ffffff;
+  --teal:        #3f7f68;
+  --good:        #3f7a2e;
+  --warn:        #9a6b06;
+  --bad:         #a33131;
+
+  --code-bg:     #bfbaab;
+  --tok-comment: #6f6a5d;
+  --tok-string:  #3f6f2c;
+  --tok-key:     #9c4d09;
+  --tok-num:     #2c6c80;
+  --tok-class:   #2d5a94;
+  --tok-fn:      #6b3f93;
+
+  --measure: 66ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:      #232329;
+    --surface:     #2c2c34;
+    --raised:      #3a3a44;
+    --sunken:      #191a1e;
+    --well:        #202027;
+    --bevel-light: #54545f;
+    --bevel-dark:  #121216;
+    --line:        #43434e;
+    --ink:         #e9e6e1;
+    --ink-soft:    #c9c5be;
+    --muted:       #948f9c;
+    --accent:      #f2a340;
+    --select:      #4f7bb5;
+    --select-ink:  #ffffff;
+    --teal:        #64a98d;
+    --good:        #7ec86b;
+    --warn:        #e0b155;
+    --bad:         #e06767;
+
+    --code-bg:     #1b1b21;
+    --tok-comment: #7f7a88;
+    --tok-string:  #9ac97e;
+    --tok-key:     #f2a340;
+    --tok-num:     #6fc0d4;
+    --tok-class:   #86b4e8;
+    --tok-fn:      #c9a2f0;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground:      #232329;
+  --surface:     #2c2c34;
+  --raised:      #3a3a44;
+  --sunken:      #191a1e;
+  --well:        #202027;
+  --bevel-light: #54545f;
+  --bevel-dark:  #121216;
+  --line:        #43434e;
+  --ink:         #e9e6e1;
+  --ink-soft:    #c9c5be;
+  --muted:       #948f9c;
+  --accent:      #f2a340;
+  --select:      #4f7bb5;
+  --select-ink:  #ffffff;
+  --teal:        #64a98d;
+  --good:        #7ec86b;
+  --warn:        #e0b155;
+  --bad:         #e06767;
+
+  --code-bg:     #1b1b21;
+  --tok-comment: #7f7a88;
+  --tok-string:  #9ac97e;
+  --tok-key:     #f2a340;
+  --tok-num:     #6fc0d4;
+  --tok-class:   #86b4e8;
+  --tok-fn:      #c9a2f0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 44px;
+}
+
+@media (min-width: 1080px) {
+  .shell { grid-template-columns: 228px minmax(0, 1fr); }
+  .rail { display: block; }
+}
+
+.rail { display: none; grid-column: 1; }
+
+.rail-inner {
+  position: sticky;
+  top: 20px;
+  padding: 14px 0 24px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+.rail h2 {
+  font-family: "Silkscreen", "IBM Plex Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px;
+  font-weight: 400;
+}
+
+.rail ol { list-style: none; margin: 0 0 18px; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+
+.rail a {
+  display: flex;
+  gap: 8px;
+  padding: 3px 6px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-decoration: none;
+  line-height: 1.3;
+}
+.rail a:hover { background: var(--surface); color: var(--ink); }
+.rail a .n {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+  padding-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+main { grid-column: 1; min-width: 0; }
+@media (min-width: 1080px) { main { grid-column: 2; } }
+
+/* --- masthead ------------------------------------------------------------ */
+
+.masthead { padding: 52px 0 8px; }
+
+.eyebrow {
+  font-family: "Silkscreen", "IBM Plex Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::after { content: ""; height: 1px; flex: 1; background: var(--line); }
+
+h1 {
+  font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+  font-weight: 700;
+  font-size: clamp(38px, 6vw, 62px);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+h1 .thin { color: var(--muted); font-weight: 600; }
+
+.standfirst { font-size: 19px; line-height: 1.55; color: var(--ink-soft); max-width: 62ch; margin: 0 0 26px; }
+
+.facts { display: flex; flex-wrap: wrap; border: 1px solid var(--line); background: var(--surface); margin-bottom: 40px; }
+.fact { padding: 10px 16px; border-right: 1px solid var(--line); flex: 1 1 auto; min-width: 128px; }
+.fact:last-child { border-right: 0; }
+.fact dt {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 3px;
+}
+.fact dd { margin: 0; font-size: 14px; font-weight: 500; }
+
+/* --- prose --------------------------------------------------------------- */
+
+section { padding-top: 52px; scroll-margin-top: 16px; }
+
+h2 {
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  font-size: clamp(25px, 3.2vw, 33px);
+  line-height: 1.12;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+h2 .num {
+  font-family: "Silkscreen", monospace;
+  font-size: 12px; color: var(--accent);
+  display: block; letter-spacing: 0.14em; margin-bottom: 10px; font-weight: 400;
+}
+
+h3 { font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 20px; margin: 34px 0 8px; }
+
+h4 {
+  font-size: 12.5px; font-family: "IBM Plex Mono", monospace;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin: 26px 0 8px; font-weight: 500;
+}
+
+p, ul, ol { max-width: var(--measure); }
+p { margin: 0 0 16px; }
+ul, ol { margin: 0 0 16px; padding-left: 20px; }
+li { margin-bottom: 6px; }
+li::marker { color: var(--muted); }
+
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--select); outline-offset: 2px; }
+
+code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.875em;
+  background: var(--well);
+  border: 1px solid var(--line);
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+.lede { font-size: 17.5px; color: var(--ink-soft); max-width: 62ch; }
+
+/* --- code ---------------------------------------------------------------- */
+
+figure.code { margin: 20px 0 24px; max-width: 920px; }
+
+figure.code figcaption {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  padding: 5px 10px;
+  display: flex; justify-content: space-between; gap: 12px; align-items: center;
+  box-shadow: inset 1px 1px 0 var(--bevel-light);
+}
+figure.code figcaption .role { color: var(--muted); }
+.chip {
+  font-family: "Silkscreen", monospace;
+  font-size: 9px; letter-spacing: 0.06em;
+  padding: 2px 5px; border: 1px solid var(--line);
+  color: var(--muted); background: var(--surface);
+}
+.chip.new { color: var(--good); border-color: var(--good); }
+.chip.edit { color: var(--warn); border-color: var(--warn); }
+
+pre {
+  margin: 0;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  box-shadow: inset 1px 1px 0 var(--bevel-dark);
+  padding: 13px 15px;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+pre code { background: none; border: 0; padding: 0; font-size: inherit; white-space: pre; color: var(--ink); }
+
+.t-c { color: var(--tok-comment); }
+.t-s { color: var(--tok-string); }
+.t-k { color: var(--tok-key); font-weight: 500; }
+.t-n { color: var(--tok-num); }
+.t-t { color: var(--tok-class); }
+.t-f { color: var(--tok-fn); }
+
+/* --- run-it checkpoints -------------------------------------------------- */
+
+.runit {
+  max-width: 920px;
+  margin: 26px 0;
+  border: 1px solid var(--good);
+  background: var(--surface);
+}
+.runit .head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--good) 14%, var(--surface));
+  border-bottom: 1px solid var(--good);
+  font-family: "Silkscreen", monospace;
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--good);
+}
+.runit .body { padding: 12px 14px; }
+.runit .body p:last-child { margin-bottom: 0; }
+.runit .body p, .runit .body ul { max-width: none; }
+.runit pre { margin: 0 0 10px; }
+
+/* --- file tree ----------------------------------------------------------- */
+
+.tree {
+  max-width: 920px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin: 20px 0 26px;
+  white-space: pre;
+  color: var(--ink-soft);
+}
+.tree b { color: var(--ink); font-weight: 600; }
+.tree i { color: var(--muted); font-style: normal; }
+
+/* --- callouts ------------------------------------------------------------ */
+
+.note {
+  max-width: 920px; margin: 22px 0;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  padding: 13px 17px;
+}
+.note.warn { border-left-color: var(--bad); }
+.note.why { border-left-color: var(--select); }
+.note h4 { margin: 0 0 6px; color: var(--ink); }
+.note p:last-child, .note ul:last-child { margin-bottom: 0; }
+.note p, .note ul { max-width: none; }
+
+/* --- tables -------------------------------------------------------------- */
+
+.tablewrap { overflow-x: auto; margin: 20px 0 24px; max-width: 920px; border: 1px solid var(--line); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--surface); }
+th, td { text-align: left; padding: 7px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th {
+  background: var(--raised);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--muted); font-weight: 500;
+}
+tr:last-child td { border-bottom: 0; }
+td code { white-space: nowrap; }
+.sw { display: inline-block; width: 32px; height: 13px; border: 1px solid var(--bevel-dark); vertical-align: -2px; }
+
+/* --- papercuts ----------------------------------------------------------- */
+
+.cut {
+  max-width: 920px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--muted);
+  background: var(--surface);
+  padding: 12px 16px;
+  margin: 0 0 10px;
+}
+.cut.sev-high { border-left-color: var(--bad); }
+.cut.sev-mid  { border-left-color: var(--warn); }
+.cut.sev-low  { border-left-color: var(--muted); }
+.cut .title { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; margin-bottom: 4px; }
+.cut .title strong { font-size: 15px; }
+.cut .tag {
+  font-family: "IBM Plex Mono", monospace; font-size: 10px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border: 1px solid currentColor; padding: 1px 5px;
+}
+.cut.sev-high .tag { color: var(--bad); }
+.cut.sev-mid .tag  { color: var(--warn); }
+.cut.sev-low .tag  { color: var(--muted); }
+.cut p { margin: 0 0 6px; max-width: none; font-size: 14.5px; }
+.cut p:last-child { margin-bottom: 0; }
+.cut .fix b { font-family: "IBM Plex Mono", monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 500; }
+
+.verified {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: "IBM Plex Mono", monospace; font-size: 11.5px;
+  color: var(--good); border: 1px solid var(--good);
+  padding: 4px 9px; margin-bottom: 18px;
+}
+
+/* --- workspace mock ------------------------------------------------------ */
+
+.mock {
+  border: 1px solid var(--bevel-dark);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--line);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px; color: var(--ink-soft);
+  user-select: none; max-width: 920px; margin: 0 0 12px;
+}
+.mock .bar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 3px 8px; background: var(--raised);
+  border-bottom: 1px solid var(--bevel-dark);
+  box-shadow: inset 0 1px 0 var(--bevel-light);
+}
+.mock .bar.title { background: var(--teal); color: #fff; font-weight: 600; letter-spacing: 0.05em; }
+.mock .tab {
+  padding: 2px 12px; background: var(--surface);
+  border: 1px solid var(--bevel-dark); border-bottom: 0;
+  box-shadow: inset 1px 1px 0 var(--bevel-light); margin-bottom: -1px;
+}
+.mock .tab.on { background: var(--select); color: var(--select-ink); box-shadow: none; }
+.mock .body { display: grid; grid-template-columns: 68px minmax(0,1fr) 30px; }
+.mock .col { border-right: 1px solid var(--bevel-dark); padding: 6px; display: flex; flex-direction: column; gap: 6px; }
+.mock .col.right { border-right: 0; border-left: 1px solid var(--bevel-dark); align-items: center; gap: 3px; padding: 5px 3px; }
+.mock .swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+.mock .swatches i { display: block; aspect-ratio: 1; border: 1px solid var(--bevel-dark); }
+.mock .btn {
+  width: 20px; height: 20px; background: var(--raised);
+  border: 1px solid var(--bevel-dark);
+  box-shadow: inset 1px 1px 0 var(--bevel-light);
+  display: grid; place-items: center; font-size: 9px; color: var(--ink);
+}
+.mock .btn.on { background: var(--select); color: var(--select-ink); box-shadow: inset 1px 1px 0 rgba(255,255,255,.35); }
+.mock .canvas {
+  min-height: 186px;
+  background: repeating-conic-gradient(var(--sunken) 0% 25%, var(--well) 0% 50%) 0 0 / 12px 12px;
+  box-shadow: inset 1px 1px 0 var(--bevel-dark);
+  display: grid; place-items: center; padding: 18px;
+}
+.mock .sprite { width: 108px; height: 108px; border: 1px solid var(--bevel-dark); background: var(--accent); position: relative; }
+.mock .sprite::after {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(0,0,0,.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,.14) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+.mock .timeline { border-top: 1px solid var(--bevel-dark); background: var(--surface); padding: 4px 6px; display: flex; flex-direction: column; gap: 3px; }
+.mock .frames { display: flex; gap: 2px; }
+.mock .frames span { width: 18px; height: 12px; border: 1px solid var(--bevel-dark); background: var(--well); }
+.mock .frames span.on { background: var(--select); }
+.mock .status {
+  display: flex; justify-content: space-between;
+  border-top: 1px solid var(--bevel-dark); background: var(--raised);
+  padding: 3px 8px; box-shadow: inset 0 1px 0 var(--bevel-light);
+}
+.mock-legend {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 3px 20px; max-width: 920px; font-size: 12.5px; color: var(--muted); margin-bottom: 8px;
+}
+.mock-legend b { color: var(--ink-soft); font-weight: 600; font-family: "IBM Plex Mono", monospace; font-size: 11px; }
+
+figure.fig { margin: 0 0 28px; max-width: 920px; }
+figure.fig figcaption { font-size: 13px; color: var(--muted); margin-top: 10px; max-width: 66ch; }
+
+/* --- state matrix -------------------------------------------------------- */
+
+.states { display: flex; flex-wrap: wrap; gap: 16px; margin: 20px 0 8px; }
+.state { text-align: center; }
+.state .swatchbtn {
+  width: 74px; height: 30px; display: grid; place-items: center;
+  font-family: "IBM Plex Mono", monospace; font-size: 11px;
+  background: var(--raised); border: 1px solid var(--bevel-dark);
+  box-shadow: inset 1px 1px 0 var(--bevel-light); color: var(--ink);
+}
+.state .swatchbtn.hover { background: color-mix(in srgb, var(--raised) 82%, var(--bevel-light)); }
+.state .swatchbtn.press { box-shadow: inset 1px 1px 0 var(--bevel-dark); background: var(--well); }
+.state .swatchbtn.sel { background: var(--select); color: var(--select-ink); box-shadow: inset 1px 1px 0 rgba(255,255,255,.3); }
+.state .swatchbtn.dis { color: var(--muted); background: var(--surface); box-shadow: inset 1px 1px 0 var(--bevel-light); }
+.state small { display: block; margin-top: 6px; font-size: 11px; color: var(--muted); font-family: "IBM Plex Mono", monospace; }
+
+hr.rule { border: 0; border-top: 1px solid var(--line); margin: 46px 0 0; max-width: 920px; }
+
+footer { margin-top: 68px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); max-width: 920px; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="shell">
+
+<nav class="rail" aria-label="Contents">
+  <div class="rail-inner">
+    <h2>Build order</h2>
+    <ol>
+      <li><a href="#p0"><span class="n">00</span><span>Setup, and a window</span></a></li>
+      <li><a href="#p1"><span class="n">01</span><span>What a GUI is</span></a></li>
+      <li><a href="#p2"><span class="n">02</span><span>Rect</span></a></li>
+      <li><a href="#p3"><span class="n">03</span><span>Theme</span></a></li>
+      <li><a href="#p4"><span class="n">04</span><span>Painter</span></a></li>
+      <li><a href="#p5"><span class="n">05</span><span>Traits</span></a></li>
+      <li><a href="#p6"><span class="n">06</span><span>Widget</span></a></li>
+      <li><a href="#p7"><span class="n">07</span><span>Ui and Pointer</span></a></li>
+      <li><a href="#p8"><span class="n">08</span><span>Button</span></a></li>
+      <li><a href="#p9"><span class="n">09</span><span>Dock</span></a></li>
+      <li><a href="#p10"><span class="n">10</span><span>Studio</span></a></li>
+      <li><a href="#p11"><span class="n">11</span><span>Commands, keymap</span></a></li>
+      <li><a href="#p12"><span class="n">12</span><span>Editor chrome</span></a></li>
+      <li><a href="#p13"><span class="n">13</span><span>Document, viewport</span></a></li>
+      <li><a href="#p14"><span class="n">14</span><span>The map editor</span></a></li>
+      <li><a href="#p15"><span class="n">15</span><span>Room for sound</span></a></li>
+      <li><a href="#p16"><span class="n">16</span><span>Ship it</span></a></li>
+    </ol>
+    <h2>Reference</h2>
+    <ol>
+      <li><a href="#papercuts"><span class="n">··</span><span>Papercut log</span></a></li>
+      <li><a href="#cheatsheet"><span class="n">··</span><span>Cheat sheet</span></a></li>
+    </ol>
+  </div>
+</nav>
+
+<main>
+
+<header class="masthead">
+  <p class="eyebrow">Build it yourself · Lumen + Ghost</p>
+  <h1>Chisel <span class="thin">&amp;</span> Studio</h1>
+  <p class="standfirst">
+    Type out a GUI framework and an editor shell for Lumen, file by file, from first principles.
+    Aseprite's look, Ghost's grain, and one toolkit that hosts a pixel editor, a map editor and —
+    eventually — a sound editor.
+  </p>
+
+  <dl class="facts">
+    <div class="fact"><dt>Layers</dt><dd>chisel → studio → editors</dd></div>
+    <div class="fact"><dt>Style</dt><dd>Retained tree, immediate paint</dd></div>
+    <div class="fact"><dt>Rule</dt><dd>One class per file</dd></div>
+    <div class="fact"><dt>Dependencies</dt><dd>None</dd></div>
+  </dl>
+</header>
+
+<figure class="fig">
+  <div class="mock" role="img" aria-label="Mock of the finished workspace: title bar, menu bar, document tabs, context bar, colour bar on the left, tool bar on the right, checkerboard canvas, timeline and status bar.">
+    <div class="bar title">Sprite-0001.ase — Studio</div>
+    <div class="bar"><span>File</span><span>Edit</span><span>Sprite</span><span>Layer</span><span>Frame</span><span>Select</span><span>View</span><span>Help</span></div>
+    <div class="bar" style="gap:0"><span class="tab on">Sprite-0001</span><span class="tab">overworld.map</span></div>
+    <div class="bar"><span>Pixel-perfect</span><span>Alpha</span><span>Opacity 255</span><span>Size 1</span></div>
+    <div class="body">
+      <div class="col">
+        <div class="swatches">
+          <i style="background:#000000"></i><i style="background:#1d2b53"></i><i style="background:#7e2553"></i><i style="background:#008751"></i>
+          <i style="background:#ab5236"></i><i style="background:#5f574f"></i><i style="background:#c2c3c7"></i><i style="background:#fff1e8"></i>
+          <i style="background:#ff004d"></i><i style="background:#ffa300"></i><i style="background:#ffec27"></i><i style="background:#00e436"></i>
+          <i style="background:#29adff"></i><i style="background:#83769c"></i><i style="background:#ff77a8"></i><i style="background:#ffccaa"></i>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <i style="width:20px;height:20px;background:#ff004d;border:1px solid var(--bevel-dark)"></i>
+          <i style="width:20px;height:20px;background:#fff1e8;border:1px solid var(--bevel-dark)"></i>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <div class="canvas"><div class="sprite"></div></div>
+        <div class="timeline">
+          <div class="frames"><span class="on"></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div style="display:flex;gap:6px;align-items:center"><span>◉ ⌂</span><span>Layer 1</span></div>
+          <div style="display:flex;gap:6px;align-items:center;color:var(--muted)"><span>◉ ⌂</span><span>Background</span></div>
+        </div>
+      </div>
+      <div class="col right">
+        <div class="btn on">✎</div><div class="btn">▤</div><div class="btn">◻</div><div class="btn">◯</div>
+        <div class="btn">⬒</div><div class="btn">✧</div><div class="btn">⌖</div><div class="btn">T</div>
+      </div>
+    </div>
+    <div class="status"><span>Sprite-0001 · 32 × 32</span><span>Frame 1 / 6 · 500 ms</span></div>
+  </div>
+  <div class="mock-legend">
+    <div><b>menu bar</b> dock.top</div>
+    <div><b>tabs</b> dock.top</div>
+    <div><b>context bar</b> dock.top</div>
+    <div><b>colour bar</b> dock.left</div>
+    <div><b>tool bar</b> dock.right</div>
+    <div><b>timeline</b> dock.bottom</div>
+    <div><b>status bar</b> dock.bottom</div>
+    <div><b>viewport</b> dock.fill</div>
+  </div>
+  <figcaption>
+    Where this ends up. You will have typed every pixel of it yourself by part 13, and the same
+    shell opens a map document in part 14.
+  </figcaption>
+</figure>
+
+<p class="lede">
+  This is a hands-on build, not a tour. Each part adds one or two files, explains why they exist
+  before showing what they contain, and ends — often — with something you can run. Nothing is
+  imported before it is written, so if you type along in order, the program runs at every step.
+</p>
+
+<p>
+  Two things up front. <strong>Every language behaviour claimed here was executed against a real
+  Ghost build</strong> rather than inferred from documentation — several of Ghost's rules are
+  surprising, one of them badly, and the architecture below is shaped around what the interpreter
+  actually does. And <strong>the architecture is deliberately un-clever</strong>: no service
+  container, no dependency injection, no plugin discovery. Explicit imports and constructor
+  arguments, because in a language with no reflection, indirection buys nothing and costs you every
+  "where does this come from?" question.
+</p>
+
+<section id="p0">
+<h2><span class="num">Part 00</span>Setup, and a window on screen</h2>
+
+<p>
+  Download the Lumen binary from <a href="https://www.ghostlang.org/download">ghostlang.org/download</a>
+  and put it on your <code>PATH</code>. Nothing to compile: the engine, the Ghost runtime and a
+  built-in font are all inside that one file.
+</p>
+
+<p>
+  A Lumen game — or in our case an application — is a folder with a <code>main.gs</code> in it.
+  Make the folder and the entry file:
+</p>
+
+<figure class="code">
+  <figcaption><span>terminal</span><span class="role">start here</span></figcaption>
+<pre><code class="sh">mkdir studio &amp;&amp; cd studio
+mkdir -p chisel/support chisel/geometry chisel/traits chisel/themes chisel/widgets chisel/layout
+mkdir -p studio/traits studio/sprite/tools
+touch main.gs</code></pre>
+</figure>
+
+<p>
+  Three folders, three jobs, and a rule that never bends: <strong>chisel knows nothing about
+  editors, studio knows nothing about sprites.</strong> Dependencies point one way only.
+</p>
+
+<div class="tree"><b>studio/</b>
+├── <b>main.gs</b>              <i>the entry file Lumen looks for</i>
+├── <b>chisel/</b>              <i>the GUI framework — widgets, layout, painting, input</i>
+├── <b>studio/</b>              <i>the editor shell — workspace, commands, registries</i>
+│   ├── <b>sprite/</b>          <i>the pixel editor</i>
+│   ├── <b>map/</b>             <i>the map editor</i>
+│   └── <b>sound/</b>           <i>the sound editor, later</i>
+└── <b>resources/</b>           <i>fonts, icons</i></div>
+
+<p>
+  Lumen calls <code>load()</code> once, then <code>update(dt)</code> and <code>draw()</code> every
+  frame, and hands input to optional callbacks. That is the entire contract. Type this:
+</p>
+
+<figure class="code">
+  <figcaption><span>main.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "lumen:window"
+import "lumen:canvas"
+import "lumen:color"
+
+function load() {
+  window.setTitle('Studio')
+  window.setMode(1280, 800)
+  window.setResizable(true)
+  window.setVsync(true)
+}
+
+function draw() {
+  canvas.clear(color.hex('#2c2c34'))
+}</code></pre>
+</figure>
+
+<div class="runit">
+  <div class="head">▶ Run it</div>
+  <div class="body">
+<pre><code class="sh">lumen .</code></pre>
+    <p>
+      A resizable 1280×800 window filled with dark grey. If Lumen complains it cannot find a game,
+      you are one directory up — it looks for <code>main.gs</code> in the folder you point it at.
+    </p>
+  </div>
+</div>
+
+<div class="note warn">
+  <h4>Name the entry file <code>main.gs</code></h4>
+  <p>
+    Passing a filename explicitly (<code>lumen main.ghost</code>) works with any extension, but
+    running a <em>folder</em> looks for <code>main.gs</code> exactly. And Ghost resolves
+    <code>import "chisel/painter"</code> to <code>chisel/painter.gs</code>, so every file in this
+    tutorial ends in <code>.gs</code>.
+  </p>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p1">
+<h2><span class="num">Part 01</span>What a GUI actually is</h2>
+
+<p>
+  Strip away the widgets and a graphical interface answers four questions, once per frame:
+</p>
+
+<ol>
+  <li><strong>Where is everything?</strong> Given a window of some size, decide the rectangle every
+    element occupies. This is <em>layout</em>.</li>
+  <li><strong>What does it look like?</strong> Given those rectangles and some state, put pixels on
+    screen. This is <em>paint</em>.</li>
+  <li><strong>Who gets the click?</strong> Given a point, find the element under it. This is
+    <em>hit testing</em>.</li>
+  <li><strong>Who owns the drag?</strong> Once a press has started, one element keeps receiving
+    movement until the button comes up — even outside its own bounds. This is <em>capture</em>, and
+    it is the question toy GUIs forget.</li>
+</ol>
+
+<p>
+  There are two classic ways to arrange those answers. <strong>Immediate mode</strong> asks all four
+  inside the draw call: <code>if (button('Pencil')) { ... }</code>. Nothing is stored, everything is
+  recomputed, and layout has to be re-derived every frame from scratch. <strong>Retained mode</strong>
+  builds a tree of objects up front and mutates it; the framework decides when to repaint.
+</p>
+
+<p>
+  Chisel takes the half of each that suits an editor:
+</p>
+
+<div class="note why">
+  <h4>Retained tree, immediate paint</h4>
+  <p>
+    <strong>The tree is retained</strong> — you declare the workspace once, fluently, and keep the
+    objects. An editor's interface has a fixed <em>shape</em>: a tool bar is always a tool bar.
+    Declaring it once means layout runs only when the window resizes, and a button can carry its
+    own state (selected, disabled, its tooltip) without you threading it through a draw call.
+  </p>
+  <p>
+    <strong>Painting is immediate</strong> — <code>paint()</code> reads the world and draws it, every
+    frame, with no cached render state and no invalidation bookkeeping. At 1280×800 the chrome costs
+    a few hundred rectangles; that is nothing. The one thing expensive enough to cache is the
+    document itself, and that gets an explicit dirty flag in part 13.
+  </p>
+</div>
+
+<p>
+  So the frame looks like this, and it never gets more complicated than this:
+</p>
+
+<figure class="code">
+  <figcaption><span>the frame, in pseudocode</span><span class="role">for orientation only</span></figcaption>
+<pre><code class="sh">load()     → build the widget tree once, place it into the window rect
+resize()   → re-place the root; every container re-divides its area
+update(dt) → tick animating widgets; age the hover timer
+draw()     → clear, walk the tree painting, then draw overlays on top
+mouse      → pick the deepest widget under the point, or route to whoever captured</code></pre>
+</figure>
+
+<h3>The four objects everything else is made of</h3>
+
+<p>
+  Before any widget exists we need four things, and they are the next four parts:
+  a <strong>Rect</strong> (where), a <strong>Theme</strong> (what colour), a
+  <strong>Painter</strong> (how to draw a bevel), and a <strong>Widget</strong> (a node in the tree).
+  Then a <strong>Ui</strong> to own the tree and the input state. Six files and you have a working
+  toolkit; everything after is widgets.
+</p>
+
+<div class="note">
+  <h4>Two conventions, applied from here on</h4>
+  <ul>
+    <li><strong>One class per file, one trait per file, one function per helper file</strong>, named
+      after what is inside. Free-standing functions exist only in <code>support/</code> and in
+      <code>main.gs</code>'s engine callbacks.</li>
+    <li><strong>State lives in objects, never in module variables.</strong> This is not taste — a
+      Ghost function cannot assign to a variable outside itself (part 03 shows the trap). Instance
+      fields are the only reliable mutable state in the language.</li>
+  </ul>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p2">
+<h2><span class="num">Part 02</span>Rect — the unit of layout</h2>
+
+<p>
+  Everything in a GUI is a rectangle being divided into smaller rectangles. Get this class right and
+  the layout code that follows is four lines per container; get it wrong and you will be adding and
+  subtracting stray pixels for the rest of the build.
+</p>
+
+<p>
+  It has one job beyond arithmetic: <strong>every rectangle is integral</strong>. Ghost's
+  <code>/</code> always produces a float — <code>20 / 2</code> is a float — and a one-pixel line at
+  a fractional y is a two-pixel smear. Rather than remembering to round at every call site, the
+  constructor rounds and the invariant holds everywhere.
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/support/snap.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "ghost:math"
+
+// snap rounds to the nearest whole pixel. Flooring alone would bias every
+// centred thing half a pixel up and left, which shows up as a one-pixel gap
+// down the right edge of every other panel.
+function snap(value) {
+  return math.floor(value + 0.5)
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>chisel/geometry/rect.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "ghost:math"
+import { snap } from "chisel/support/snap"
+
+// A rectangle in window pixels. Always integral: the constructor snaps, so
+// nothing downstream has to remember to.
+class Rect {
+  constructor(x, y, width, height) {
+    this.x = snap(x)
+    this.y = snap(y)
+    this.w = snap(math.max(0, width))
+    this.h = snap(math.max(0, height))
+  }
+
+  right()   { return this.x + this.w }
+  bottom()  { return this.y + this.h }
+  isEmpty() { return this.w == 0 or this.h == 0 }
+
+  contains(x, y) {
+    return x &gt;= this.x and y &gt;= this.y and x &lt; this.right() and y &lt; this.bottom()
+  }
+
+  // inset shrinks by the same amount on every side — padding, in one call.
+  inset(amount) {
+    return new Rect(this.x + amount, this.y + amount, this.w - amount * 2, this.h - amount * 2)
+  }
+
+  offset(dx, dy) {
+    return new Rect(this.x + dx, this.y + dy, this.w, this.h)
+  }
+
+  // The split family is the whole of layout. Each answers [taken, rest], so a
+  // container carves its area down and hands each piece to a child:
+  //
+  //   [bar, rest] = area.splitTop(20)
+  //
+  splitTop(size) {
+    size = math.min(size, this.h)
+
+    return [
+      new Rect(this.x, this.y, this.w, size),
+      new Rect(this.x, this.y + size, this.w, this.h - size)
+    ]
+  }
+
+  splitBottom(size) {
+    size = math.min(size, this.h)
+
+    return [
+      new Rect(this.x, this.bottom() - size, this.w, size),
+      new Rect(this.x, this.y, this.w, this.h - size)
+    ]
+  }
+
+  splitLeft(size) {
+    size = math.min(size, this.w)
+
+    return [
+      new Rect(this.x, this.y, size, this.h),
+      new Rect(this.x + size, this.y, this.w - size, this.h)
+    ]
+  }
+
+  splitRight(size) {
+    size = math.min(size, this.w)
+
+    return [
+      new Rect(this.right() - size, this.y, size, this.h),
+      new Rect(this.x, this.y, this.w - size, this.h)
+    ]
+  }
+
+  // A grid of cells, used by the palette, the timeline and the tile picker.
+  // Cells are placed on exact pixel steps rather than by dividing the width,
+  // so no row ever drifts a pixel wider than another.
+  cell(column, row, size, gap) {
+    step = size + gap
+
+    return new Rect(this.x + column * step, this.y + row * step, size, size)
+  }
+
+  equals(other) {
+    return this.x == other.x and this.y == other.y and this.w == other.w and this.h == other.h
+  }
+
+  toString() {
+    return `[${this.x},${this.y} ${this.w}x${this.h}]`
+  }
+}</code></pre>
+</figure>
+
+<div class="note why">
+  <h4>Why <code>splitTop</code> returns a list of two</h4>
+  <p>
+    Ghost has destructuring assignment, so <code>[bar, rest] = area.splitTop(20)</code> reads exactly
+    like the sentence "take twenty off the top." The alternative — a container mutating a running
+    <code>area</code> field — would work too, but this version has no state at all, which means the
+    dock in part 09 can be re-run at any time on any rectangle and always produce the same layout.
+    That is what makes window resizing free.
+  </p>
+</div>
+
+<div class="runit">
+  <div class="head">▶ Run it</div>
+  <div class="body">
+    <p>Replace <code>draw()</code> in <code>main.gs</code> to prove the geometry before it matters:</p>
+<pre><code class="gs">import { Rect } from "chisel/geometry/rect"
+
+function draw() {
+  // That semicolon is not optional — see the note below.
+  canvas.clear(color.hex('#2c2c34'));
+
+  [bar, rest] = new Rect(0, 0, window.width, window.height).splitTop(40)
+
+  canvas.setColor(color.hex('#3a3a44'))
+  canvas.filledRectangle(bar.x, bar.y, bar.w, bar.h)
+
+  canvas.setColor(color.hex('#191a1e'))
+  canvas.filledRectangle(rest.x, rest.y, rest.w, rest.h)
+}</code></pre>
+    <p>
+      A 40px bar across the top, a darker well below it, both exact at any window size. Resize the
+      window and watch it hold.
+    </p>
+    <p>
+      <strong>If you left the semicolon off, you get <code>syntax error: expected `]`, found
+      `,`</code></strong> pointing at the destructuring line. Ghost has no newline rule, so a line
+      starting with <code>[</code> continues the previous expression — <code>canvas.clear(...)</code>
+      followed by an index. End the preceding statement with <code>;</code> whenever the next line
+      opens with <code>[</code> or <code>(</code>. It is the one piece of punctuation this language
+      genuinely needs from you.
+    </p>
+  </div>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p3">
+<h2><span class="num">Part 03</span>Theme — every colour in one object</h2>
+
+<p>
+  A UI kit lives or dies on whether a colour can be changed in one place. The rule: <strong>widgets
+  ask for roles, never shades.</strong> <code>theme.of('button.face')</code> survives a theme swap;
+  <code>color.hex('#3a3a44')</code> sprayed through forty files does not.
+</p>
+
+<p>
+  The theme also owns two things that are not colours, because both change together: the
+  <strong>UI scale</strong> (Aseprite's 1×/2×/3× setting) and the <strong>metrics</strong> — row
+  heights, icon sizes, gutters. Metrics are stored at 1× and multiplied on read, so scaling the
+  interface is one integer, not a hunt through the widgets.
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/theme.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "lumen:font"
+import "ghost:math"
+import { Font } from "lumen:font"
+
+class Theme {
+  constructor(name) {
+    this.name = name
+    this.scale = 1
+    this.tokens = {}
+    this.fonts = {}
+
+    // Aseprite's grid at 1x. Everything in the interface is a multiple of
+    // these, and nothing is a literal number in a widget.
+    this.metrics = {
+      unit: 4,
+      gutter: 4,
+      pad: 6,
+      row: 18,
+      bar: 20,
+      tab: 22,
+      tool: 22,
+      icon: 16,
+      swatch: 14,
+      scroll: 10
+    }
+  }
+
+  // set() takes a whole map of tokens at once — a theme file builds one map
+  // and hands it over, so there is one place to read the palette.
+  set(tokens) {
+    this.tokens = this.tokens.merge(tokens)
+
+    return this
+  }
+
+  // of() answers a role. A missing token paints magenta rather than crashing:
+  // the oldest trick in pixel art is making a mistake impossible to miss.
+  of(token) {
+    found = this.tokens.get(token)
+
+    if (found == null) {
+      return color.hex('#ff00ff')
+    }
+
+    return found
+  }
+
+  // Whole numbers only. Fractional UI scale is what gives pixel art uneven
+  // edges, and it is the reason fonts below are loaded at exact multiples.
+  useScale(factor) {
+    this.scale = math.max(1, math.floor(factor))
+
+    return this
+  }
+
+  metric(name) {
+    return this.metrics.get(name) * this.scale
+  }
+
+  // A pixel typeface is only crisp at whole multiples of its design size.
+  // Pass a path to a pixel TTF, or nothing for Lumen's built-in font.
+  loadFonts(path) {
+    base = 8 * this.scale
+
+    if (path == null) {
+      this.fonts.set('small', font.system(base))
+      this.fonts.set('body', font.system(base * 2))
+
+      return this
+    }
+
+    this.fonts.set('small', new Font(path, base))
+    this.fonts.set('body', new Font(path, base * 2))
+
+    return this
+  }
+
+  font(role) {
+    return this.fonts.get(role)
+  }
+}</code></pre>
+</figure>
+
+<p>
+  <code>Theme</code> holds a palette but does not contain one — a theme file does, and a theme file
+  is a single function that returns a configured object. That keeps one class per file and makes a
+  new theme a twenty-line contribution.
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/themes/aseprite-dark.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "lumen:color"
+import { Theme } from "chisel/theme"
+
+// Three greys, two bevel lines, one saturated selection. The artwork is the
+// only thing on screen allowed to be loud; the chrome recedes on purpose.
+function asepriteDark() {
+  return new Theme('aseprite.dark').set({
+    'window.face':     color.hex('#2c2c34'),
+    'panel.face':      color.hex('#3a3a44'),
+    'panel.well':      color.hex('#191a1e'),
+    'bevel.light':     color.hex('#54545f'),
+    'bevel.dark':      color.hex('#121216'),
+    'button.face':     color.hex('#3a3a44'),
+    'button.hover':    color.hex('#474751'),
+    'button.pressed':  color.hex('#2a2a32'),
+    'button.selected': color.hex('#4f7bb5'),
+    'text.normal':     color.hex('#e9e6e1'),
+    'text.dim':        color.hex('#948f9c'),
+    'text.selected':   color.hex('#ffffff'),
+    'accent':          color.hex('#f2a340'),
+    'checker.light':   color.hex('#6b6b6b'),
+    'checker.dark':    color.hex('#535353')
+  })
+}</code></pre>
+</figure>
+
+<div class="note warn">
+  <h4>The trap this design avoids — and it is a nasty one</h4>
+  <p>
+    In Ghost, <strong>a function cannot assign to a variable outside itself.</strong> Not "should
+    not" — cannot, silently. This module:
+  </p>
+<pre style="margin:8px 0"><code class="gs">scale = 1
+
+function setScale(n) { scale = n }
+
+setScale(2)
+console.log(scale)   // 1</code></pre>
+  <p>
+    …prints <code>1</code>. Assignment always binds in the current environment and never walks
+    outward, so <code>scale = n</code> creates a function-local that vanishes on return. There is no
+    warning. Mutating an <em>object</em> works fine (<code>map.set()</code>, <code>list.push()</code>,
+    <code>this.field =</code>), which is exactly why every piece of state in this toolkit lives on an
+    instance. If you were wondering whether the class-per-file rule is dogma: it is not, it is the
+    only thing that reliably holds state in this language.
+  </p>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p4">
+<h2><span class="num">Part 04</span>Painter — the only file that touches the canvas</h2>
+
+<p>
+  Aseprite's chrome is built from about six drawing operations, repeated everywhere. Put them in one
+  object and no widget ever calls <code>canvas</code> directly, which means: the look is consistent
+  by construction, pixel snapping happens in one place, and the day you want to render a panel into
+  an off-screen thumbnail you hand a widget a different painter and nothing else changes.
+</p>
+
+<p>The six, from first principles:</p>
+
+<ul>
+  <li><strong>fill</strong> — a solid rectangle. Everything else is edges on top of one of these.</li>
+  <li><strong>bevel</strong> — one light line on the top and left, one dark line on the bottom and
+    right. Swap them and the same box reads as a hole. That is the entire 3D vocabulary of this
+    interface; there are no shadows and no gradients.</li>
+  <li><strong>panel</strong> — fill plus a raised bevel. The most-called function in the kit.</li>
+  <li><strong>well</strong> — fill plus a sunken bevel: the canvas surround, a text field, a list.</li>
+  <li><strong>groove</strong> — a dark line with a light line under it. This separator does more for
+    the "real tool" feeling than any other single detail.</li>
+  <li><strong>text</strong> — placed on whole pixels, aligned inside a rect rather than positioned
+    by hand.</li>
+</ul>
+
+<figure class="code">
+  <figcaption><span>chisel/painter.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "lumen:canvas"
+import { snap } from "chisel/support/snap"
+
+class Painter {
+  constructor(theme) {
+    this.theme = theme
+  }
+
+  // ---- surfaces -------------------------------------------------------
+
+  fill(rect, paint) {
+    canvas.setColor(paint)
+    canvas.filledRectangle(rect.x, rect.y, rect.w, rect.h)
+  }
+
+  // Lines are always one pixel. setLineWidth is set on every call because a
+  // slider that left it at 2 must not be able to thicken the next panel edge.
+  hline(x, y, width, paint) {
+    canvas.setColor(paint)
+    canvas.setLineWidth(1)
+    canvas.line(snap(x), snap(y), snap(x + width), snap(y))
+  }
+
+  vline(x, y, height, paint) {
+    canvas.setColor(paint)
+    canvas.setLineWidth(1)
+    canvas.line(snap(x), snap(y), snap(x), snap(y + height))
+  }
+
+  bevel(rect, raised) {
+    light = this.theme.of('bevel.light')
+    dark = this.theme.of('bevel.dark')
+
+    if (!raised) {
+      light = this.theme.of('bevel.dark')
+      dark = this.theme.of('bevel.light')
+    }
+
+    this.hline(rect.x, rect.y, rect.w - 1, light)
+    this.vline(rect.x, rect.y, rect.h - 1, light)
+    this.hline(rect.x, rect.bottom() - 1, rect.w - 1, dark)
+    this.vline(rect.right() - 1, rect.y, rect.h - 1, dark)
+  }
+
+  panel(rect, face) {
+    if (face == null) {
+      face = this.theme.of('panel.face')
+    }
+
+    this.fill(rect, face)
+    this.bevel(rect, true)
+  }
+
+  well(rect) {
+    this.fill(rect, this.theme.of('panel.well'))
+    this.bevel(rect, false)
+  }
+
+  groove(x, y, width) {
+    this.hline(x, y, width, this.theme.of('bevel.dark'))
+    this.hline(x, y + 1, width, this.theme.of('bevel.light'))
+  }
+
+  // ---- text -----------------------------------------------------------
+
+  text(role, string, x, y, paint) {
+    face = this.theme.font(role)
+
+    canvas.setFont(face)
+    canvas.setColor(paint)
+    canvas.print(string, snap(x), snap(y))
+  }
+
+  // textIn is what widgets actually call: align inside a rect, in whole
+  // pixels, so a row of labels never shears by one.
+  textIn(role, string, rect, horizontal, vertical, paint) {
+    face = this.theme.font(role)
+
+    x = rect.x
+    y = rect.y
+
+    if (horizontal == 'center') { x = rect.x + (rect.w - face.getWidth(string)) / 2 }
+    if (horizontal == 'right')  { x = rect.right() - face.getWidth(string) }
+    if (vertical == 'middle')   { y = rect.y + (rect.h - face.getHeight()) / 2 }
+    if (vertical == 'bottom')   { y = rect.bottom() - face.getHeight() }
+
+    this.text(role, string, x, y, paint)
+  }
+
+  measure(role, string) {
+    return this.theme.font(role).getWidth(string)
+  }
+
+  // ---- misc -----------------------------------------------------------
+
+  // A dotted accent outline for the keyboard-focused widget. Drawn as points
+  // because Lumen has no dash pattern — and stepped points are the right look
+  // here anyway.
+  focusRing(rect) {
+    canvas.setColor(this.theme.of('accent'))
+    canvas.setPointSize(1)
+
+    for (x = rect.x; x &lt; rect.right(); x = x + 2) {
+      canvas.point(x, rect.y, x, rect.bottom() - 1)
+    }
+
+    for (y = rect.y; y &lt; rect.bottom(); y = y + 2) {
+      canvas.point(rect.x, y, rect.right() - 1, y)
+    }
+  }
+
+  // Clipping is a stack, not a global: push('all') saves the scissor box
+  // along with the transform, so nested panels can each clip their own
+  // children and pop back to exactly what their parent had.
+  clip(rect) {
+    canvas.push('all')
+    canvas.setScissor(rect.x, rect.y, rect.w, rect.h)
+  }
+
+  unclip() {
+    canvas.pop()
+  }
+}</code></pre>
+</figure>
+
+<div class="runit">
+  <div class="head">▶ Run it — the first Aseprite moment</div>
+  <div class="body">
+<pre><code class="gs">import "lumen:window"
+import "lumen:canvas"
+import { Rect } from "chisel/geometry/rect"
+import { Painter } from "chisel/painter"
+import { asepriteDark } from "chisel/themes/aseprite-dark"
+
+app = {}
+
+function load() {
+  window.setTitle('Studio')
+  window.setMode(1280, 800)
+  window.setResizable(true)
+
+  app.theme = asepriteDark().useScale(2).loadFonts(null)
+  app.painter = new Painter(app.theme)
+}
+
+function draw() {
+  canvas.clear(app.theme.of('window.face'))
+
+  painter = app.painter;
+
+  [bar, rest] = new Rect(0, 0, window.width, window.height).splitTop(app.theme.metric('bar'))
+
+  painter.panel(bar, null)
+  painter.textIn('small', 'File   Edit   Sprite   Layer', bar.inset(6), 'left', 'middle', app.theme.of('text.normal'))
+
+  painter.well(rest.inset(12))
+  painter.groove(rest.x + 24, rest.y + 60, 200)
+}</code></pre>
+    <p>
+      A raised menu bar with a label, a sunken well, and a groove. It already looks like a tool
+      rather than a game — that is the bevel doing all the work. <em>(A bare <code>app</code> map at
+      the top of <code>main.gs</code> is the one place module-level state is fine: it is mutated
+      through <code>.set</code>-style property assignment on an object, never rebound.)</em>
+    </p>
+  </div>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p5">
+<h2><span class="num">Part 05</span>Traits — behaviour you mix in</h2>
+
+<p>
+  Three behaviours belong to every widget but describe none of them: the ability to run a callback
+  conditionally, the ability to hand yourself to a callback mid-chain, and the ability to carry
+  event handlers. In a language with interfaces you would inherit them. Ghost has traits, which are
+  better here: a class may <code>use</code> several, and they compose without a hierarchy.
+</p>
+
+<p>
+  One trait per file, named after the trait. Member resolution order is worth remembering: the
+  instance's own fields, then the class's own members, then its traits' members, then the superclass
+  chain.
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/traits/conditionable.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">// when() and unless() keep if-statements out of a declaration block. The
+// callback receives the object, so a chain never has to break to branch.
+trait Conditionable {
+  when(condition, callback) {
+    if (condition) {
+      callback(this)
+    }
+
+    return this
+  }
+
+  unless(condition, callback) {
+    if (!condition) {
+      callback(this)
+    }
+
+    return this
+  }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>chisel/traits/tappable.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">// tap() hands the object to a callback and answers it again — for the times a
+// chain needs a side effect in the middle of itself.
+trait Tappable {
+  tap(callback) {
+    callback(this)
+
+    return this
+  }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>chisel/traits/emits-events.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">// Per-object signalling: .on('click', fn) and .fire('click').
+//
+// `handlers = {}` is a trait field, and a trait field is re-evaluated for every
+// instance — two buttons never share one handler map. (Worth checking rather
+// than assuming: a naive implementation of class-level fields would share it,
+// and every button in the app would fire every other button's handlers.)
+trait EmitsEvents {
+  handlers = {}
+
+  on(name, handler) {
+    if (!this.handlers.has(name)) {
+      this.handlers.set(name, [])
+    }
+
+    this.handlers.get(name).push(handler)
+
+    return this
+  }
+
+  fire(name, payload) {
+    if (!this.handlers.has(name)) {
+      return false
+    }
+
+    for (handler in this.handlers.get(name)) {
+      handler(payload, this)
+    }
+
+    return true
+  }
+}</code></pre>
+</figure>
+
+<div class="note warn">
+  <h4>The loop-closure trap — this one will bite you within the hour</h4>
+  <p>
+    A closure created inside a <code>for ... in</code> loop does <strong>not</strong> capture the
+    loop variable. Ghost sets the loop variable in the enclosing scope and deletes it when the loop
+    ends, so a handler that reads it later fails with <code>name error: `name` is not defined</code>
+    — at click time, far from the cause.
+  </p>
+<pre style="margin:8px 0"><code class="gs">// BROKEN — every handler raises when it runs
+for (name in ['pencil', 'eraser']) {
+  bar.add(new Button(name).on('click', function () { tools.select(name) }))
+}
+
+// CORRECT — a factory call gives each closure its own scope to capture
+function selectHandler(tools, name) {
+  return function () { tools.select(name) }
+}
+
+for (name in ['pencil', 'eraser']) {
+  bar.add(new Button(name).on('click', selectHandler(tools, name)))
+}</code></pre>
+  <p>
+    Any closure built in a loop needs a factory function around it. This is the single most common
+    shape in UI code, so it is worth internalising now: <strong>closures capture scopes, and a loop
+    body is not one.</strong>
+  </p>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p6">
+<h2><span class="num">Part 06</span>Widget — one node, five jobs</h2>
+
+<p>
+  A widget is a rectangle that knows how to divide itself, draw itself, and answer whether a point
+  is inside it. Every control in the kit — buttons, bars, the canvas — is this class plus overrides.
+</p>
+
+<p>
+  Two details in here matter more than they look:
+</p>
+
+<ul>
+  <li><strong>Every input hook is defined on the base</strong>, even though it does nothing. Ghost
+    has no way to ask an object whether it responds to a method, and calling one that does not exist
+    is an error — so the base class defines the whole vocabulary and subclasses override what they
+    care about.</li>
+  <li><strong><code>pick()</code> walks children last-to-first</strong>, because later children are
+    drawn on top, and the thing you can see must be the thing you click.</li>
+</ul>
+
+<figure class="code">
+  <figcaption><span>chisel/widget.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { Rect } from "chisel/geometry/rect"
+import { Conditionable } from "chisel/traits/conditionable"
+import { Tappable } from "chisel/traits/tappable"
+import { EmitsEvents } from "chisel/traits/emits-events"
+
+class Widget {
+  use Conditionable, Tappable, EmitsEvents
+
+  constructor(kind) {
+    this.kind = kind
+    this.id = ''
+    this.bounds = new Rect(0, 0, 0, 0)
+    this.children = []
+
+    this.visible = true
+    this.enabled = true
+    this.focusable = false
+
+    // Tooltip text and its accelerator, shown after a dwell. Every widget can
+    // carry them; most leave them empty.
+    this.hint = ''
+    this.accel = ''
+  }
+
+  // ---- declaration ----------------------------------------------------
+
+  named(id)  { this.id = id;           return this }
+  add(child) { this.children.push(child); return this }
+  hide()     { this.visible = false;   return this }
+  show()     { this.visible = true;    return this }
+  enable()   { this.enabled = true;    return this }
+  disable()  { this.enabled = false;   return this }
+
+  tooltip(text, keys) {
+    this.hint = text
+
+    if (keys != null) {
+      this.accel = keys
+    }
+
+    return this
+  }
+
+  // ---- layout ----------------------------------------------------------
+
+  // place() is called by a parent; arrange() is what a container overrides.
+  // Keeping them separate means every widget gets its bounds set the same way.
+  place(rect) {
+    this.bounds = rect
+    this.arrange()
+
+    return this
+  }
+
+  arrange() {
+    for (child in this.children) {
+      child.place(this.bounds)
+    }
+  }
+
+  // ---- frame ------------------------------------------------------------
+
+  tick(dt, ui) {
+    for (child in this.children) {
+      if (child.visible) {
+        child.tick(dt, ui)
+      }
+    }
+  }
+
+  // A container paints its own chrome first, then calls super.paint(ui) to
+  // let the children land on top.
+  paint(ui) {
+    for (child in this.children) {
+      if (child.visible) {
+        child.paint(ui)
+      }
+    }
+  }
+
+  // ---- hit testing -------------------------------------------------------
+
+  hits(x, y) {
+    return this.visible and this.bounds.contains(x, y)
+  }
+
+  // pick() answers the deepest visible, enabled widget under a point.
+  pick(x, y) {
+    if (!this.visible or !this.hits(x, y)) {
+      return null
+    }
+
+    for (index = this.children.length() - 1; index &gt;= 0; index--) {
+      found = this.children[index].pick(x, y)
+
+      if (found != null) {
+        return found
+      }
+    }
+
+    if (this.enabled) {
+      return this
+    }
+
+    return null
+  }
+
+  // ---- input hooks --------------------------------------------------------
+  //
+  // Defined here so every widget answers them. Ghost cannot ask an object
+  // whether it has a method, so the base class owns the vocabulary.
+
+  pressed(ui)  { return false }
+  released(ui) { return false }
+  dragged(ui)  { return false }
+  wheeled(ui)  { return false }
+  keyed(ui, key) { return false }
+}</code></pre>
+</figure>
+
+<p>
+  One concrete widget, so there is something to put in a dock later. A panel is a labelled surface,
+  and it is four lines of paint:
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/widgets/panel.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { Widget } from "chisel/widget"
+
+class Panel extends Widget {
+  constructor(title) {
+    super.constructor('panel')
+
+    this.title = title
+    this.sunken = false
+  }
+
+  well() {
+    this.sunken = true
+
+    return this
+  }
+
+  paint(ui) {
+    painter = ui.painter
+
+    if (this.sunken) {
+      painter.well(this.bounds)
+    } else {
+      painter.panel(this.bounds, null)
+    }
+
+    if (this.title != null) {
+      painter.textIn(
+        'small',
+        this.title,
+        this.bounds.inset(ui.theme.metric('gutter')),
+        'left',
+        'middle',
+        ui.theme.of('text.dim')
+      )
+    }
+
+    super.paint(ui)
+  }
+}</code></pre>
+</figure>
+</section>
+
+<hr class="rule">
+
+<section id="p7">
+<h2><span class="num">Part 07</span>Ui and Pointer — the frame, and who owns the drag</h2>
+
+<p>
+  Something has to hold the root of the tree and the four pointers that make an interface feel
+  alive. That is <code>Ui</code>, and it is the object <code>main.gs</code> talks to.
+</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Pointer</th><th>Means</th><th>Set when</th></tr></thead>
+  <tbody>
+    <tr><td><code>hot</code></td><td>under the cursor right now</td><td>every mouse move</td></tr>
+    <tr><td><code>active</code></td><td>held down</td><td>press, cleared on release</td></tr>
+    <tr><td><code>focused</code></td><td>receives keys</td><td>press on a focusable widget</td></tr>
+    <tr><td><code>captured</code></td><td>owns every move until the button comes up</td><td>a widget asks for it</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Capture is what separates a real toolkit from a demo. Press inside the canvas, drag outside it,
+  and the stroke must keep drawing. Press a button, slide off it, release — and it must
+  <em>not</em> fire. Both fall out of three rules: on press the widget may capture; while captured
+  every move goes to it alone; on release capture drops and the click only counts if the pointer is
+  still inside.
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/pointer.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">// Where the mouse is, what it is doing, and how far it moved since the last
+// event. Widgets read this instead of importing the mouse module, so a widget
+// can be driven from a test or a script with no real mouse in sight.
+class Pointer {
+  constructor() {
+    this.x = 0
+    this.y = 0
+    this.dx = 0
+    this.dy = 0
+    this.button = ''
+    this.clicks = 0
+    this.wheel = 0
+  }
+
+  moveTo(x, y, dx, dy) {
+    this.x = x
+    this.y = y
+    this.dx = dx
+    this.dy = dy
+  }
+
+  press(x, y, button, clicks) {
+    this.x = x
+    this.y = y
+    this.button = button
+    this.clicks = clicks
+  }
+
+  release(x, y, button) {
+    this.x = x
+    this.y = y
+    this.button = ''
+  }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>chisel/ui.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "lumen:window"
+import "lumen:canvas"
+import { Rect } from "chisel/geometry/rect"
+import { Pointer } from "chisel/pointer"
+
+class Ui {
+  constructor(theme, painter) {
+    this.theme = theme
+    this.painter = painter
+    this.pointer = new Pointer()
+
+    this.root = null
+
+    this.hot = null
+    this.active = null
+    this.focused = null
+    this.captured = null
+
+    this.hoverAge = 0
+  }
+
+  // ---- tree ------------------------------------------------------------
+
+  mount(widget) {
+    this.root = widget
+    this.resized(window.width, window.height)
+
+    return widget
+  }
+
+  resized(width, height) {
+    if (this.root != null) {
+      this.root.place(new Rect(0, 0, width, height))
+    }
+  }
+
+  // ---- state questions widgets ask -------------------------------------
+
+  isHot(widget)     { return widget != null and this.hot == widget }
+  isActive(widget)  { return widget != null and this.active == widget }
+  isFocused(widget) { return widget != null and this.focused == widget }
+
+  capture(widget) { this.captured = widget }
+  release()       { this.captured = null }
+
+  focus(widget) {
+    if (widget != null and widget.focusable) {
+      this.focused = widget
+    }
+  }
+
+  // ---- frame -------------------------------------------------------------
+
+  tick(dt) {
+    this.hoverAge = this.hoverAge + dt
+
+    if (this.root != null) {
+      this.root.tick(dt, this)
+    }
+  }
+
+  paint() {
+    canvas.clear(this.theme.of('window.face'))
+
+    if (this.root != null) {
+      this.root.paint(this)
+    }
+
+    // Overlays go last, in a second pass: a tooltip or an open menu has to
+    // land on top of every panel, and a second pass is simpler than z-order.
+    this.paintTooltip()
+  }
+
+  // ---- input ---------------------------------------------------------------
+
+  moved(x, y, dx, dy) {
+    this.pointer.moveTo(x, y, dx, dy)
+
+    if (this.captured != null) {
+      this.captured.dragged(this)
+
+      return null
+    }
+
+    found = null
+
+    if (this.root != null) {
+      found = this.root.pick(x, y)
+    }
+
+    if (this.hot != found) {
+      this.hoverAge = 0
+    }
+
+    this.hot = found
+  }
+
+  pressed(x, y, button, clicks) {
+    this.pointer.press(x, y, button, clicks)
+
+    target = null
+
+    if (this.root != null) {
+      target = this.root.pick(x, y)
+    }
+
+    // A press anywhere clears focus first; the target takes it back if it
+    // wants it. That is what makes clicking empty space dismiss a text field.
+    this.focused = null
+
+    if (target == null) {
+      return false
+    }
+
+    this.active = target
+    this.focus(target)
+
+    return target.pressed(this)
+  }
+
+  released(x, y, button) {
+    this.pointer.release(x, y, button)
+
+    target = this.captured
+
+    if (target == null) {
+      target = this.active
+    }
+
+    this.captured = null
+    this.active = null
+
+    if (target == null) {
+      return false
+    }
+
+    return target.released(this)
+  }
+
+  wheeled(x, y) {
+    this.pointer.wheel = y
+
+    if (this.hot != null) {
+      return this.hot.wheeled(this)
+    }
+
+    return false
+  }
+
+  keyed(key, isRepeat) {
+    if (this.focused != null) {
+      return this.focused.keyed(this, key)
+    }
+
+    return false
+  }
+
+  // ---- overlays -------------------------------------------------------------
+
+  paintTooltip() {
+    target = this.hot
+
+    if (target == null or this.hoverAge &lt; 0.6 or target.hint == '') {
+      return null
+    }
+
+    label = target.hint
+
+    if (target.accel != '') {
+      label = `${label} (${target.accel})`
+    }
+
+    face = this.theme.font('small')
+    width = face.getWidth(label) + 10
+    height = face.getHeight() + 6
+
+    box = new Rect(this.pointer.x + 12, this.pointer.y + 18, width, height)
+
+    // Fold back over the cursor rather than running off the right edge.
+    if (box.right() &gt; window.width) {
+      box = new Rect(window.width - width - 2, box.y, width, height)
+    }
+
+    this.painter.panel(box, this.theme.of('panel.face'))
+    this.painter.textIn('small', label, box.inset(4), 'left', 'middle', this.theme.of('text.normal'))
+  }
+}</code></pre>
+</figure>
+
+<p>
+  Now <code>main.gs</code> reaches its final shape. It never changes again: nine forwarding calls,
+  and every one of them is the engine handing an event to the toolkit.
+</p>
+
+<figure class="code">
+  <figcaption><span>main.gs</span><span class="chip edit">rewrite</span></figcaption>
+<pre><code class="gs">import "lumen:window"
+import { Ui } from "chisel/ui"
+import { Painter } from "chisel/painter"
+import { Panel } from "chisel/widgets/panel"
+import { asepriteDark } from "chisel/themes/aseprite-dark"
+
+// The one map of module-level state in the program. It is only ever mutated
+// through property assignment (app.ui = ...), which does work — unlike
+// rebinding a plain module variable from inside a function, which does not.
+app = {}
+
+function load() {
+  window.setTitle('Studio')
+  window.setMode(1280, 800)
+  window.setResizable(true)
+  window.setVsync(true)
+
+  theme = asepriteDark().useScale(2).loadFonts(null)
+
+  app.ui = new Ui(theme, new Painter(theme))
+  app.ui.mount(new Panel('hello').well())
+}
+
+function update(dt) { app.ui.tick(dt) }
+function draw()     { app.ui.paint() }
+
+function resize(width, height) { app.ui.resized(width, height) }
+
+function mousepressed(x, y, button, clicks) { app.ui.pressed(x, y, button, clicks) }
+function mousereleased(x, y, button)        { app.ui.released(x, y, button) }
+function mousemoved(x, y, dx, dy)           { app.ui.moved(x, y, dx, dy) }
+function wheelmoved(x, y)                   { app.ui.wheeled(x, y) }
+function keypressed(key, isRepeat)          { app.ui.keyed(key, isRepeat) }</code></pre>
+</figure>
+
+<div class="runit">
+  <div class="head">▶ Run it</div>
+  <div class="body">
+    <p>
+      A sunken well filling the window with a dim label in the corner. Not much to look at — but the
+      tree, the frame and the input path are now real, and everything from here is a widget.
+    </p>
+  </div>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p8">
+<h2><span class="num">Part 08</span>Button — five states and the slide-off rule</h2>
+
+<p>
+  Aseprite's controls have exactly five appearances, and nothing in between: <strong>normal, hover,
+  pressed, selected, disabled</strong>. Hover lightens by one step, pressed inverts the bevel,
+  selected takes the accent, disabled dims the label and keeps the face. No transitions, no
+  animation — the state <em>is</em> the feedback.
+</p>
+
+<div class="states">
+  <div class="state"><div class="swatchbtn">Pencil</div><small>normal</small></div>
+  <div class="state"><div class="swatchbtn hover">Pencil</div><small>hover</small></div>
+  <div class="state"><div class="swatchbtn press">Pencil</div><small>pressed</small></div>
+  <div class="state"><div class="swatchbtn sel">Pencil</div><small>selected</small></div>
+  <div class="state"><div class="swatchbtn dis">Pencil</div><small>disabled</small></div>
+</div>
+
+<figure class="code">
+  <figcaption><span>chisel/widgets/button.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { Widget } from "chisel/widget"
+
+class Button extends Widget {
+  constructor(label) {
+    super.constructor('button')
+
+    this.label = label
+    this.glyph = null
+    this.selected = false
+    this.focusable = true
+  }
+
+  // ---- fluent surface --------------------------------------------------
+
+  icon(glyph)   { this.glyph = glyph;   return this }
+  selects(flag) { this.selected = flag; return this }
+
+  // ---- appearance -------------------------------------------------------
+
+  face(ui) {
+    if (!this.enabled)     { return ui.theme.of('button.face') }
+    if (this.selected)     { return ui.theme.of('button.selected') }
+    if (ui.isActive(this)) { return ui.theme.of('button.pressed') }
+    if (ui.isHot(this))    { return ui.theme.of('button.hover') }
+
+    return ui.theme.of('button.face')
+  }
+
+  ink(ui) {
+    if (!this.enabled) { return ui.theme.of('text.dim') }
+    if (this.selected) { return ui.theme.of('text.selected') }
+
+    return ui.theme.of('text.normal')
+  }
+
+  paint(ui) {
+    painter = ui.painter
+
+    // Pressed inverts the bevel and nudges the contents one pixel down and
+    // right. That single pixel is the whole animation budget of this
+    // interface, and it is enough.
+    raised = !ui.isActive(this)
+
+    painter.fill(this.bounds, this.face(ui))
+    painter.bevel(this.bounds, raised)
+
+    body = this.bounds
+
+    if (!raised) {
+      body = body.offset(1, 1)
+    }
+
+    if (this.glyph != null) {
+      this.glyph.draw(
+        body.x + (body.w - this.glyph.getWidth()) / 2,
+        body.y + (body.h - this.glyph.getHeight()) / 2
+      )
+    } else {
+      painter.textIn('body', this.label, body, 'center', 'middle', this.ink(ui))
+    }
+
+    if (ui.isFocused(this)) {
+      painter.focusRing(this.bounds.inset(2))
+    }
+  }
+
+  // ---- input --------------------------------------------------------------
+
+  // Capturing on press is what implements the slide-off rule: every move and
+  // the release come back here even if the pointer has left the button, so
+  // the click can be cancelled rather than fired by accident.
+  pressed(ui) {
+    if (ui.pointer.button != 'left' or !this.enabled) {
+      return false
+    }
+
+    ui.capture(this)
+
+    return true
+  }
+
+  released(ui) {
+    if (this.enabled and this.hits(ui.pointer.x, ui.pointer.y)) {
+      this.fire('click', this)
+    }
+
+    return true
+  }
+}</code></pre>
+</figure>
+
+<div class="runit">
+  <div class="head">▶ Run it</div>
+  <div class="body">
+    <p>In <code>load()</code>, mount a panel with a button in it:</p>
+<pre><code class="gs">import { Button } from "chisel/widgets/button"
+import { Rect } from "chisel/geometry/rect"
+
+root = new Panel(null)
+
+root.add(new Button('Pencil')
+  .tooltip('Pencil', 'B')
+  .on('click', function () { console.log('clicked') })
+  .place(new Rect(40, 40, 90, 28)))
+
+app.ui.mount(root)</code></pre>
+    <p>
+      Hover it: one step lighter. Hold it: the bevel inverts. Hold, slide off, release: nothing
+      happens — that is the rule most hand-rolled UIs get wrong. Dwell on it for half a second and
+      the tooltip appears with its shortcut.
+    </p>
+    <p>
+      <em>Note the explicit <code>.place()</code>: a widget with no container has to be told where
+      it is. From the next part on, containers do that for you.</em>
+    </p>
+  </div>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p9">
+<h2><span class="num">Part 09</span>Dock — carving the workspace</h2>
+
+<p>
+  Aseprite's workspace is not floating windows. Regions are carved off the edges of the available
+  rectangle in a fixed order, and whatever survives becomes the canvas. That is why the layout holds
+  at any window size with no hard-coded positions, and it is about twenty lines.
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/layout/dock.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { Widget } from "chisel/widget"
+
+class Dock extends Widget {
+  constructor() {
+    super.constructor('dock')
+
+    // Order matters and is insertion order: the menu bar is added first, so
+    // it spans the full width, and the tool bar added after it starts below.
+    this.regions = []
+    this.center = null
+  }
+
+  top(widget, size)    { return this.edge('top', widget, size) }
+  bottom(widget, size) { return this.edge('bottom', widget, size) }
+  left(widget, size)   { return this.edge('left', widget, size) }
+  right(widget, size)  { return this.edge('right', widget, size) }
+
+  edge(side, widget, size) {
+    this.regions.push({ side: side, widget: widget, size: size })
+
+    return this.add(widget)
+  }
+
+  // fill() takes the remainder. Declared last, by convention and by nature.
+  fill(widget) {
+    this.center = widget
+
+    return this.add(widget)
+  }
+
+  arrange() {
+    area = this.bounds
+
+    for (region in this.regions) {
+      taken = null
+
+      switch (region.side) {
+        case 'top'    { [taken, area] = area.splitTop(region.size) }
+        case 'bottom' { [taken, area] = area.splitBottom(region.size) }
+        case 'left'   { [taken, area] = area.splitLeft(region.size) }
+        case 'right'  { [taken, area] = area.splitRight(region.size) }
+      }
+
+      region.widget.place(taken)
+    }
+
+    if (this.center != null) {
+      this.center.place(area)
+    }
+  }
+}</code></pre>
+</figure>
+
+<div class="note why">
+  <h4>Why this works, and a Ghost detail that makes it possible</h4>
+  <p>
+    Blocks in Ghost do not introduce a scope. An assignment inside the <code>switch</code> writes to
+    the same <code>area</code> the loop is using, so the running rectangle shrinks as regions are
+    taken. In a language with block scoping this would need a different shape. It is also, precisely,
+    the shadowing behaviour that makes a stray assignment inside an <code>if</code> leak to the whole
+    function — the same rule cutting both ways.
+  </p>
+</div>
+
+<div class="runit">
+  <div class="head">▶ Run it — the workspace skeleton</div>
+  <div class="body">
+<pre><code class="gs">import { Dock } from "chisel/layout/dock"
+
+function load() {
+  window.setTitle('Studio')
+  window.setMode(1280, 800)
+  window.setResizable(true)
+  window.setVsync(true)
+
+  theme = asepriteDark().useScale(2).loadFonts(null)
+
+  app.ui = new Ui(theme, new Painter(theme))
+
+  dock = new Dock()
+
+  dock.top(new Panel('File  Edit  Sprite  Layer  Frame  Select  View  Help'), theme.metric('bar'))
+  dock.top(new Panel('Sprite-0001'), theme.metric('tab'))
+  dock.top(new Panel('Pixel-perfect   Alpha   Opacity 255'), theme.metric('bar'))
+  dock.left(new Panel('Colours'), 96)
+  dock.right(new Panel(null), theme.metric('tool') + theme.metric('gutter') * 2)
+  dock.bottom(new Panel('Sprite-0001 · 32 x 32'), theme.metric('row'))
+  dock.bottom(new Panel('Timeline'), theme.metric('row') * 6)
+  dock.fill(new Panel(null).well())
+
+  app.ui.mount(dock)
+}</code></pre>
+    <p>
+      That is the Aseprite workspace, docked and resizable. Drag the window edge around: every
+      region holds its size, the canvas takes what is left, and nothing drifts a pixel.
+    </p>
+    <p>
+      Want to check the arithmetic rather than trust your eyes? A dock of top 20, right 30, bottom 18
+      and a fill, placed into 1280×800, produces exactly this — the numbers below came out of a real
+      run of the code above:
+    </p>
+<pre><code class="sh">menu:   [0,0 1280x20]
+tools:  [1250,20 30x780]
+status: [0,782 1250x18]
+canvas: [0,20 1250x762]</code></pre>
+    <p>
+      Note that the tool bar runs the full height below the menu bar and the status bar stops short
+      of it — that is insertion order deciding who carves first, and it is why the menu bar is
+      declared before everything else.
+    </p>
+  </div>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p10">
+<h2><span class="num">Part 10</span>Studio — the shell, and what we deliberately did not build</h2>
+
+<p>
+  Chisel is finished as a framework: rectangles, painting, widgets, input. What it cannot do is host
+  an <em>application</em> — several documents, a tool that is currently selected, a command that a
+  menu and a shortcut both invoke, preferences that survive a restart. That is the shell, and it is
+  the <code>studio/</code> layer.
+</p>
+
+<p>
+  The obvious move here — the one I would reach for in Laravel — is a service container: bind
+  everything by name, resolve it anywhere, wire the app through providers. <strong>Don't.</strong>
+  In a language with no reflection and no type hints, a container is a global hashmap with string
+  keys, and it costs you three real things:
+</p>
+
+<ul>
+  <li>A typo becomes <code>null</code> at runtime, three frames from the cause. An import typo is a
+    startup fault with a suggestion.</li>
+  <li>Dependencies stop being greppable. You can no longer read a file's imports and know what it
+    touches.</li>
+  <li>It hides genuine cycles. Ghost's circular-import fault is a design smell detector; resolving
+    through a container silences it without fixing anything.</li>
+</ul>
+
+<p>
+  What actually earns its place is smaller and more boring: <strong>one context object, constructed
+  explicitly and passed down</strong>, plus <strong>typed registries for the things that really are
+  looked up by name at runtime</strong> — commands, tools, file formats. A registry is not a
+  container: it holds one kind of thing, it can validate what goes in, and its keys are user-facing
+  anyway.
+</p>
+
+<figure class="code">
+  <figcaption><span>studio/signals.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">// Application-level notifications, for the things panels need to hear about
+// but should not hold references to each other for: the document changed, the
+// tool changed, the palette was edited.
+//
+// Widget-to-widget signalling stays on the widget (the EmitsEvents trait).
+// This is only for across-the-app news, which is why it is one small class
+// and not an event system.
+class Signals {
+  constructor() {
+    this.listeners = {}
+  }
+
+  listen(name, handler) {
+    if (!this.listeners.has(name)) {
+      this.listeners.set(name, [])
+    }
+
+    bucket = this.listeners.get(name)
+    bucket.push(handler)
+
+    return { name: name, index: bucket.length() - 1 }
+  }
+
+  emit(name, payload) {
+    if (!this.listeners.has(name)) {
+      return false
+    }
+
+    for (handler in this.listeners.get(name)) {
+      if (handler != null) {
+        handler(payload)
+      }
+    }
+
+    return true
+  }
+
+  // Blanking the slot keeps every token handed out earlier pointing at the
+  // right handler.
+  forget(token) {
+    if (token == null or !this.listeners.has(token.name)) {
+      return false
+    }
+
+    this.listeners.get(token.name)[token.index] = null
+
+    return true
+  }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>studio/preferences.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "lumen:filesystem"
+import "ghost:json"
+
+// Dot-notation settings over nested maps, persisted to the player's own data
+// directory rather than next to the program — an app installed read-only
+// cannot write to its own folder.
+class Preferences {
+  constructor(identity) {
+    this.values = {}
+
+    filesystem.setIdentity(identity)
+  }
+
+  set(path, value) {
+    segments = path.split('.')
+    node = this.values
+
+    for (index = 0; index &lt; segments.length() - 1; index++) {
+      key = segments[index]
+
+      if (!node.has(key)) {
+        node.set(key, {})
+      }
+
+      node = node.get(key)
+    }
+
+    node.set(segments.last(), value)
+
+    return this
+  }
+
+  get(path, fallback) {
+    node = this.values
+
+    for (key in path.split('.')) {
+      if (node == null) {
+        return fallback
+      }
+
+      node = node.get(key)
+    }
+
+    if (node == null) {
+      return fallback
+    }
+
+    return node
+  }
+
+  // read() answers null when the file is absent, so "first launch" is an
+  // ordinary branch rather than an error path — Ghost has no exceptions and
+  // this is what the alternative looks like when it is designed rather than
+  // patched around.
+  load() {
+    saved = filesystem.read('preferences.json')
+
+    if (saved != null) {
+      this.values = this.values.merge(json.decode(saved))
+    }
+
+    return this
+  }
+
+  save() {
+    filesystem.write('preferences.json', json.encode(this.values))
+
+    return this
+  }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>studio/studio.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { Painter } from "chisel/painter"
+import { Ui } from "chisel/ui"
+import { Signals } from "studio/signals"
+import { Preferences } from "studio/preferences"
+import { CommandRegistry } from "studio/command-registry"
+import { Keymap } from "studio/keymap"
+import { ToolRegistry } from "studio/tool-registry"
+
+// One object, constructed in load(), handed to everything that needs anything.
+// It is a context, not a container: every field is a real object of a known
+// type, built here, in an order you can read.
+class Studio {
+  constructor(theme) {
+    this.theme = theme
+    this.painter = new Painter(theme)
+    this.ui = new Ui(theme, this.painter)
+
+    this.signals = new Signals()
+    this.preferences = new Preferences('studio').load()
+    this.commands = new CommandRegistry()
+    this.keymap = new Keymap(this.commands)
+    this.tools = new ToolRegistry()
+
+    this.editors = []
+    this.documents = []
+    this.document = null
+
+    // The one back-reference chisel knows about, and it is opaque: the
+    // framework never calls into it, it only hands it to widgets that ask.
+    this.ui.studio = this
+  }
+
+  // An editor is a plugin: it contributes tools, commands and panels, and it
+  // knows how to build a workspace for its own document type. Nothing is
+  // auto-discovered — you list them, in order, in load().
+  register(editor) {
+    this.editors.push(editor)
+    editor.boot()
+
+    return editor
+  }
+
+  open(document, editor) {
+    this.documents.push(document)
+    this.ui.mount(editor.workspace(document))
+    this.document = document
+    this.signals.emit('document.opened', document)
+
+    return document
+  }
+
+  run(name) {
+    return this.commands.run(name, this)
+  }
+
+  keyed(key, isRepeat) {
+    return this.keymap.dispatch(key, this)
+  }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>chisel/ui.gs</span><span class="chip edit">edit</span></figcaption>
+<pre><code class="gs">  constructor(theme, painter) {
+    this.theme = theme
+    this.painter = painter
+    this.pointer = new Pointer()
+
+    // Set by the shell. Chisel never reads it; widgets that belong to an
+    // application do. This is the only line in the framework that admits an
+    // application exists.
+    this.studio = null
+
+    this.root = null
+    // ...unchanged</code></pre>
+</figure>
+
+<div class="note why">
+  <h4>What replaced the service providers</h4>
+  <p>
+    An <strong>editor class with a <code>boot()</code> method</strong> — the useful half of a
+    provider, without the two-phase dance. <code>boot()</code> registers tools, commands and
+    panels; <code>workspace(document)</code> builds the dock for a document. Ordering is handled by
+    the fact that you call <code>studio.register(...)</code> in an order you chose, in a file you
+    can read. When the sound editor arrives it is a third <code>register()</code> call.
+  </p>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p11">
+<h2><span class="num">Part 11</span>Commands and the keymap — a desktop app's routes file</h2>
+
+<p>
+  Here is the one place the Laravel analogy earns its keep rather than decorating. A menu item, a
+  tool-bar button and a keyboard shortcut are three front doors onto <em>one</em> action. If each
+  owns its own copy of the behaviour, they drift: the menu says Undo is available, the shortcut
+  disagrees, and the tooltip shows a chord that was rebound last week.
+</p>
+
+<p>
+  So: <strong>a Command is the unit</strong>. It owns its label, its accelerator, whether it is
+  currently available, and what it does. Everything else refers to it by name.
+</p>
+
+<figure class="code">
+  <figcaption><span>studio/command.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">class Command {
+  constructor(name, label) {
+    this.name = name
+    this.label = label
+    this.accel = ''
+    this.runner = null
+    this.guard = null
+  }
+
+  // The field is `accel` and the setter is `shortcut()` on purpose. Ghost
+  // will let a field and a method share a name — `x.thing` reads the field and
+  // `x.thing()` calls the method — but one name meaning two things is a bug
+  // waiting for a tired afternoon.
+  shortcut(chord) { this.accel = chord;  return this }
+  does(runner)    { this.runner = runner; return this }
+  available(test) { this.guard = test;    return this }
+
+  isEnabled(studio) {
+    if (this.guard == null) {
+      return true
+    }
+
+    // A function held in a field cannot be called as this.guard(...): Ghost
+    // reads that as a method call, and method lookup does not see fields.
+    // Bind it to a local and call the local.
+    test = this.guard
+
+    return test(studio)
+  }
+
+  run(studio) {
+    if (this.runner == null or !this.isEnabled(studio)) {
+      return false
+    }
+
+    runner = this.runner
+
+    runner(studio)
+
+    return true
+  }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>studio/command-registry.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">class CommandRegistry {
+  constructor() {
+    this.commands = {}
+  }
+
+  add(command) {
+    this.commands.set(command.name, command)
+
+    return command
+  }
+
+  get(name) {
+    return this.commands.get(name)
+  }
+
+  run(name, studio) {
+    command = this.get(name)
+
+    if (command == null) {
+      console.log(`no command named ${name}`)
+
+      return false
+    }
+
+    return command.run(studio)
+  }
+
+  // Everything a command palette needs, and the reason commands are a
+  // registry rather than a pile of closures.
+  all() {
+    return this.commands.values()
+  }
+}</code></pre>
+</figure>
+
+<p>
+  Now the keyboard. Lumen hands <code>keypressed</code> an <strong>SDL scancode name</strong> —
+  <code>'A'</code>, <code>'Escape'</code>, <code>'Left Ctrl'</code>, <code>'Keypad +'</code> —
+  matched case-insensitively. Two helpers turn that into a chord, one function per file:
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/support/normalize-chord.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">// Sorts modifiers into one canonical order so 'shift+ctrl+z' and
+// 'ctrl+shift+z' are the same binding rather than two.
+function normalizeChord(text) {
+  parts = text.toLowerCase().split('+')
+  key = parts.last()
+  chord = []
+
+  for (name in ['ctrl', 'alt', 'shift']) {
+    if (parts.contains(name)) {
+      chord.push(name)
+    }
+  }
+
+  chord.push(key)
+
+  return chord.join('+')
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>chisel/support/chord-of.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "lumen:keyboard"
+import { normalizeChord } from "chisel/support/normalize-chord"
+
+// Builds the chord for a key that has just been pressed, by asking which
+// modifiers are held right now.
+//
+// The names below are SDL's own ('Left Ctrl', not 'lctrl'), and getting one
+// wrong is an *error* rather than a quiet false — Lumen raises on a key name
+// it cannot resolve, which is friendlier for typos and unforgiving of guesses.
+function chordOf(key) {
+  lowered = key.toLowerCase()
+
+  // A modifier pressed by itself is not a chord.
+  if (['left ctrl', 'right ctrl', 'left shift', 'right shift', 'left alt', 'right alt'].contains(lowered)) {
+    return ''
+  }
+
+  parts = []
+
+  if (keyboard.isDown('left ctrl', 'right ctrl'))   { parts.push('ctrl') }
+  if (keyboard.isDown('left alt', 'right alt'))     { parts.push('alt') }
+  if (keyboard.isDown('left shift', 'right shift')) { parts.push('shift') }
+
+  parts.push(lowered)
+
+  return normalizeChord(parts.join('+'))
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>studio/keymap.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { chordOf } from "chisel/support/chord-of"
+import { normalizeChord } from "chisel/support/normalize-chord"
+
+// Routes, with middleware. bind() maps a chord to a command name; group()
+// applies a shared guard to everything declared inside it.
+class Keymap {
+  constructor(commands) {
+    this.commands = commands
+    this.routes = {}
+    this.guards = {}
+    this.middleware = []
+  }
+
+  guard(name, test) {
+    this.guards.set(name, test)
+
+    return this
+  }
+
+  bind(chord, command) {
+    this.routes.set(normalizeChord(chord), {
+      command: command,
+      middleware: this.middleware
+    })
+
+    // A binding is also the answer to "what is this command's shortcut?", so
+    // the menu row and the tooltip never have to be told separately.
+    known = this.commands.get(command)
+
+    if (known != null and known.accel == '') {
+      known.shortcut(chord)
+    }
+
+    return this
+  }
+
+  group(names, callback) {
+    previous = this.middleware
+
+    this.middleware = previous.concat(names)
+    callback(this)
+    this.middleware = previous
+
+    return this
+  }
+
+  passes(names, studio) {
+    for (name in names) {
+      test = this.guards.get(name)
+
+      if (test != null and !test(studio)) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  dispatch(key, studio) {
+    chord = chordOf(key)
+
+    if (chord == '') {
+      return false
+    }
+
+    route = this.routes.get(chord)
+
+    if (route == null or !this.passes(route.middleware, studio)) {
+      return false
+    }
+
+    return this.commands.run(route.command, studio)
+  }
+}</code></pre>
+</figure>
+
+<p>
+  Buttons and menu rows now name a command instead of carrying a closure. Two lines on
+  <code>Button</code>:
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/widgets/button.gs</span><span class="chip edit">edit</span></figcaption>
+<pre><code class="gs">  // in the constructor
+    this.command = null
+
+  // a new fluent setter
+  does(command) { this.command = command; return this }
+
+  // in released(), after the hits() check and the fire('click'):
+    if (this.command != null and ui.studio != null) {
+      ui.studio.run(this.command)
+    }</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>studio/sprite/commands.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { Command } from "studio/command"
+
+// One function, one file: it registers the sprite editor's commands and the
+// keys that reach them. This is the file a user would read to learn the app,
+// which is the argument for keeping it flat and boring.
+function registerSpriteCommands(studio) {
+  commands = studio.commands
+  keys = studio.keymap
+
+  commands.add(new Command('history.undo', 'Undo')
+    .does(function (studio) { studio.document.history().undo() })
+    .available(function (studio) { return studio.document != null }))
+
+  commands.add(new Command('history.redo', 'Redo')
+    .does(function (studio) { studio.document.history().redo() }))
+
+  commands.add(new Command('sprite.save', 'Save')
+    .does(function (studio) { studio.document.save() }))
+
+  commands.add(new Command('view.zoomIn', 'Zoom In')
+    .does(function (studio) { studio.signals.emit('view.zoom', 1) }))
+
+  commands.add(new Command('view.zoomOut', 'Zoom Out')
+    .does(function (studio) { studio.signals.emit('view.zoom', -1) }))
+
+  keys.guard('editing', function (studio) { return studio.document != null })
+
+  keys.group(['editing'], function (keys) {
+    keys.bind('ctrl+z', 'history.undo')
+    keys.bind('ctrl+shift+z', 'history.redo')
+    keys.bind('ctrl+s', 'sprite.save')
+    keys.bind('plus', 'view.zoomIn')
+    keys.bind('minus', 'view.zoomOut')
+  })
+}</code></pre>
+</figure>
+
+<div class="runit">
+  <div class="head">▶ Run it</div>
+  <div class="body">
+    <p>
+      Build a <code>Studio</code> in <code>load()</code>, register one throwaway command, bind it,
+      and forward keys to the shell:
+    </p>
+<pre><code class="gs">app.studio = new Studio(asepriteDark().useScale(2).loadFonts(null))
+app.ui = app.studio.ui
+
+app.studio.commands.add(new Command('hello', 'Say Hello')
+  .does(function (studio) { console.log('hello from ctrl+h') }))
+
+app.studio.keymap.bind('ctrl+h', 'hello')
+
+// and in main.gs
+function keypressed(key, isRepeat) { app.studio.keyed(key, isRepeat) }</code></pre>
+    <p>
+      Press ctrl+H. Note what you get for free: the command now knows its own accelerator, so any
+      menu row or tooltip that names <code>'hello'</code> can print "Ctrl+H" without being told.
+    </p>
+  </div>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p12">
+<h2><span class="num">Part 12</span>The editor chrome</h2>
+
+<p>
+  Four widgets fill the dock. They are all the same two ideas — a container that arranges children,
+  a paint method that reads state — so this part moves faster and shows the parts that are specific.
+</p>
+
+<h3>Tool bar</h3>
+
+<p>
+  A column of square buttons where exactly one is selected. Selection lives in the bar, not in the
+  buttons, so nothing ever has to "deselect the other seven".
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/widgets/toolbar.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { Widget } from "chisel/widget"
+import { Button } from "chisel/widgets/button"
+import { Rect } from "chisel/geometry/rect"
+
+// The handler factory lives outside the class because a closure built inside
+// a loop cannot capture the loop variable — see part 05. Every list-driven
+// widget in this kit needs one of these.
+function selectHandler(bar, name) {
+  return function () { bar.select(name) }
+}
+
+class Toolbar extends Widget {
+  constructor() {
+    super.constructor('toolbar')
+
+    this.value = null
+  }
+
+  tool(name, label, key) {
+    button = new Button(label)
+      .named(name)
+      .tooltip(name, key)
+      .on('click', selectHandler(this, name))
+
+    return this.add(button)
+  }
+
+  select(name) {
+    this.value = name
+
+    for (child in this.children) {
+      child.selects(child.id == name)
+    }
+
+    this.fire('change', name)
+
+    return this
+  }
+
+  arrange() {
+    size = this.bounds.w - 8
+    top = this.bounds.y + 4
+
+    for (child in this.children) {
+      child.place(new Rect(this.bounds.x + 4, top, size, size))
+
+      top = top + size + 1
+    }
+  }
+
+  paint(ui) {
+    ui.painter.panel(this.bounds, null)
+
+    super.paint(ui)
+  }
+}</code></pre>
+</figure>
+
+<h3>Colour bar</h3>
+
+<p>
+  A grid of swatches with a foreground and background colour under it. <code>Rect.cell()</code> does
+  the arithmetic, which is why this is short — and why the grid never drifts a pixel as the panel
+  resizes.
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/widgets/swatches.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "ghost:math"
+import { Widget } from "chisel/widget"
+
+class Swatches extends Widget {
+  constructor(colors) {
+    super.constructor('swatches')
+
+    this.colors = colors
+    this.columns = 4
+    this.index = 0
+  }
+
+  across(count) { this.columns = count; return this }
+  colours(list) { this.colors = list;   return this }
+
+  // Which swatch is under a point — the same arithmetic as arrange(), run
+  // backwards. Widgets that draw a grid always need both.
+  indexAt(ui, x, y) {
+    size = ui.theme.metric('swatch')
+    gap = 1 * ui.theme.scale
+    inner = this.bounds.inset(ui.theme.metric('gutter'))
+
+    column = math.floor((x - inner.x) / (size + gap))
+    row = math.floor((y - inner.y) / (size + gap))
+
+    if (column &lt; 0 or column &gt;= this.columns) {
+      return -1
+    }
+
+    found = row * this.columns + column
+
+    if (found &lt; 0 or found &gt;= this.colors.length()) {
+      return -1
+    }
+
+    return found
+  }
+
+  paint(ui) {
+    painter = ui.painter
+    painter.panel(this.bounds, null)
+
+    size = ui.theme.metric('swatch')
+    gap = 1 * ui.theme.scale
+    inner = this.bounds.inset(ui.theme.metric('gutter'))
+
+    for (index = 0; index &lt; this.colors.length(); index++) {
+      column = index % this.columns
+      row = math.floor(index / this.columns)
+      cell = inner.cell(column, row, size, gap)
+
+      painter.fill(cell, this.colors[index])
+
+      if (index == this.index) {
+        painter.bevel(cell, false)
+        painter.hline(cell.x, cell.y - 1, cell.w, ui.theme.of('accent'))
+      }
+    }
+  }
+
+  pressed(ui) {
+    found = this.indexAt(ui, ui.pointer.x, ui.pointer.y)
+
+    if (found &lt; 0) {
+      return false
+    }
+
+    this.index = found
+    this.fire('pick', found)
+
+    return true
+  }
+}</code></pre>
+</figure>
+
+<h3>Menus, and why they cost almost nothing now</h3>
+
+<p>
+  Because commands own their labels and accelerators, a menu row is a <em>name</em>. The right-hand
+  accelerator column — the detail that makes an app feel keyboard-first before the user has learned
+  a single shortcut — comes along for free.
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/widgets/menu.gs</span><span class="chip new">new</span><span class="role">excerpt: one row</span></figcaption>
+<pre><code class="gs">  // A row is either a command name or a separator. Nothing else.
+  item(command) { this.rows.push({ kind: 'item', command: command }); return this }
+  separator()   { this.rows.push({ kind: 'separator' });              return this }
+
+  paintRow(ui, row, box) {
+    if (row.kind == 'separator') {
+      ui.painter.groove(box.x + 2, box.y + box.h / 2, box.w - 4)
+
+      return null
+    }
+
+    command = ui.studio.commands.get(row.command)
+    enabled = command.isEnabled(ui.studio)
+    ink = ui.theme.of('text.normal')
+
+    if (!enabled) {
+      ink = ui.theme.of('text.dim')
+    }
+
+    if (this.hovered == row) {
+      ui.painter.fill(box, ui.theme.of('button.selected'))
+      ink = ui.theme.of('text.selected')
+    }
+
+    ui.painter.textIn('body', command.label, box.inset(6), 'left', 'middle', ink)
+
+    if (command.accel != '') {
+      ui.painter.textIn('body', command.accel, box.inset(6), 'right', 'middle', ui.theme.of('text.dim'))
+    }
+  }</code></pre>
+</figure>
+
+<h3>Status bar</h3>
+
+<figure class="code">
+  <figcaption><span>chisel/widgets/statusbar.gs</span><span class="chip new">new</span><span class="role">excerpt: three zones</span></figcaption>
+<pre><code class="gs">  paint(ui) {
+    ui.painter.panel(this.bounds, null)
+
+    box = this.bounds.inset(ui.theme.metric('gutter'))
+
+    // Left: what the pointer is over, in document coordinates. Middle: the
+    // document itself. Right: the last thing that happened, which fades by
+    // age rather than by animation.
+    ui.painter.textIn('small', this.cursor, box, 'left', 'middle', ui.theme.of('text.normal'))
+    ui.painter.textIn('small', this.summary, box, 'center', 'middle', ui.theme.of('text.dim'))
+
+    if (this.message != '' and this.messageAge &lt; 4) {
+      ui.painter.textIn('small', this.message, box, 'right', 'middle', ui.theme.of('accent'))
+    }
+  }
+
+  tick(dt, ui) {
+    this.messageAge = this.messageAge + dt
+
+    super.tick(dt, ui)
+  }</code></pre>
+</figure>
+</section>
+
+<hr class="rule">
+
+<section id="p13">
+<h2><span class="num">Part 13</span>The document, the tools, and the canvas</h2>
+
+<p>
+  Everything so far is editor-agnostic. Now the pixel editor: a document, a tool, and the viewport
+  that shows one and drives the other.
+</p>
+
+<p>
+  Ghost has no <code>interface</code> keyword, so a contract is <strong>a trait plus a documented set
+  of methods</strong> — checked by the program running, not by a compiler. That is less rigorous and,
+  in a codebase this size, entirely sufficient.
+</p>
+
+<figure class="code">
+  <figcaption><span>studio/traits/editable.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">// Everything the workspace can open uses this trait and answers these six
+// methods. The trait carries the bookkeeping; the list below is the promise:
+//
+//   width()           cells across
+//   height()          cells down
+//   at(x, y)          the value in a cell, or null
+//   put(x, y, value)  write a cell
+//   colorOf(value)    what a value paints as
+//   snapshot()        a value the history stack can restore
+//
+trait Editable {
+  markDirty() {
+    this.dirty = true
+    this.revision = this.revision + 1
+
+    return this
+  }
+
+  isDirty() { return this.dirty }
+
+  clean() {
+    this.dirty = false
+
+    return this
+  }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>studio/sprite/sprite.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "lumen:color"
+import { Editable } from "studio/traits/editable"
+
+class Sprite {
+  use Editable
+
+  constructor(width, height) {
+    this.w = width
+    this.h = height
+    this.dirty = false
+    this.revision = 0
+    this.title = 'Sprite-0001'
+
+    this.palette = [
+      color.hex('#000000'), color.hex('#1d2b53'), color.hex('#7e2553'), color.hex('#008751'),
+      color.hex('#ab5236'), color.hex('#5f574f'), color.hex('#c2c3c7'), color.hex('#fff1e8'),
+      color.hex('#ff004d'), color.hex('#ffa300'), color.hex('#ffec27'), color.hex('#00e436'),
+      color.hex('#29adff'), color.hex('#83769c'), color.hex('#ff77a8'), color.hex('#ffccaa')
+    ]
+
+    this.foreground = 8
+    this.background = 7
+
+    // One flat list of palette indices, null for transparent. Flat beats
+    // nested: one bounds check, one multiply, and a snapshot is one copy.
+    this.cells = []
+
+    for (index = 0; index &lt; width * height; index++) {
+      this.cells.push(null)
+    }
+  }
+
+  width()  { return this.w }
+  height() { return this.h }
+
+  at(x, y) {
+    if (x &lt; 0 or y &lt; 0 or x &gt;= this.w or y &gt;= this.h) {
+      return null
+    }
+
+    return this.cells[y * this.w + x]
+  }
+
+  put(x, y, value) {
+    if (x &lt; 0 or y &lt; 0 or x &gt;= this.w or y &gt;= this.h) {
+      return false
+    }
+
+    this.cells[y * this.w + x] = value
+    this.markDirty()
+
+    return true
+  }
+
+  colorOf(value) {
+    return this.palette[value]
+  }
+
+  snapshot() {
+    return this.cells.slice(0)
+  }
+
+  restore(snapshot) {
+    this.cells = snapshot
+    this.markDirty()
+
+    return this
+  }
+}</code></pre>
+</figure>
+
+<h3>Tools</h3>
+
+<p>
+  A tool is three verbs — press, drag, release — over a document. Naming note:
+  <code>continue</code> is a Ghost keyword, so the middle verb is <code>drag</code>.
+</p>
+
+<figure class="code">
+  <figcaption><span>studio/tool.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">class Tool {
+  constructor(name, label, key) {
+    this.name = name
+    this.label = label
+    this.key = key
+  }
+
+  begin(document, x, y, button) { return false }
+  drag(document, x, y)          { return false }
+  finish(document)              { return false }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>studio/tool-registry.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">class ToolRegistry {
+  constructor() {
+    this.tools = {}
+    this.selected = null
+  }
+
+  add(tool) {
+    this.tools.set(tool.name, tool)
+
+    if (this.selected == null) {
+      this.selected = tool.name
+    }
+
+    return tool
+  }
+
+  select(name) {
+    if (this.tools.has(name)) {
+      this.selected = name
+    }
+
+    return this
+  }
+
+  current() { return this.tools.get(this.selected) }
+  all()     { return this.tools.values() }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>studio/support/line-pixels.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "ghost:math"
+
+// Bresenham. A fast drag skips cells — the mouse reports where it is, not
+// where it went — so every painting tool walks the line between the last cell
+// and this one. Without it, drawing quickly leaves dotted strokes.
+function linePixels(x0, y0, x1, y1, visit) {
+  dx = math.abs(x1 - x0)
+  dy = math.abs(y1 - y0)
+
+  sx = 1
+  sy = 1
+
+  if (x0 &gt;= x1) { sx = -1 }
+  if (y0 &gt;= y1) { sy = -1 }
+
+  error = dx - dy
+
+  while (true) {
+    visit(x0, y0)
+
+    if (x0 == x1 and y0 == y1) {
+      break
+    }
+
+    doubled = error * 2
+
+    if (doubled &gt; -dy) {
+      error = error - dy
+      x0 = x0 + sx
+    }
+
+    if (doubled &lt; dx) {
+      error = error + dx
+      y0 = y0 + sy
+    }
+  }
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>studio/sprite/tools/pencil.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { Tool } from "studio/tool"
+import { linePixels } from "studio/support/line-pixels"
+
+// The painter closure is built by a method call, not inside a loop, so it
+// captures `document` and `value` correctly.
+function stroke(document, value) {
+  return function (x, y) { document.put(x, y, value) }
+}
+
+class Pencil extends Tool {
+  constructor() {
+    super.constructor('pencil', 'Pencil', 'B')
+
+    this.last = null
+  }
+
+  // Right-click paints the background colour, the way every pixel editor
+  // since Deluxe Paint has behaved.
+  valueFor(document, button) {
+    if (button == 'right') {
+      return document.background
+    }
+
+    return document.foreground
+  }
+
+  begin(document, x, y, button) {
+    this.value = this.valueFor(document, button)
+    this.last = [x, y]
+
+    document.put(x, y, this.value)
+
+    return true
+  }
+
+  drag(document, x, y) {
+    if (this.last != null) {
+      linePixels(this.last[0], this.last[1], x, y, stroke(document, this.value))
+    }
+
+    this.last = [x, y]
+
+    return true
+  }
+
+  finish(document) {
+    this.last = null
+
+    return true
+  }
+}</code></pre>
+</figure>
+
+<h3>The viewport</h3>
+
+<p>
+  This is the one place performance is a design question rather than an afterthought. A 128×128
+  sprite is 16,384 rectangles; drawing them individually every frame is how an editor ends up at 20
+  FPS. So the document is rendered into an off-screen <code>Target</code> <strong>only when it
+  changes</strong>, and the frame blits that target at an integer zoom.
+</p>
+
+<figure class="code">
+  <figcaption><span>studio/sprite/viewport.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "lumen:canvas"
+import "lumen:color"
+import "ghost:math"
+import { Target } from "lumen:canvas"
+import { Widget } from "chisel/widget"
+import { Rect } from "chisel/geometry/rect"
+import { snap } from "chisel/support/snap"
+
+class Viewport extends Widget {
+  constructor(document) {
+    super.constructor('viewport')
+
+    this.document = document
+    this.zoom = 8
+    this.panX = 0
+    this.panY = 0
+    this.stale = true
+    this.surface = new Target(document.width(), document.height())
+    this.focusable = true
+    this.last = null
+  }
+
+  // The entire cache-management API. Tools call it; nothing else needs to
+  // know the target exists.
+  invalidate() {
+    this.stale = true
+
+    return this
+  }
+
+  // ---- view maths ------------------------------------------------------
+
+  origin() {
+    width = this.document.width() * this.zoom
+    height = this.document.height() * this.zoom
+
+    return {
+      x: snap(this.bounds.x + (this.bounds.w - width) / 2 + this.panX),
+      y: snap(this.bounds.y + (this.bounds.h - height) / 2 + this.panY)
+    }
+  }
+
+  toCell(x, y) {
+    at = this.origin()
+
+    column = math.floor((x - at.x) / this.zoom)
+    row = math.floor((y - at.y) / this.zoom)
+
+    if (column &lt; 0 or row &lt; 0 or column &gt;= this.document.width() or row &gt;= this.document.height()) {
+      return null
+    }
+
+    return [column, row]
+  }
+
+  // Whole numbers only. Fractional zoom is exactly how pixel art gets uneven
+  // edges, and Aseprite refuses it for the same reason.
+  setZoom(level) {
+    this.zoom = math.clamp(math.floor(level), 1, 64)
+
+    return this
+  }
+
+  // ---- painting ----------------------------------------------------------
+
+  refresh() {
+    if (!this.stale) {
+      return null
+    }
+
+    // Drawing into a target resets the transform: a target is its own screen,
+    // so (0, 0) is its corner. That is why this loop is in document
+    // coordinates with no offset arithmetic at all.
+    canvas.setTarget(this.surface)
+    canvas.clear(color.transparent)
+
+    for (y = 0; y &lt; this.document.height(); y++) {
+      for (x = 0; x &lt; this.document.width(); x++) {
+        value = this.document.at(x, y)
+
+        if (value != null) {
+          canvas.setColor(this.document.colorOf(value))
+          canvas.filledRectangle(x, y, 1, 1)
+        }
+      }
+    }
+
+    canvas.setTarget()
+
+    this.stale = false
+  }
+
+  paint(ui) {
+    this.refresh()
+
+    painter = ui.painter
+
+    painter.well(this.bounds)
+    painter.clip(this.bounds.inset(1))
+
+    at = this.origin()
+
+    this.paintChecker(ui, at)
+
+    canvas.setColor(color.white)
+    this.surface.draw(at.x, at.y, 0, this.zoom, this.zoom)
+
+    this.paintGrid(ui, at)
+
+    painter.unclip()
+  }
+
+  // Screen-space checkerboard at a fixed cell, the way Aseprite does it, so
+  // it does not zoom with the sprite.
+  paintChecker(ui, at) {
+    cell = 8 * ui.theme.scale
+    width = this.document.width() * this.zoom
+    height = this.document.height() * this.zoom
+
+    columns = math.ceil(width / cell)
+    rows = math.ceil(height / cell)
+
+    for (row = 0; row &lt; rows; row++) {
+      for (column = 0; column &lt; columns; column++) {
+        shade = ui.theme.of('checker.dark')
+
+        if ((row + column) % 2 == 0) {
+          shade = ui.theme.of('checker.light')
+        }
+
+        canvas.setColor(shade)
+        canvas.filledRectangle(
+          at.x + column * cell,
+          at.y + row * cell,
+          math.min(cell, width - column * cell),
+          math.min(cell, height - row * cell)
+        )
+      }
+    }
+  }
+
+  // The grid appears only once a cell is big enough to carry a line, which is
+  // the rule Aseprite uses too.
+  paintGrid(ui, at) {
+    if (this.zoom &lt; 6) {
+      return null
+    }
+
+    grid = ui.theme.of('bevel.dark')
+    width = this.document.width() * this.zoom
+    height = this.document.height() * this.zoom
+
+    for (x = 0; x &lt;= this.document.width(); x++) {
+      ui.painter.vline(at.x + x * this.zoom, at.y, height, grid)
+    }
+
+    for (y = 0; y &lt;= this.document.height(); y++) {
+      ui.painter.hline(at.x, at.y + y * this.zoom, width, grid)
+    }
+  }
+
+  // ---- input ---------------------------------------------------------------
+
+  pressed(ui) {
+    ui.capture(this)
+
+    cell = this.toCell(ui.pointer.x, ui.pointer.y)
+
+    if (cell == null) {
+      return false
+    }
+
+    ui.studio.tools.current().begin(this.document, cell[0], cell[1], ui.pointer.button)
+    this.invalidate()
+
+    return true
+  }
+
+  dragged(ui) {
+    cell = this.toCell(ui.pointer.x, ui.pointer.y)
+
+    if (cell == null) {
+      return false
+    }
+
+    ui.studio.tools.current().drag(this.document, cell[0], cell[1])
+    this.invalidate()
+
+    return true
+  }
+
+  released(ui) {
+    ui.studio.tools.current().finish(this.document)
+
+    return true
+  }
+
+  wheeled(ui) {
+    this.setZoom(this.zoom + ui.pointer.wheel)
+
+    return true
+  }
+}</code></pre>
+</figure>
+
+<h3>The editor that ties it together</h3>
+
+<figure class="code">
+  <figcaption><span>studio/sprite/editor.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { Dock } from "chisel/layout/dock"
+import { Panel } from "chisel/widgets/panel"
+import { Toolbar } from "chisel/widgets/toolbar"
+import { Swatches } from "chisel/widgets/swatches"
+import { Viewport } from "studio/sprite/viewport"
+import { Pencil } from "studio/sprite/tools/pencil"
+import { Eraser } from "studio/sprite/tools/eraser"
+import { registerSpriteCommands } from "studio/sprite/commands"
+
+function selectTool(studio, name) {
+  return function () { studio.tools.select(name) }
+}
+
+function pickColour(document) {
+  return function (index) { document.foreground = index }
+}
+
+// An editor is a plugin: boot() contributes to the shell, workspace() builds
+// the dock for one document. No auto-discovery, no lifecycle phases — you call
+// register() in an order you can read.
+class SpriteEditor {
+  constructor(studio) {
+    this.studio = studio
+  }
+
+  boot() {
+    this.studio.tools.add(new Pencil())
+    this.studio.tools.add(new Eraser())
+
+    registerSpriteCommands(this.studio)
+
+    return this
+  }
+
+  workspace(document) {
+    studio = this.studio
+    theme = studio.theme
+
+    dock = new Dock()
+
+    dock.top(new Panel('File  Edit  Sprite  Layer  Frame  Select  View  Help'), theme.metric('bar'))
+    dock.top(new Panel(document.title), theme.metric('tab'))
+    dock.top(new Panel('Pixel-perfect   Alpha   Opacity 255'), theme.metric('bar'))
+
+    dock.left(new Swatches(document.palette)
+      .across(4)
+      .on('pick', pickColour(document)), 96)
+
+    dock.right(new Toolbar()
+      .tool('pencil', 'P', 'B')
+      .tool('eraser', 'E', 'E')
+      .select('pencil')
+      .on('change', function (name) { studio.tools.select(name) }),
+      theme.metric('tool') + 8)
+
+    dock.bottom(new Panel(`${document.title} · ${document.width()} x ${document.height()}`), theme.metric('row'))
+    dock.bottom(new Panel('Timeline'), theme.metric('row') * 6)
+
+    dock.fill(new Viewport(document))
+
+    return dock
+  }
+}</code></pre>
+</figure>
+
+<div class="runit">
+  <div class="head">▶ Run it — the editor draws</div>
+  <div class="body">
+<pre><code class="gs">function load() {
+  window.setTitle('Studio')
+  window.setMode(1280, 800)
+  window.setResizable(true)
+  window.setVsync(true)
+
+  app.studio = new Studio(asepriteDark().useScale(2).loadFonts(null))
+
+  editor = app.studio.register(new SpriteEditor(app.studio))
+
+  app.studio.open(new Sprite(32, 32), editor)
+}</code></pre>
+    <p>
+      Pick a colour on the left, a tool on the right, and draw. Scroll to zoom. Drag fast and the
+      line stays solid; drag off the canvas and back and the stroke continues, because the viewport
+      captured the pointer on press. The checkerboard shows through where nothing is painted.
+    </p>
+    <p>
+      That is a working pixel editor in about nine hundred lines, of which roughly six hundred are
+      the reusable framework.
+    </p>
+  </div>
+</div>
+
+<div class="note why">
+  <h4>The next optimisation, when you need it</h4>
+  <p>
+    <code>invalidate()</code> currently repaints the whole document. Upgrade it to take a rectangle,
+    union the boxes touched this frame, and set the scissor to that union before repainting — a
+    pencil stroke then costs a few dozen rectangles regardless of document size. The call sites do
+    not change, which is the argument for having them go through one method in the first place.
+  </p>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p14">
+<h2><span class="num">Part 14</span>The map editor, mostly for free</h2>
+
+<p>
+  The map editor is the same shell with a different document, a different tool set and one changed
+  number in the viewport. That is the whole point of the layering, and it is worth checking it
+  actually holds up rather than asserting it.
+</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Region</th><th>Sprite editor</th><th>Map editor</th></tr></thead>
+  <tbody>
+    <tr><td>dock.left</td><td><code>Swatches</code> of palette colours</td><td>the same <code>Swatches</code>, drawing tile images</td></tr>
+    <tr><td>dock.right</td><td>Pencil, eraser, bucket</td><td>Stamp, fill, picker — a different set in the same registry</td></tr>
+    <tr><td>dock.bottom</td><td>Timeline: frames × layers</td><td>Layer list: ground, objects, collision</td></tr>
+    <tr><td>dock.fill</td><td><code>Viewport</code>, one cell = one pixel</td><td>the same <code>Viewport</code>, one cell = 16 pixels</td></tr>
+    <tr><td>Document</td><td><code>Sprite</code> — palette indices</td><td><code>Tilemap</code> — tile indices</td></tr>
+    <tr><td>chisel/</td><td colspan="2" style="color:var(--muted)">identical, unchanged, unaware</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Two changes make it real. <code>Viewport</code> gains a cell size — the document says how big one
+  of its cells is on screen at 1× — and <code>refresh()</code> asks the document to paint a cell
+  rather than assuming it is a coloured square:
+</p>
+
+<figure class="code">
+  <figcaption><span>studio/sprite/viewport.gs</span><span class="chip edit">edit</span><span class="role">generalised for both editors</span></figcaption>
+<pre><code class="gs">  constructor(document) {
+    // ...
+    // A sprite's cell is 1 pixel; a tilemap's is its tile size. The target is
+    // sized in cell-pixels, so everything downstream stays identical.
+    this.cell = document.cellSize()
+    this.surface = new Target(document.width() * this.cell, document.height() * this.cell)
+  }
+
+  refresh() {
+    if (!this.stale) { return null }
+
+    canvas.setTarget(this.surface)
+    canvas.clear(color.transparent)
+
+    // The document knows how to draw one of its own cells. A sprite fills a
+    // 1x1 rectangle; a tilemap draws a quad from its tileset. Batching does
+    // the rest: one tileset texture, thousands of quads, one draw call.
+    for (y = 0; y &lt; this.document.height(); y++) {
+      for (x = 0; x &lt; this.document.width(); x++) {
+        this.document.paintCell(x, y, x * this.cell, y * this.cell)
+      }
+    }
+
+    canvas.setTarget()
+
+    this.stale = false
+  }</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>studio/map/tilemap.gs</span><span class="chip new">new</span><span class="role">excerpt</span></figcaption>
+<pre><code class="gs">import { Editable } from "studio/traits/editable"
+import { Spritesheet } from "lumen:image"
+
+class Tilemap {
+  use Editable
+
+  constructor(width, height, tilesetPath, tileSize) {
+    this.w = width
+    this.h = height
+    this.tiles = new Spritesheet(tilesetPath, tileSize)
+    this.tile = tileSize
+    this.brush = 0
+    // ...cells, dirty, revision as in Sprite
+  }
+
+  cellSize() { return this.tile }
+
+  paintCell(x, y, screenX, screenY) {
+    value = this.at(x, y)
+
+    if (value != null) {
+      this.tiles.draw(value, screenX, screenY)
+    }
+  }
+}</code></pre>
+</figure>
+
+<p>
+  The stamp tool is the pencil with a different payload — and the same right-click-picks reflex
+  every tile editor shares with every pixel editor:
+</p>
+
+<figure class="code">
+  <figcaption><span>studio/map/tools/stamp.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { Tool } from "studio/tool"
+
+class Stamp extends Tool {
+  constructor() {
+    super.constructor('stamp', 'Stamp', 'S')
+  }
+
+  begin(document, x, y, button) {
+    if (button == 'right') {
+      document.brush = document.at(x, y)
+
+      return true
+    }
+
+    return document.put(x, y, document.brush)
+  }
+
+  drag(document, x, y) {
+    return document.put(x, y, document.brush)
+  }
+}</code></pre>
+</figure>
+
+<p>
+  And the editor registers itself the same way the sprite editor did. Two documents can be open at
+  once; the tab bar switches which workspace is mounted.
+</p>
+
+<figure class="code">
+  <figcaption><span>main.gs</span><span class="chip edit">edit</span></figcaption>
+<pre><code class="gs">  app.studio = new Studio(asepriteDark().useScale(2).loadFonts(null))
+
+  sprites = app.studio.register(new SpriteEditor(app.studio))
+  maps = app.studio.register(new MapEditor(app.studio))
+
+  app.studio.open(new Sprite(32, 32), sprites)</code></pre>
+</figure>
+</section>
+
+<hr class="rule">
+
+<section id="p15">
+<h2><span class="num">Part 15</span>Leaving room for the sound editor</h2>
+
+<p>
+  The sound editor is the third tenant of this toolkit, and it is worth designing <em>for</em> now
+  even though it is built last — because it drags four things into the GUI layer that a pixel editor
+  alone would never justify, and all four turn out to be shared.
+</p>
+
+<h3>1. A time ruler, and a timeline that is not sprite-specific</h3>
+
+<p>
+  Sprite frames, map animation layers and an audio waveform are the same widget: a horizontal axis
+  with independent zoom, a playhead, and rows underneath. Build <code>Ruler</code> and
+  <code>Timeline</code> against a small time model rather than against frames, and the sprite
+  editor's frame strip becomes one row renderer instead of a bespoke panel.
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/widgets/ruler.gs</span><span class="chip new">new</span><span class="role">sketch</span></figcaption>
+<pre><code class="gs">// A horizontal axis in "units" — frames for a sprite, seconds for a sound.
+// The widget knows nothing about either; it maps units to pixels and draws
+// ticks at whichever step keeps labels from colliding.
+class Ruler extends Widget {
+  constructor(units, perUnit) {
+    super.constructor('ruler')
+
+    this.units = units      // how many units long the document is
+    this.perUnit = perUnit  // pixels per unit, the zoom
+    this.offset = 0         // scrolled position, in units
+    this.playhead = 0
+  }
+
+  unitAt(x)    { return this.offset + (x - this.bounds.x) / this.perUnit }
+  screenOf(unit) { return this.bounds.x + (unit - this.offset) * this.perUnit }
+}</code></pre>
+</figure>
+
+<h3>2. Widgets that animate</h3>
+
+<p>
+  A playhead and a VU meter break the assumption that the screen only changes when you touch it.
+  Today that costs nothing — Chisel repaints every frame regardless — but the moment you add
+  dirty-region painting, the framework needs to know which widgets cannot be skipped. Declare it now,
+  while it is one line, rather than retrofitting it across forty widgets later:
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/widget.gs</span><span class="chip edit">edit</span></figcaption>
+<pre><code class="gs">  // Widgets that change on their own — a playhead, a meter, a marching-ants
+  // selection. False for everything static, which is nearly everything.
+  animates() { return false }</code></pre>
+</figure>
+
+<h3>3. Numeric scrub fields and a curve editor</h3>
+
+<p>
+  A drag-to-change number field is wanted in all three editors (brush size, tile probability, ADSR
+  times), and a curve editor serves envelopes in sound and easing in sprite animation. Both are
+  ordinary widgets built on capture — the same three rules from part 07.
+</p>
+
+<h3>4. Splitters and persisted layout</h3>
+
+<p>
+  Three editors means users will rearrange panels. A splitter is a <code>Slider</code> with a
+  different paint method that writes a dock region's size instead of a value, and layout persistence
+  is <code>Preferences</code> plus a <code>named()</code> id on each region. Neither is hard; both
+  are near-impossible to retrofit once the dock's sizes are literals in twenty call sites — which is
+  why <code>Dock.edge()</code> takes a size parameter rather than reading a constant.
+</p>
+
+<div class="note warn">
+  <h4>The honest blocker: Lumen's audio API cannot support a sound editor yet</h4>
+  <p>
+    Today <code>audio</code> gives you <code>play/stop/pause/resume/volume</code>, and a
+    <code>Source</code> adds <code>isPlaying</code>, <code>setLooping</code>,
+    <code>fadeIn</code>/<code>fadeOut</code>, <code>setPanning</code>, <code>clone</code>, and a
+    <code>setPosition(angle, distance)</code> that is spatial placement, not a playhead. An editor
+    needs four things that do not exist:
+  </p>
+  <ul>
+    <li><strong>Sample access</strong> — decode a file to a buffer you can read, so a waveform can be
+      drawn at all.</li>
+    <li><strong>A playhead</strong> — get and set playback position in seconds, so a scrubber can
+      exist.</li>
+    <li><strong>Loop points</strong> — start and end, not just "loop the whole thing".</li>
+    <li><strong>Capture</strong> — microphone input, if recording is ever in scope.</li>
+  </ul>
+  <p>
+    Everything <em>else</em> in this part is buildable today, so build the shared widgets against the
+    sprite and map editors, and the sound editor becomes a fourth <code>register()</code> call once
+    the engine can hand it samples.
+  </p>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="p16">
+<h2><span class="num">Part 16</span>Ship it</h2>
+
+<p>
+  Preferences belong in the player's own data directory, which <code>Preferences</code> already
+  handles. Save them when the window closes — Lumen's <code>quit()</code> callback runs first, and
+  returning <code>true</code> from it cancels the close, which is where an "unsaved changes" prompt
+  eventually goes:
+</p>
+
+<figure class="code">
+  <figcaption><span>main.gs</span><span class="chip edit">edit</span></figcaption>
+<pre><code class="gs">function quit() {
+  app.studio.preferences
+    .set('ui.scale', app.studio.theme.scale)
+    .set('ui.theme', app.studio.theme.name)
+    .save()
+
+  return false
+}</code></pre>
+</figure>
+
+<figure class="code">
+  <figcaption><span>terminal</span><span class="role">hand it to someone else</span></figcaption>
+<pre><code class="sh">lumen .                            # run it while you work
+lumen build . -o studio            # one standalone executable, engine included
+lumen package . -o studio.lumen    # one archive, for people who have Lumen</code></pre>
+</figure>
+
+<h3>The finishing checklist</h3>
+
+<ul>
+  <li>Every coordinate that reaches the canvas came from a <code>Rect</code> or went through
+    <code>snap()</code>.</li>
+  <li>UI scale is an integer and fonts are loaded at whole multiples of their design size.</li>
+  <li>Every button has a tooltip; every tooltip shows its accelerator; every accelerator comes from
+    the command, not from a literal.</li>
+  <li>Press-and-slide-off does not fire. Drag outside the window keeps drawing.</li>
+  <li>The status bar always says where the cursor is, in document coordinates.</li>
+  <li>Resize the window to something absurd — 400×300, then 3000×2000. Nothing overlaps, nothing
+    drifts.</li>
+  <li>Switch to the light theme early, not after a hundred colours have leaked into widget files. If
+    it takes more than editing one theme file, a literal escaped.</li>
+</ul>
+</section>
+
+<hr class="rule">
+
+<section id="papercuts">
+<h2><span class="num">Log</span>Papercuts worth fixing upstream</h2>
+
+<p class="verified">✓ Every behaviour below was executed against a Ghost build, not inferred from docs</p>
+
+<p>
+  This is a working list for the language and the engine, kept with the tutorial because the design
+  above is shaped around it. Severity is from the point of view of someone writing a GUI toolkit:
+  <span style="color:var(--bad)">high</span> means it silently produces wrong behaviour,
+  <span style="color:var(--warn)">mid</span> means it costs real code to work around,
+  <span style="color:var(--muted)">low</span> means it is a surprise you learn once.
+</p>
+
+<h3>Ghost</h3>
+
+<div class="cut sev-high">
+  <div class="title"><strong>A function cannot assign to a variable outside itself</strong><span class="tag">high · silent</span></div>
+  <p>
+    <code>scale = 1</code> at module level, <code>function set(n) { scale = n }</code>, call it, and
+    <code>scale</code> is still <code>1</code>. Assignment binds in the current environment and never
+    walks outward, with no warning. Object mutation works, so the workaround is "all state lives on
+    an instance" — which is fine as a convention and terrible as an undocumented trap.
+  </p>
+  <p class="fix"><b>Would fix it</b> assignment walks the scope chain when the name already exists, or an explicit declaration keyword makes the shadowing intentional.</p>
+</div>
+
+<div class="cut sev-high">
+  <div class="title"><strong>Closures created in a loop cannot capture the loop variable</strong><span class="tag">high · silent until called</span></div>
+  <p>
+    <code>for (name in list) { handlers.push(function () { use(name) }) }</code> produces handlers
+    that raise <code>name error: `name` is not defined</code> when they run — the loop variable is
+    set in the enclosing scope and deleted afterward. Every list-driven widget needs a factory
+    function wrapper. This is the most common shape in UI code.
+  </p>
+  <p class="fix"><b>Would fix it</b> a per-iteration binding, the way <code>let</code> behaves in JS.</p>
+</div>
+
+<div class="cut sev-high">
+  <div class="title"><strong>Blocks do not introduce a scope</strong><span class="tag">high · doc drift</span></div>
+  <p>
+    An assignment inside an <code>if</code>, <code>switch</code> or loop body writes to the enclosing
+    function scope. This is load-bearing in Chisel's <code>Dock.arrange()</code> and it is also how a
+    stray temporary leaks across a hundred-line method. Note the spec (§8.3) states the opposite —
+    that blocks each introduce an enclosed environment — so the documentation and the interpreter
+    disagree here.
+  </p>
+  <p class="fix"><b>Would fix it</b> block scoping plus a declaration form, decided together with the two items above — they are one design question, not three.</p>
+</div>
+
+<div class="cut sev-high">
+  <div class="title"><strong>Everything top-level is exported</strong><span class="tag">high · design</span></div>
+  <p>
+    A file cannot have a private helper beside a public class, and <code>import</code>ing a module
+    pulls its imports' names along for the ride. One-class-per-file makes this survivable rather than
+    solving it.
+  </p>
+  <p class="fix"><b>Would fix it</b> explicit <code>export</code>, with the current behaviour as the fallback for files that declare nothing.</p>
+</div>
+
+<div class="cut sev-mid">
+  <div class="title"><strong>No statics: no named constructors, no class constants</strong><span class="tag">mid</span></div>
+  <p>
+    <code>Rect.fromBounds(...)</code> and <code>Button.HEIGHT</code> are both impossible, so factories
+    become free functions in helper files and constants move onto a theme object. Workable — it is
+    why <code>asepriteDark()</code> is a function — but it is the single thing that most distorts
+    library shape.
+  </p>
+</div>
+
+<div class="cut sev-mid">
+  <div class="title"><strong>Calling a sibling method by bare name loses the receiver</strong><span class="tag">mid · doc drift</span></div>
+  <p>
+    <code>describe()</code> inside another method raises <code>`this` can only be used inside a
+    class</code> the moment the callee touches <code>this</code>, even though the spec says bare
+    sibling calls are supported. Always write <code>this.describe()</code>. The error also points at
+    the callee, not the call.
+  </p>
+</div>
+
+<div class="cut sev-mid">
+  <div class="title"><strong>A field and a method may share one name</strong><span class="tag">mid</span></div>
+  <p>
+    With both defined, <code>x.thing</code> reads the field and <code>x.thing()</code> calls the
+    method. Nothing warns. (I assumed the field made the method unreachable and designed around it —
+    it does not, but one name meaning two things is still worth a diagnostic.)
+  </p>
+</div>
+
+<div class="cut sev-mid">
+  <div class="title"><strong>A function held in a field cannot be called through the field</strong><span class="tag">mid · loud</span></div>
+  <p>
+    <code>this.guard(studio)</code> where <code>guard</code> is a field holding a function raises
+    <code>property error: class `Command` has no method `guard`</code> — <code>x.field(...)</code>
+    parses as a method call, and method lookup does not see fields. Bind it to a local first
+    (<code>test = this.guard</code>, then <code>test(studio)</code>). Found by this project's own
+    test suite failing, which is the argument for having one.
+  </p>
+  <p class="fix"><b>Would fix it</b> fall back to calling a callable field when no method of that name exists.</p>
+</div>
+
+<div class="cut sev-mid">
+  <div class="title"><strong>Division always promotes to float</strong><span class="tag">mid</span></div>
+  <p>
+    Correct, and a tax on every line of pixel layout. <code>Rect</code> exists partly to pay it once.
+  </p>
+  <p class="fix"><b>Would fix it</b> <code>math.floorDiv(a, b)</code> — <code>//</code> is taken by comments.</p>
+</div>
+
+<div class="cut sev-mid">
+  <div class="title"><strong>Import ergonomics</strong><span class="tag">mid</span></div>
+  <p>
+    <code>import "path" as name</code> (whole module) and <code>import name from "path"</code> (a
+    named export) look nearly identical and mean different things. Search paths are global and
+    accumulate as modules load, so resolution is "first match across every directory seen so far" —
+    two files with the same basename in different folders are a hazard. The safe rule, used
+    throughout this tutorial: always import by full path from the project root.
+  </p>
+</div>
+
+<div class="cut sev-low">
+  <div class="title"><strong>Small surprises, learned once</strong><span class="tag">low</span></div>
+  <p>
+    Circular imports are a hard fault (useful, but it dictates the file graph). <code>continue</code>
+    is a keyword, so a tool's middle verb cannot be called that. No <code>const</code>. No
+    <code>%=</code>; <code>++</code> is postfix only. <code>length()</code> is a method, and reading
+    <code>list.length</code> hands you the function with no error. A line beginning with
+    <code>[</code> or <code>(</code> continues the previous statement.
+  </p>
+</div>
+
+<h3>Lumen</h3>
+
+<div class="cut sev-high">
+  <div class="title"><strong>No pixel writing, and no image from data</strong><span class="tag">high · blocks the pixel editor</span></div>
+  <p>
+    <code>Image</code> has <code>getPixel</code> and <code>setFilter</code>, and that is all. A
+    document must therefore be re-rendered as thousands of <code>filledRectangle</code> calls into a
+    <code>Target</code> rather than written into a buffer and uploaded once. It shapes the document,
+    undo and flood-fill design of every editor in the toolkit.
+  </p>
+  <p class="fix"><b>Would fix it</b> a mutable <code>Surface</code>: create at a size, <code>getPixel</code>/<code>setPixel</code>, <code>upload()</code>, draw like an image, encode to PNG.</p>
+</div>
+
+<div class="cut sev-high">
+  <div class="title"><strong>No file dialogs, no file drop, and no path outside the save directory</strong><span class="tag">high</span></div>
+  <p>
+    <code>filesystem</code> is sandboxed to the app's own save folder and Ghost's <code>file</code>
+    module resolves next to the source, so opening <code>~/art/thing.png</code> has no clean path.
+    There is also no dropped-file callback. Every editor needs open and save on day one.
+  </p>
+</div>
+
+<div class="cut sev-high">
+  <div class="title"><strong>Audio cannot describe or seek a sound</strong><span class="tag">high · blocks the sound editor</span></div>
+  <p>
+    No sample access, no playback position, no loop points, no capture. See part 15 for the
+    minimum shape.
+  </p>
+</div>
+
+<div class="cut sev-mid">
+  <div class="title"><strong><code>Target</code> is write-only and unfiltered</strong><span class="tag">mid</span></div>
+  <p>
+    No <code>setFilter</code> (only <code>Image</code> has it), no readback, no save. Integer zoom
+    plus a snapped origin is what keeps pixels square, and "export PNG" has no route other than
+    <code>canvas.screenshot()</code> of the whole window.
+  </p>
+</div>
+
+<div class="cut sev-mid">
+  <div class="title"><strong>An unknown key name raises instead of answering false</strong><span class="tag">mid</span></div>
+  <p>
+    Good for typos in a game's <code>isDown</code> call; harsh for a keymap, where a mistyped binding
+    in a data file crashes the app at the moment someone presses that key. Names are SDL scancode
+    names (<code>'Left Ctrl'</code>, not <code>'lctrl'</code>), which is worth documenting louder.
+  </p>
+</div>
+
+<div class="cut sev-mid">
+  <div class="title"><strong>No clipboard images, no cursor shapes, bare text input</strong><span class="tag">mid</span></div>
+  <p>
+    Copy-paste of a selection is table stakes in a sprite editor. Splitters want a resize cursor
+    (drawing your own is arguably on-brand — it should still be a choice). And
+    <code>startTextInput</code> gives you events, while caret, selection and the IME rectangle are
+    yours to build.
+  </p>
+</div>
+
+<div class="cut sev-low">
+  <div class="title"><strong>Two small ones, and one thing that is already right</strong><span class="tag">low</span></div>
+  <p>
+    There is no aligned-text primitive, so every project writes <code>textIn()</code> again — worth
+    promoting into <code>canvas</code>. The README undersells <code>Source</code>, which has several
+    methods the docs do not list. And credit where due: <code>canvas.push('all')</code> saves and
+    restores the scissor box along with the transform, so nested clipping — the thing most 2D APIs
+    make you manage by hand — already works properly.
+  </p>
+</div>
+</section>
+
+<hr class="rule">
+
+<section id="cheatsheet">
+<h2><span class="num">Ref</span>The whole thing, on one screen</h2>
+
+<div class="tree"><b>chisel/</b>                    <i>framework — knows nothing about editors</i>
+├── support/<b>snap.gs</b>          <i>function snap(value)</i>
+├── support/<b>chord-of.gs</b>      <i>function chordOf(key)</i>
+├── support/<b>normalize-chord.gs</b>
+├── geometry/<b>rect.gs</b>         <i>class Rect</i>
+├── traits/<b>conditionable.gs</b>  <i>trait Conditionable</i>
+├── traits/<b>tappable.gs</b>       <i>trait Tappable</i>
+├── traits/<b>emits-events.gs</b>   <i>trait EmitsEvents</i>
+├── <b>theme.gs</b> <b>painter.gs</b> <b>pointer.gs</b> <b>ui.gs</b> <b>widget.gs</b>
+├── themes/<b>aseprite-dark.gs</b>  <i>function asepriteDark()</i>
+├── layout/<b>dock.gs</b>
+└── widgets/<b>panel.gs</b> <b>button.gs</b> <b>toolbar.gs</b> <b>swatches.gs</b> <b>menu.gs</b> <b>statusbar.gs</b> <b>ruler.gs</b>
+
+<b>studio/</b>                    <i>shell — knows nothing about sprites</i>
+├── <b>studio.gs</b> <b>signals.gs</b> <b>preferences.gs</b>
+├── <b>command.gs</b> <b>command-registry.gs</b> <b>keymap.gs</b>
+├── <b>tool.gs</b> <b>tool-registry.gs</b>
+├── traits/<b>editable.gs</b>
+├── support/<b>line-pixels.gs</b>
+├── sprite/<b>editor.gs</b> <b>sprite.gs</b> <b>viewport.gs</b> <b>commands.gs</b> tools/…
+├── map/<b>editor.gs</b> <b>tilemap.gs</b> tools/…
+└── sound/                    <i>waiting on engine work — part 15</i></div>
+
+<figure class="code">
+  <figcaption><span>the API you actually type</span><span class="role">cheat sheet</span></figcaption>
+<pre><code class="gs">// geometry
+new Rect(x, y, w, h)   .inset(n)  .offset(dx, dy)  .contains(x, y)  .cell(col, row, size, gap)
+[taken, rest] = rect.splitTop(n)   // splitBottom, splitLeft, splitRight
+
+// painting (inside paint(ui))
+ui.painter.panel(rect, face)   .well(rect)   .bevel(rect, raised)   .groove(x, y, w)
+ui.painter.textIn('body', text, rect, 'center', 'middle', ink)
+ui.theme.of('button.face')     ui.theme.metric('row')   ui.theme.font('small')
+
+// every widget
+.named(id)  .add(child)  .tooltip(text, keys)  .on(event, fn)
+.when(cond, fn)  .unless(cond, fn)  .tap(fn)  .hide()  .show()  .enable()  .disable()
+place(rect) / arrange() / paint(ui) / tick(dt, ui) / pick(x, y)
+pressed(ui) / dragged(ui) / released(ui) / wheeled(ui) / keyed(ui, key)
+
+// input state
+ui.isHot(widget)  ui.isActive(widget)  ui.isFocused(widget)  ui.capture(widget)  ui.release()
+ui.pointer.x  ui.pointer.y  ui.pointer.button  ui.pointer.wheel
+
+// layout
+dock.top(widget, size)  .bottom(...)  .left(...)  .right(...)  .fill(widget)
+
+// shell
+studio.register(editor)   studio.open(document, editor)   studio.run('command.name')
+studio.commands.add(new Command(name, label).shortcut('ctrl+z').does(fn).available(fn))
+studio.keymap.group(['editing'], function (keys) { keys.bind('ctrl+z', 'history.undo') })
+studio.tools.add(tool)  .select(name)  .current()
+studio.signals.listen(name, fn)  .emit(name, payload)
+studio.preferences.get('ui.scale', 1)  .set(path, value)  .save()</code></pre>
+</figure>
+
+<h3>Where to go next</h3>
+
+<ul>
+  <li><strong>Splitters</strong> — a <code>Slider</code> that writes a dock region's size. The last
+    thing between this and a workspace users can rearrange.</li>
+  <li><strong>A command palette</strong> — <code>studio.commands.all()</code> filtered by a text
+    field. Nearly free, now that commands are a registry.</li>
+  <li><strong>Damage rectangles</strong> — teach <code>invalidate()</code> to take a
+    <code>Rect</code> and union them per frame.</li>
+  <li><strong>The light theme</strong> — one file, and a good audit of whether any colour escaped.</li>
+</ul>
+</section>
+
+<footer>
+  <p>
+    Written against Lumen's module reference and Ghost 1.0, with every language claim executed
+    against a build of the interpreter rather than taken from the specification — three of the
+    papercuts above were found that way, and one of them changed this tutorial's architecture.
+    The finished toolkit — every file below, plus the widgets this page only excerpts and a test
+    suite that runs under plain Ghost — lives at
+    <a href="https://github.com/ghost-language/studio">ghost-language/studio</a>.
+    Download the engine at <a href="https://www.ghostlang.org/download">ghostlang.org/download</a>;
+    the workspace regions are Aseprite's own, from
+    <a href="https://www.aseprite.org/docs/workspace/">its workspace documentation</a>.
+  </p>
+</footer>
+
+</main>
+</div>
+
+<script>
+// A small Ghost highlighter. It walks the text of each code block once and
+// rebuilds it as DOM nodes, so nothing is ever parsed as HTML.
+(function () {
+  var KEYWORDS = /^(and|as|break|case|class|constructor|continue|default|else|extends|false|for|from|function|if|import|in|new|null|or|return|super|switch|this|trait|true|use|while)$/;
+
+  var PATTERN = new RegExp([
+    '(\\/\\/[^\\n]*|#[^\\n]*)',
+    '(`(?:[^`\\\\]|\\\\.)*`|\'(?:[^\'\\\\\\n]|\\\\.)*\'|"(?:[^"\\\\\\n]|\\\\.)*")',
+    '\\b(\\d+(?:\\.\\d+)?)\\b',
+    '([A-Za-z_][A-Za-z0-9_]*)'
+  ].join('|'), 'g');
+
+  function highlight(block) {
+    var source = block.textContent;
+    var fragment = document.createDocumentFragment();
+    var last = 0;
+    var match;
+
+    PATTERN.lastIndex = 0;
+
+    while ((match = PATTERN.exec(source)) !== null) {
+      if (match.index > last) {
+        fragment.appendChild(document.createTextNode(source.slice(last, match.index)));
+      }
+
+      var text = match[0];
+      var kind = null;
+
+      if (match[1]) {
+        kind = 't-c';
+      } else if (match[2]) {
+        kind = 't-s';
+      } else if (match[3]) {
+        kind = 't-n';
+      } else if (match[4]) {
+        if (KEYWORDS.test(text)) {
+          kind = 't-k';
+        } else if (/^[A-Z]/.test(text)) {
+          kind = 't-t';
+        } else if (source.charAt(match.index + text.length) === '(') {
+          kind = 't-f';
+        }
+      }
+
+      if (kind === null) {
+        fragment.appendChild(document.createTextNode(text));
+      } else {
+        var span = document.createElement('span');
+        span.className = kind;
+        span.textContent = text;
+        fragment.appendChild(span);
+      }
+
+      last = match.index + text.length;
+    }
+
+    fragment.appendChild(document.createTextNode(source.slice(last)));
+
+    block.textContent = '';
+    block.appendChild(fragment);
+  }
+
+  var blocks = document.querySelectorAll('code.gs');
+
+  for (var index = 0; index < blocks.length; index++) {
+    highlight(blocks[index]);
+  }
+})();
+</script>
