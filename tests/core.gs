@@ -19,6 +19,8 @@ import { Editable } from "studio/traits/editable"
 import { linePixels } from "studio/support/line-pixels"
 import { normalizeChord } from "chisel/support/normalize-chord"
 import { registerCoreCommands } from "studio/commands"
+import { Keymap } from "studio/keymap"
+import { Modifiers } from "chisel/modifiers"
 import "tests/fixtures/toolkit" as toolkitModule
 
 results = { passed: 0, failed: 0 }
@@ -155,11 +157,10 @@ check('label and accel come from the command', registry.get('test.run').accel, '
 // studio.document.history.canUndo()` — broken the same way, since `and`
 // still evaluates the second half and dereferences a null document.
 //
-// The real Keymap can't be constructed here (it imports chord-of.gs, which
-// imports "lumen:keyboard"), so this is a minimal stand-in exposing just the
-// three methods registerCoreCommands calls on it. A plain map's own function
-// values are callable through dot-call syntax, which is what makes this work
-// with no class at all.
+// A minimal stand-in for Keymap exposing just the three methods
+// registerCoreCommands calls on it, so this test stays about the commands. A
+// plain map's own function values are callable through dot-call syntax, which
+// is what makes this work with no class at all.
 fakeKeymap = {}
 fakeKeymap.guard = function (name, test) { return null }
 fakeKeymap.bind = function (chord, command) { return null }
@@ -189,6 +190,112 @@ check('sorts modifiers', normalizeChord('shift+ctrl+z'), 'ctrl+shift+z')
 check('lowercases', normalizeChord('Ctrl+S'), 'ctrl+s')
 check('passes a bare key through', normalizeChord('b'), 'b')
 check('handles the plus key itself', normalizeChord('ctrl++'), 'ctrl++')
+
+// --- Modifiers ---------------------------------------------------------------
+
+console.log('Modifiers')
+
+// Held state is tracked from the key names the platform actually sends, never
+// by asking SDL to resolve a name we invented. Both spellings below are real:
+// Windows and Linux send 'Left Alt', macOS sends 'Left Option', and asking
+// keyboard.isDown('left alt') on a Mac raised rather than answering false -
+// which is what crashed the app on the first Mac that ran it.
+mods = new Modifiers(false)
+
+check('an ordinary key has no modifier role', mods.roleOf('B'), '')
+check('Left Alt is alt', mods.roleOf('Left Alt'), 'alt')
+check('Left Option is also alt', mods.roleOf('Left Option'), 'alt')
+check('Right Ctrl is ctrl', mods.roleOf('Right Ctrl'), 'ctrl')
+check('Left Command is gui', mods.roleOf('Left Command'), 'gui')
+check('Left Windows is gui', mods.roleOf('Left Windows'), 'gui')
+
+mods.down('Left Ctrl')
+check('a held modifier is down', mods.isDown('ctrl'), true)
+check('a modifier alone is not a chord', mods.chordFor('Left Ctrl'), '')
+check('a chord carries the held modifier', mods.chordFor('Z'), 'ctrl+z')
+
+mods.down('Left Shift')
+check('modifiers combine in a canonical order', mods.chordFor('Z'), 'ctrl+shift+z')
+
+mods.up('Left Ctrl')
+check('releasing drops it', mods.chordFor('Z'), 'shift+z')
+
+mods.clear()
+check('clear releases everything', mods.chordFor('Z'), 'z')
+
+// Losing focus mid-chord must not leave a modifier stuck down forever.
+mods.down('Left Ctrl')
+mods.clear()
+check('focus loss cannot strand a modifier', mods.chordFor('Z'), 'z')
+
+// On macOS the accelerator is Command, so a binding written 'ctrl+z' has to
+// answer to Cmd+Z. Literal Ctrl keeps working there too.
+macMods = new Modifiers(true)
+
+macMods.down('Left Command')
+check('Command is the accelerator on macOS', macMods.chordFor('Z'), 'ctrl+z')
+
+macMods.clear()
+macMods.down('Left Ctrl')
+check('literal Ctrl still works on macOS', macMods.chordFor('Z'), 'ctrl+z')
+
+pcMods = new Modifiers(false)
+pcMods.down('Left Windows')
+check('the Super key is not an accelerator elsewhere', pcMods.chordFor('Z'), 'z')
+
+// --- Keymap ------------------------------------------------------------------
+
+console.log('Keymap')
+
+// Keymap takes a chord rather than a raw key, which is what finally lets it be
+// tested with no engine present - it used to reach lumen:keyboard through
+// chord-of.gs, so none of the below could run and dispatch() shipped a crash
+// on every unbound keypress.
+fired = { count: 0 }
+canEdit = { yes: true }
+
+mapCommands = new CommandRegistry()
+
+mapCommands.add(new Command('test.undo', 'Undo')
+  .does(function (studio) { fired.count = fired.count + 1 }))
+
+keymap = new Keymap(mapCommands)
+
+keymap.guard('editing', function (studio) { return canEdit.yes })
+
+keymap.group(['editing'], function (keys) {
+  keys.bind('ctrl+z', 'test.undo')
+})
+
+check('a bound chord runs its command', keymap.dispatch('ctrl+z', null), true)
+check('the command ran', fired.count, 1)
+
+// The one that crashed: no binding at all for this chord.
+check('an unbound chord is ignored, not a crash', keymap.dispatch('q', null), false)
+check('an empty chord is ignored', keymap.dispatch('', null), false)
+
+canEdit.yes = false
+check('a guard blocks the binding', keymap.dispatch('ctrl+z', null), false)
+check('the command did not run again', fired.count, 1)
+
+canEdit.yes = true
+
+// A middleware name with no guard registered behind it must skip, not call
+// null as a function.
+keymap.group(['nonexistent'], function (keys) {
+  keys.bind('ctrl+y', 'test.undo')
+})
+
+check('an unregistered guard name does not block or crash', keymap.dispatch('ctrl+y', null), true)
+
+// Binding a chord to a command that was never registered must not crash while
+// trying to read its accelerator.
+keymap.bind('ctrl+k', 'never.registered')
+check('binding an unknown command is survivable', keymap.dispatch('ctrl+k', null), false)
+
+// A binding teaches the command its own accelerator, so menus and tooltips
+// never have to be told separately.
+check('the command learned its shortcut', mapCommands.get('test.undo').accel, 'ctrl+z')
 
 // --- Tools ---------------------------------------------------------------------
 

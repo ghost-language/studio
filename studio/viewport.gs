@@ -33,6 +33,12 @@ class Viewport extends Widget {
     this.focusable = true
     this.panning = false
 
+    // Off by default, like Aseprite. A dark line on every cell boundary reads
+    // as noise over the transparency checker rather than as information, and
+    // leaving it on is the single thing that made this canvas look least like
+    // the tool it is imitating.
+    this.showGrid = false
+
     this.surface = new Target(document.width() * this.cell, document.height() * this.cell)
 
     self = this
@@ -45,6 +51,10 @@ class Viewport extends Widget {
       self.setZoom(self.home)
       self.panX = 0
       self.panY = 0
+    })
+
+    studio.signals.listen('view.grid', function (payload) {
+      self.showGrid = !self.showGrid
     })
   }
 
@@ -136,14 +146,32 @@ class Viewport extends Widget {
     this.surface.draw(at.x, at.y, 0, this.zoom, this.zoom)
 
     this.paintGrid(ui, at)
+    this.paintEdge(ui, at)
 
     ui.painter.unclip()
   }
 
+  // A one-pixel border around the document. Without it a sprite with
+  // transparent edges has no visible extent at all - it just fades into the
+  // checkerboard, which is why the canvas read as a grey field rather than as
+  // an object sitting on one.
+  paintEdge(ui, at) {
+    width = this.document.width() * this.scale()
+    height = this.document.height() * this.scale()
+
+    edge = ui.theme.of('bevel.dark')
+
+    ui.painter.hline(at.x - 1, at.y - 1, width + 1, edge)
+    ui.painter.hline(at.x - 1, at.y + height, width + 1, edge)
+    ui.painter.vline(at.x - 1, at.y - 1, height + 1, edge)
+    ui.painter.vline(at.x + width, at.y - 1, height + 1, edge)
+  }
+
   // A screen-space checkerboard at a fixed cell, the way Aseprite does it, so
-  // it does not zoom with the artwork.
+  // it does not zoom with the artwork. 16px is Aseprite's own default; 8 was
+  // small enough to read as texture rather than as "nothing is here".
   paintChecker(ui, at) {
-    size = 8 * ui.theme.scale
+    size = 16 * ui.theme.scale
     width = this.document.width() * this.scale()
     height = this.document.height() * this.scale()
 
@@ -169,16 +197,22 @@ class Viewport extends Widget {
     }
   }
 
-  // The grid appears only once a cell is big enough to carry a line, which is
-  // the rule Aseprite uses too.
+  // The grid is opt-in (View > Toggle Grid), and even then appears only once a
+  // cell is big enough to carry a line - the rule Aseprite uses too.
   paintGrid(ui, at) {
+    if (!this.showGrid) {
+      return null
+    }
+
     step = this.scale()
 
     if (step < 6) {
       return null
     }
 
-    grid = ui.theme.of('bevel.dark')
+    // The panel well, not the bevel shadow: a near-black line on every cell
+    // boundary is far louder than the artwork it is meant to sit under.
+    grid = ui.theme.of('panel.well')
     width = this.document.width() * step
     height = this.document.height() * step
 

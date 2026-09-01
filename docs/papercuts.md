@@ -5,9 +5,12 @@ repository because the architecture is shaped around it.
 
 **Every Ghost behaviour below was executed against a build of the interpreter**, not
 inferred from `SPEC.md` — three of them contradict the spec. Two were caught before they
-shipped, by this repository's own tests failing; two reached a real run of `lumen .` as a
-crash, both in code the engine-independent test suite could not exercise without Lumen
-itself.
+shipped, by this repository's own tests failing; the rest reached a real run of `lumen .`
+as a crash, every one of them in code the engine-independent test suite could not exercise
+without Lumen itself. That pattern is the most useful thing in this document: **the bugs
+that shipped are precisely the ones that lived in files importing a `lumen:` module**, and
+the fix each time was as much about moving logic out of the engine's reach as it was about
+the bug itself.
 
 Severity is from the point of view of someone writing a GUI toolkit:
 
@@ -240,11 +243,61 @@ No `setFilter` (only `Image` has it), no readback, no save. Integer zoom plus a 
 origin is what keeps pixels square, and "export PNG" has no route other than
 `canvas.screenshot()` of the whole window.
 
-### An unknown key name raises rather than answering false — *mid*
+### Key names are platform-specific, and an unknown one raises rather than answering false — *high, shipped a crash*
 
-Good for a typo in a game's `isDown` call; harsh for a keymap, where a mistyped binding in
-a data file crashes the app the moment someone presses that key. Names are SDL scancode
-names (`'Left Ctrl'`, not `'lctrl'`), which is worth documenting louder.
+```ghost
+keyboard.isDown('left alt', 'right alt')
+// value error: `keyboard.isDown()` does not recognise the key `left alt`
+```
+
+Two things compound here, and together they make modifier detection by name
+unusable:
+
+1. **Names differ per platform.** Lumen resolves them through
+   `SDL_GetScancodeFromName`, and what SDL calls a key depends on the keyboard the OS
+   reports. `'Left Alt'` on Windows and Linux is `'Left Option'` on macOS. There is no
+   list in the docs, and no way to ask for "the alt key" generically.
+2. **A name SDL does not recognise is an error, not a false.** So the failure is not a
+   shortcut that quietly does not fire — it is the app dying, at the moment a key is
+   pressed, on someone else's operating system.
+
+The result: code that works perfectly on the machine it was written on crashes on first
+contact with another platform. That is exactly what happened here — `'left ctrl'` resolved
+on macOS and `'left alt'` did not, so the crash landed on the *second* line of the
+modifier check.
+
+There is also **no way to query modifier state directly** — no `keyboard.modifiers()`, no
+`isCtrlDown()` — so name lookups look like the only option.
+
+The workaround, and what this toolkit now does: never hand SDL a name you invented. Track
+modifiers from the `keypressed`/`keyreleased` callbacks, which hand you whatever name the
+platform actually uses, and match it on substrings (`contains('alt')`,
+`contains('option')`). That cannot fail to resolve, works on layouts nobody tested, and
+has the side benefit of removing the engine dependency from the keymap entirely — see
+`chisel/modifiers.gs`. It does require `keyreleased` and `focus` to be wired up, or a
+modifier held while the window loses focus stays stuck down forever.
+
+**Would fix it:** `isDown` answering false for an unrecognised name (a `keyboard.isKnown()`
+could serve the typo-catching case), plus a platform-independent way to ask about
+modifiers.
+
+### Text is always antialiased, so pixel fonts cannot be drawn crisply — *high*
+
+Lumen renders every string through SDL_ttf's `RenderUTF8Blended`. There is no aliased
+path, no hinting control, and no nearest-neighbour option, so a pixel font drawn at
+anything other than an exact multiple of its native size comes back as grey mush rather
+than hard pixels. For a tool whose entire visual identity is "one pixel is one pixel",
+that is the difference between looking like an editor and looking like a web page.
+
+It is survivable only because the *native* size is crisp: Lumen's bundled `silver.ttf` has
+`unitsPerEm` 1900 on a 100-unit glyph grid, so it is exact at 19px, 38px, 57px and blurry
+at everything between. This toolkit had been loading it at 16px and 32px — both wrong,
+which is why the first screenshots were illegible and inconsistent at once. Nothing in the
+API hints that font sizes are quantised, and `font.system(16)` succeeds as readily as
+`font.system(19)`.
+
+**Would fix it:** a `Solid`/aliased render mode (or a per-font `setFilter('nearest')`),
+and a way to ask a font what size it wants to be drawn at.
 
 ### No clipboard images, no cursor shapes, bare text input — *mid*
 

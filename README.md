@@ -32,7 +32,38 @@ map, with tabs to switch between them.
 - Scroll to zoom, middle-drag to pan.
 - `B`/`E`/`I` pick pencil, eraser and picker; `S`/`X` are the map's stamp and rubber.
 - `Ctrl+Z` / `Ctrl+Shift+Z` undo and redo, `Ctrl+N` a new sprite, `Ctrl+M` a new map.
+- `Ctrl+'` toggles the pixel grid, which is off by default.
 - `Ctrl+=` and `Ctrl+-` change the UI scale, and it is remembered.
+
+On macOS every `Ctrl+` binding answers to `Cmd+` too — `ctrl` in a binding means "the
+platform's accelerator", and literal Ctrl keeps working there as well.
+
+## Changing the font
+
+**A pixel font is only crisp at whole multiples of its native size.** Lumen draws all text
+through SDL_ttf's blended path, so a size even one pixel off the font's own grid comes
+back as grey fringing rather than hard edges. That is the whole of "why does the text look
+blurry".
+
+Lumen's bundled `silver.ttf` has `unitsPerEm` 1900 on a 100-unit glyph grid, so it is
+exact at **19px, 38px, 57px** and blurry at everything in between. The theme draws at
+`19 × ui.scale`, and the interface metrics are sized around the 21px line height that
+produces.
+
+To use your own, set two preferences — or call `theme.loadFonts(path, native)` directly:
+
+```
+ui.font      path to a .ttf, resolved against the app directory
+ui.fontSize  the size that font is drawn at natively
+```
+
+To find that number for a font you have: divide its `unitsPerEm` by the grid its glyph
+coordinates are multiples of. A font built on an 8px design grid is crisp at 8, 16 and 24
+and blurry at 12. Getting this wrong is the only way to make the interface blurry; getting
+it right is the only way to make it sharp.
+
+If you want chrome as tight as Aseprite's, you want a *smaller* face — silver at 19px is a
+fairly large pixel font, and the row heights here are sized to fit it.
 
 ## Tests
 

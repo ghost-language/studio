@@ -15,13 +15,25 @@ class Swatches extends Widget {
   across(count) { this.columns = count; return this }
   colours(list) { this.colors = list;   return this }
 
-  gap(ui) {
-    return 1 * ui.theme.scale
+  gap(theme) {
+    return 1 * theme.scale
+  }
+
+  // The width this panel needs to show every column it was asked for.
+  //
+  // The dock has to be told a size, and working it out anywhere but here
+  // guarantees the two disagree: the first version of this widget was given a
+  // hand-computed width that fitted two of its four columns, so the palette
+  // silently lost half its colours off the right edge.
+  widthFor(theme) {
+    step = theme.metric('swatch') + this.gap(theme)
+
+    return this.columns * step + theme.metric('gutter') * 2
   }
 
   indexAt(ui, x, y) {
     size = ui.theme.metric('swatch')
-    step = size + this.gap(ui)
+    step = size + this.gap(ui.theme)
     inner = this.bounds.inset(ui.theme.metric('gutter'))
 
     column = math.floor((x - inner.x) / step)
@@ -49,7 +61,7 @@ class Swatches extends Widget {
     for (index = 0; index < this.colors.length(); index++) {
       column = index % this.columns
       row = math.floor(index / this.columns)
-      cell = inner.cell(column, row, size, this.gap(ui))
+      cell = inner.cell(column, row, size, this.gap(ui.theme))
 
       ui.painter.fill(cell, this.colors[index])
 

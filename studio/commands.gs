@@ -39,18 +39,25 @@ function registerCoreCommands(studio) {
   commands.add(new Command('view.zoomReset', 'Reset Zoom')
     .does(function (studio) { studio.signals.emit('view.reset', null) }))
 
+  commands.add(new Command('view.toggleGrid', 'Toggle Grid')
+    .does(function (studio) { studio.signals.emit('view.grid', null) }))
+
+  // Re-applying preferences rather than calling loadFonts(null) directly keeps
+  // a custom ui.font from being thrown away every time the scale changes.
   commands.add(new Command('view.scaleUp', 'Bigger Interface')
     .does(function (studio) {
-      studio.theme.useScale(studio.theme.scale + 1).loadFonts(null)
+      studio.theme.useScale(studio.theme.scale + 1)
       studio.preferences.set('ui.scale', studio.theme.scale)
+      studio.applyPreferences()
       studio.ui.resized(studio.ui.root.bounds.w, studio.ui.root.bounds.h)
       studio.say(`UI scale ${studio.theme.scale}x`)
     }))
 
   commands.add(new Command('view.scaleDown', 'Smaller Interface')
     .does(function (studio) {
-      studio.theme.useScale(studio.theme.scale - 1).loadFonts(null)
+      studio.theme.useScale(studio.theme.scale - 1)
       studio.preferences.set('ui.scale', studio.theme.scale)
+      studio.applyPreferences()
       studio.ui.resized(studio.ui.root.bounds.w, studio.ui.root.bounds.h)
       studio.say(`UI scale ${studio.theme.scale}x`)
     }))
@@ -63,6 +70,7 @@ function registerCoreCommands(studio) {
     keys.bind('=', 'view.zoomIn')
     keys.bind('-', 'view.zoomOut')
     keys.bind('1', 'view.zoomReset')
+    keys.bind("ctrl+'", 'view.toggleGrid')
   })
 
   keys.bind('ctrl+=', 'view.scaleUp')

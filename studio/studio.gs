@@ -40,10 +40,16 @@ class Studio {
     registerCoreCommands(this)
   }
 
+  // ui.font is a path to a pixel TTF; ui.fontSize is the size that font is
+  // drawn at natively, which has to be right or the text renders blurry - see
+  // Theme.loadFonts().
   applyPreferences() {
     this.theme
       .useScale(this.preferences.get('ui.scale', this.theme.scale))
-      .loadFonts(this.preferences.get('ui.font', null))
+      .loadFonts(
+        this.preferences.get('ui.font', null),
+        this.preferences.get('ui.fontSize', null)
+      )
 
     return this
   }
@@ -98,10 +104,19 @@ class Studio {
   // Keys go to the focused widget first - a text field has to be able to eat
   // its own letters - and to the keymap only if nothing took them.
   keyed(key, isRepeat) {
+    // ui.keyed() records the modifier state first, so the chord below sees it.
     if (this.ui.keyed(key, isRepeat)) {
       return true
     }
 
-    return this.keymap.dispatch(key, this)
+    return this.keymap.dispatch(this.ui.modifiers.chordFor(key), this)
+  }
+
+  keyReleased(key) {
+    return this.ui.keyReleased(key)
+  }
+
+  focusChanged(hasFocus) {
+    return this.ui.focusChanged(hasFocus)
   }
 }

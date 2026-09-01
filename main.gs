@@ -17,8 +17,11 @@ function load() {
   window.setResizable(true)
   window.setVsync(true)
 
+  // Scale 1 by default: the interface is already sized around a 19px font, and
+  // 2x makes every bar twice the weight of the equivalent in Aseprite. Ctrl+=
+  // raises it at runtime, and the choice is remembered.
   theme = asepriteDark()
-    .useScale(2)
+    .useScale(1)
     .loadFonts(null)
 
   app.studio = new Studio(theme)
@@ -48,6 +51,11 @@ function mousereleased(x, y, button)        { app.studio.ui.released(x, y, butto
 function mousemoved(x, y, dx, dy)           { app.studio.ui.moved(x, y, dx, dy) }
 function wheelmoved(x, y)                   { app.studio.ui.wheeled(x, y) }
 function keypressed(key, isRepeat)          { app.studio.keyed(key, isRepeat) }
+
+// keyreleased and focus are not optional extras: modifier state is tracked
+// from these events, so without them a held Ctrl would never come back up.
+function keyreleased(key)                   { app.studio.keyReleased(key) }
+function focus(hasFocus)                    { app.studio.focusChanged(hasFocus) }
 
 function quit() {
   app.studio.preferences

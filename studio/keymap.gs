@@ -1,4 +1,3 @@
-import { chordOf } from "chisel/support/chord-of"
 import { normalizeChord } from "chisel/support/normalize-chord"
 
 // Routes, with middleware. bind() maps a chord to a command name; group()
@@ -83,9 +82,10 @@ class Keymap {
     return ''
   }
 
-  dispatch(key, studio) {
-    chord = chordOf(key)
-
+  // Takes a chord, not a raw key: building one needs to know which modifiers
+  // are held, which is input state and belongs to Ui. Keeping that out of here
+  // is also what lets this class be tested without an engine.
+  dispatch(chord, studio) {
     if (chord == '') {
       return false
     }

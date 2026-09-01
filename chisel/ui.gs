@@ -1,7 +1,9 @@
 import "lumen:window"
 import "lumen:canvas"
+import "lumen:system"
 import { Rect } from "chisel/geometry/rect"
 import { Pointer } from "chisel/pointer"
+import { Modifiers } from "chisel/modifiers"
 
 // Owns the widget tree and the four pointers that make an interface feel alive:
 //
@@ -18,6 +20,10 @@ class Ui {
     this.theme = theme
     this.painter = painter
     this.pointer = new Pointer()
+
+    // On macOS the accelerator is Command; everywhere else it is Ctrl. The
+    // decision is made here so Modifiers itself needs no `lumen:` import.
+    this.modifiers = new Modifiers(system.os == 'darwin')
 
     // Set by the shell. Chisel never reads it; widgets that belong to an
     // application do. The only line in the framework that admits an
@@ -213,11 +219,27 @@ class Ui {
   }
 
   keyed(key, isRepeat) {
+    this.modifiers.down(key)
+
     if (this.focused != null) {
       return this.focused.keyed(this, key)
     }
 
     return false
+  }
+
+  keyReleased(key) {
+    return this.modifiers.up(key)
+  }
+
+  // A modifier held while the window loses focus never sends its release here,
+  // so it would stay stuck down until it was pressed and released again.
+  focusChanged(hasFocus) {
+    if (!hasFocus) {
+      this.modifiers.clear()
+    }
+
+    return hasFocus
   }
 
   // ---- overlays -----------------------------------------------------------------

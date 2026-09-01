@@ -975,17 +975,23 @@ class Theme {
 
     // Aseprite's grid at 1x. Everything in the interface is a multiple of
     // these, and nothing is a literal number in a widget.
+    // The size text is drawn at, at scale 1. See loadFonts() for why 19.
+    this.native = 19
+
+    // Sized around the font rather than chosen freely: silver.ttf at 19px
+    // reports a 21px line height, so a row shorter than that clips its own
+    // text. Every row-like metric clears 21 with a little air.
     this.metrics = {
       unit: 4,
       gutter: 4,
       pad: 6,
-      row: 18,
-      bar: 20,
-      tab: 22,
-      tool: 22,
+      row: 24,
+      bar: 26,
+      tab: 28,
+      tool: 28,
       icon: 16,
-      swatch: 14,
-      scroll: 10
+      swatch: 16,
+      scroll: 12
     }
   }
 
@@ -1021,24 +1027,32 @@ class Theme {
     return this.metrics.get(name) * this.scale
   }
 
-  // A pixel typeface is only crisp at whole multiples of its design size.
-  // Pass a path to a pixel TTF, or nothing for Lumen's built-in font.
+  // Loads the interface font. Pass a path and the size that font is drawn at
+  // natively, or null for Lumen's built-in face.
+  //
+  // A PIXEL FONT IS ONLY CRISP AT WHOLE MULTIPLES OF ITS NATIVE SIZE — see
+  // the warning below the class. Both roles get the same size here because
+  // silver.ttf has exactly one crisp size per UI scale.
   //
   // The import above is aliased to `fontModule` rather than the bare `font`
-  // its scheme suggests — see the note below the class for why that is not
+  // its scheme suggests — see the other note below for why that is not
   // optional.
-  loadFonts(path) {
-    base = 8 * this.scale
+  loadFonts(path, native) {
+    if (native != null) {
+      this.native = native
+    }
+
+    size = this.native * this.scale
 
     if (path == null) {
-      this.fonts.set('small', fontModule.system(base))
-      this.fonts.set('body', fontModule.system(base * 2))
+      this.fonts.set('small', fontModule.system(size))
+      this.fonts.set('body', fontModule.system(size))
 
       return this
     }
 
-    this.fonts.set('small', new Font(path, base))
-    this.fonts.set('body', new Font(path, base * 2))
+    this.fonts.set('small', new Font(path, size))
+    this.fonts.set('body', new Font(path, size))
 
     return this
   }
@@ -1048,6 +1062,32 @@ class Theme {
   }
 }</code></pre>
 </figure>
+
+<div class="note warn">
+  <h4>A pixel font is crisp at exactly one family of sizes, and blurry at every other</h4>
+  <p>
+    Lumen draws every string through SDL_ttf's <em>blended</em> path. There is no aliased
+    option, no hinting control, no nearest-neighbour — so a glyph edge that lands on a
+    fraction of a pixel comes back as a grey fringe rather than a hard edge. For an interface
+    whose entire identity is "one pixel is one pixel", that is the difference between looking
+    like a tool and looking like a web page.
+  </p>
+  <p>
+    Which sizes are safe is a property of the font, not a matter of taste. Lumen's bundled
+    <code>silver.ttf</code> has <code>unitsPerEm</code> 1900 and draws its glyphs on a
+    100-unit grid, so one font pixel is exactly one screen pixel at <strong>19px, 38px,
+    57px</strong> — and at nothing in between. To find the number for any other font, divide
+    its <code>unitsPerEm</code> by the grid its coordinates are multiples of.
+  </p>
+  <p>
+    The first version of this toolkit loaded that font at 16px and 32px, and got both
+    illegibility and inconsistency in one stroke: neither size is on the grid, so every glyph
+    was smeared, and <code>body</code> at double <code>small</code> made the menu bar twice the
+    size of everything under it. Both roles are the same size here because with this face there
+    is exactly one crisp size per UI scale. The metrics above are then sized to fit the 21px
+    line height it produces — pick the font first, then the row heights, never the reverse.
+  </p>
+</div>
 
 <div class="note warn">
   <h4>A method's own name shadows a same-named import — for every method in its class</h4>
@@ -2643,44 +2683,132 @@ function normalizeChord(text) {
 }</code></pre>
 </figure>
 
+<div class="note warn">
+  <h4>Do not ask the keyboard which modifiers are held</h4>
+  <p>
+    The obvious version of this — <code>keyboard.isDown('left alt', 'right alt')</code> — cannot
+    be made portable, and it is worth understanding why before writing the version that works.
+    Lumen resolves key names through SDL, and <strong>a name SDL does not recognise raises rather
+    than answering false</strong>. The names are not the same everywhere: <code>'Left Alt'</code>
+    on Windows and Linux is <code>'Left Option'</code> on macOS. So the code above runs fine on
+    the machine it was written on and kills the app on someone else's — which is exactly what
+    happened to this toolkit, on the first Mac that ran it.
+  </p>
+  <p>
+    Track modifiers from the key events instead. They hand you whatever name the platform
+    actually uses, so nothing can fail to resolve, and matching on substrings absorbs every
+    spelling. It also keeps <code>lumen:</code> out of the keymap entirely, which is what makes
+    everything in part 11 testable without an engine.
+  </p>
+</div>
+
 <figure class="code">
-  <figcaption><span>chisel/support/chord-of.gs</span><span class="chip new">new</span></figcaption>
-<pre><code class="gs">import "lumen:keyboard"
-import { normalizeChord } from "chisel/support/normalize-chord"
+  <figcaption><span>chisel/modifiers.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import { normalizeChord } from "chisel/support/normalize-chord"
 
-// Builds the chord for a key that has just been pressed, by asking which
-// modifiers are held right now.
-//
-// The names below are SDL's own ('Left Ctrl', not 'lctrl'), and getting one
-// wrong is an *error* rather than a quiet false — Lumen raises on a key name
-// it cannot resolve, which is friendlier for typos and unforgiving of guesses.
-function chordOf(key) {
-  lowered = key.toLowerCase()
+// Which modifier keys are held, tracked from the key events themselves.
+class Modifiers {
+  // acceleratorIsGui: on macOS the accelerator is Command, everywhere else it
+  // is Ctrl. The caller decides, so this class needs no `lumen:` import and
+  // can be tested without an engine.
+  constructor(acceleratorIsGui) {
+    this.held = {}
+    this.acceleratorIsGui = acceleratorIsGui
+  }
 
-  // A modifier pressed by itself is not a chord.
-  if (['left ctrl', 'right ctrl', 'left shift', 'right shift', 'left alt', 'right alt'].contains(lowered)) {
+  // Matched on substrings precisely because the spelling varies: 'Left Ctrl',
+  // 'Left Option', 'Right GUI', 'Left Command', 'Left Windows'.
+  roleOf(key) {
+    name = key.toLowerCase()
+
+    if (name.contains('ctrl'))    { return 'ctrl' }
+    if (name.contains('shift'))   { return 'shift' }
+    if (name.contains('alt'))     { return 'alt' }
+    if (name.contains('option'))  { return 'alt' }
+    if (name.contains('gui'))     { return 'gui' }
+    if (name.contains('command')) { return 'gui' }
+    if (name.contains('windows')) { return 'gui' }
+
     return ''
   }
 
-  parts = []
+  isModifier(key) { return this.roleOf(key) != '' }
 
-  if (keyboard.isDown('left ctrl', 'right ctrl'))   { parts.push('ctrl') }
-  if (keyboard.isDown('left alt', 'right alt'))     { parts.push('alt') }
-  if (keyboard.isDown('left shift', 'right shift')) { parts.push('shift') }
+  down(key) {
+    role = this.roleOf(key)
 
-  parts.push(lowered)
+    if (role == '') { return false }
 
-  return normalizeChord(parts.join('+'))
+    this.held.set(role, true)
+
+    return true
+  }
+
+  up(key) {
+    role = this.roleOf(key)
+
+    if (role == '') { return false }
+
+    this.held.remove(role)
+
+    return true
+  }
+
+  // A modifier held while the window loses focus never sends its release
+  // here, so it would stay stuck down until pressed and released again.
+  clear() {
+    this.held = {}
+
+    return this
+  }
+
+  isDown(role) { return this.held.has(role) }
+
+  // A binding written 'ctrl+z' means "the platform's accelerator", so a Mac
+  // user gets Cmd+Z. Literal Ctrl keeps working there too.
+  accelerator() {
+    if (this.isDown('ctrl')) { return true }
+
+    if (this.acceleratorIsGui) { return this.isDown('gui') }
+
+    return false
+  }
+
+  chordFor(key) {
+    if (this.isModifier(key)) {
+      return ''
+    }
+
+    parts = []
+
+    if (this.accelerator())   { parts.push('ctrl') }
+    if (this.isDown('alt'))   { parts.push('alt') }
+    if (this.isDown('shift')) { parts.push('shift') }
+
+    parts.push(key.toLowerCase())
+
+    return normalizeChord(parts.join('+'))
+  }
 }</code></pre>
 </figure>
 
+<p>
+  <code>Ui</code> owns one of these, feeds it in <code>keyed()</code> and a new
+  <code>keyReleased()</code>, and clears it when the window loses focus — which means
+  <code>main.gs</code> grows two more forwarding calls, <code>keyreleased</code> and
+  <code>focus</code>. They are not optional: without them a held Ctrl never comes back up.
+</p>
+
 <figure class="code">
   <figcaption><span>studio/keymap.gs</span><span class="chip new">new</span></figcaption>
-<pre><code class="gs">import { chordOf } from "chisel/support/chord-of"
-import { normalizeChord } from "chisel/support/normalize-chord"
+<pre><code class="gs">import { normalizeChord } from "chisel/support/normalize-chord"
 
 // Routes, with middleware. bind() maps a chord to a command name; group()
 // applies a shared guard to everything declared inside it.
+//
+// dispatch() takes a chord rather than a raw key: building one needs to know
+// which modifiers are held, which is input state and belongs to Ui. Keeping
+// that out of here is also what lets this class be tested with no engine.
 class Keymap {
   constructor(commands) {
     this.commands = commands
@@ -2746,9 +2874,7 @@ class Keymap {
     return true
   }
 
-  dispatch(key, studio) {
-    chord = chordOf(key)
-
+  dispatch(chord, studio) {
     if (chord == '') {
       return false
     }
@@ -4149,6 +4275,33 @@ lumen package . -o studio.lumen    # one archive, for people who have Lumen</cod
 <h3>Lumen</h3>
 
 <div class="cut sev-high">
+  <div class="title"><strong>Key names are platform-specific, and an unknown one raises</strong><span class="tag">high · shipped a crash</span></div>
+  <p>
+    Lumen resolves key names through SDL, so what a key is called depends on the machine:
+    <code>'Left Alt'</code> on Windows and Linux is <code>'Left Option'</code> on macOS. And a
+    name SDL does not recognise is an <em>error</em>, not a false — so the failure is not a
+    shortcut that quietly misses, it is the app dying on someone else's operating system.
+    <code>keyboard.isDown('left alt')</code> crashed this toolkit on the first Mac that ran it,
+    on the second line of the modifier check, because <code>'left ctrl'</code> resolved and
+    <code>'left alt'</code> did not. There is also no way to query modifier state directly,
+    which is what makes name lookups look like the only option.
+  </p>
+  <p class="fix"><b>Would fix it</b> <code>isDown</code> answering false for an unrecognised name, plus a platform-independent way to ask about modifiers.</p>
+</div>
+
+<div class="cut sev-high">
+  <div class="title"><strong>Text is always antialiased, so pixel fonts cannot be drawn crisply</strong><span class="tag">high</span></div>
+  <p>
+    Every string goes through <code>RenderUTF8Blended</code>. No aliased path, no hinting
+    control, no nearest-neighbour, so a pixel font at anything but an exact multiple of its
+    native size is grey mush — and nothing in the API hints that font sizes are quantised at
+    all. <code>font.system(16)</code> succeeds exactly as readily as <code>font.system(19)</code>,
+    and only one of them is sharp.
+  </p>
+  <p class="fix"><b>Would fix it</b> a <code>Solid</code>/aliased render mode, and a way to ask a font what size it wants to be drawn at.</p>
+</div>
+
+<div class="cut sev-high">
   <div class="title"><strong>No pixel writing, and no image from data</strong><span class="tag">high · blocks the pixel editor</span></div>
   <p>
     <code>Image</code> has <code>getPixel</code> and <code>setFilter</code>, and that is all. A
@@ -4223,7 +4376,7 @@ lumen package . -o studio.lumen    # one archive, for people who have Lumen</cod
 
 <div class="tree"><b>chisel/</b>                    <i>framework — knows nothing about editors</i>
 ├── support/<b>snap.gs</b>          <i>function snap(value)</i>
-├── support/<b>chord-of.gs</b>      <i>function chordOf(key)</i>
+├── <b>modifiers.gs</b>           <i>class Modifiers</i>
 ├── support/<b>normalize-chord.gs</b>
 ├── geometry/<b>rect.gs</b>         <i>class Rect</i>
 ├── traits/<b>conditionable.gs</b>  <i>trait Conditionable</i>

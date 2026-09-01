@@ -35,6 +35,10 @@ calls into — widgets that belong to an application read it, the framework does
 These were verified by running them, not read from the spec. See `docs/papercuts.md` for
 the full list and what would fix each one upstream.
 
+- **`and` / `or` do not short-circuit.** Both operands are always evaluated, so
+  `x == null or x.field` still dereferences a null `x`. A null check that guards a
+  dereference is its own `if`, never folded into the same expression. This has crashed
+  this app in production; it is the single easiest mistake to make here.
 - **A function cannot assign to a variable outside itself.** Module-level mutable state
   does not work; state lives on instances. Mutating an object (`map.set`, `list.push`,
   `this.field =`) is fine.
@@ -52,6 +56,23 @@ the full list and what would fix each one upstream.
 - **Circular imports are a hard fault.** Keep shared types in leaf modules.
 - **Import by full path from the project root** (`import { Rect } from
   "chisel/geometry/rect"`). Search paths accumulate globally and first match wins.
+- **A class method's name shadows a same-named import** in every method of that class.
+  Import under an alias when they would collide (`import "lumen:font" as fontModule`).
+
+## Engine rules
+
+- **Never hand Lumen a key name you invented.** SDL's names are platform-specific
+  (`'Left Alt'` is `'Left Option'` on macOS) and an unrecognised one *raises*. Modifier
+  state is tracked from the key events themselves, in `chisel/modifiers.gs`; `main.gs` must
+  keep forwarding `keyreleased` and `focus` or modifiers stick down.
+- **Font sizes are quantised.** Lumen renders text antialiased with no aliased option, so a
+  pixel font is crisp only at whole multiples of its native size — 19px for the bundled
+  `silver.ttf`. Any other size is visibly blurry. See `Theme.loadFonts()`.
+- **Anything that imports a `lumen:` module cannot be unit-tested here**, since
+  `ghost test.gs` has no engine. Every bug that has reached a real run of this app lived in
+  such a file. Keep logic out of engine-touching files where you can — that is why
+  `Keymap` takes a chord rather than a key, and why `Modifiers` takes a flag rather than
+  reading `system.os` itself.
 
 ## Look and feel
 

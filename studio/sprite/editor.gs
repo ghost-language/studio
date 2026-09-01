@@ -87,6 +87,8 @@ class SpriteEditor {
         menu.item('view.zoomOut')
         menu.item('view.zoomReset')
         menu.separator()
+        menu.item('view.toggleGrid')
+        menu.separator()
         menu.item('view.scaleUp')
         menu.item('view.scaleDown')
       })
@@ -137,15 +139,19 @@ class SpriteEditor {
     dock.top(this.tabs().named('tabs'), theme.metric('tab'))
     dock.top(new Panel('Pixel-perfect   Alpha   Opacity 255').named('context'), theme.metric('bar'))
 
-    dock.left(new Swatches(document.palette)
+    // The palette asks for its own width rather than being handed a guess -
+    // the guess used to fit two of its four columns.
+    colours = new Swatches(document.palette)
       .named('colorbar')
       .across(4)
-      .on('pick', makeColourPicker(document)), 26 * theme.scale + theme.metric('gutter') * 2)
+      .on('pick', makeColourPicker(document))
+
+    dock.left(colours, colours.widthFor(theme))
 
     dock.right(this.toolbar().named('tools'), theme.metric('tool') + 8)
 
     dock.bottom(new Statusbar(studio).named('status'), theme.metric('row'))
-    dock.bottom(new Panel('Timeline').named('timeline'), theme.metric('row') * 5)
+    dock.bottom(new Panel('Timeline').named('timeline'), theme.metric('row') * 3)
 
     dock.fill(new Viewport(studio, document).named('viewport'))
 

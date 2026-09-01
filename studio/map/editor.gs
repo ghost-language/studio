@@ -88,6 +88,8 @@ class MapEditor {
         menu.item('view.zoomIn')
         menu.item('view.zoomOut')
         menu.item('view.zoomReset')
+        menu.separator()
+        menu.item('view.toggleGrid')
       })
       .menu('Tools', function (menu) {
         menu.item('tool.stamp')
@@ -135,15 +137,17 @@ class MapEditor {
     dock.top(this.tabs().named('tabs'), theme.metric('tab'))
     dock.top(new Panel('Grid 16   Snap   Layer: ground').named('context'), theme.metric('bar'))
 
-    dock.left(new Swatches(document.palette)
+    tiles = new Swatches(document.palette)
       .named('tileset')
       .across(4)
-      .on('pick', makeBrushPicker(document)), 26 * theme.scale + theme.metric('gutter') * 2)
+      .on('pick', makeBrushPicker(document))
+
+    dock.left(tiles, tiles.widthFor(theme))
 
     dock.right(this.toolbar().named('tools'), theme.metric('tool') + 8)
 
     dock.bottom(new Statusbar(studio).named('status'), theme.metric('row'))
-    dock.bottom(new Panel('Layers: ground · objects · collision').named('layers'), theme.metric('row') * 4)
+    dock.bottom(new Panel('Layers: ground · objects · collision').named('layers'), theme.metric('row') * 3)
 
     dock.fill(new Viewport(studio, document).named('viewport'))
 
