@@ -8,11 +8,27 @@ function registerCoreCommands(studio) {
 
   commands.add(new Command('history.undo', 'Undo')
     .does(function (studio) { studio.document.history.undo() })
-    .available(function (studio) { return studio.document != null and studio.document.history.canUndo() }))
+    .available(function (studio) {
+      // Two statements, not `studio.document != null and studio.document
+      // .history.canUndo()`: `and` evaluates both operands regardless of the
+      // first's result, so that line would still dereference a null
+      // document and crash the moment nothing is open.
+      if (studio.document == null) {
+        return false
+      }
+
+      return studio.document.history.canUndo()
+    }))
 
   commands.add(new Command('history.redo', 'Redo')
     .does(function (studio) { studio.document.history.redo() })
-    .available(function (studio) { return studio.document != null and studio.document.history.canRedo() }))
+    .available(function (studio) {
+      if (studio.document == null) {
+        return false
+      }
+
+      return studio.document.history.canRedo()
+    }))
 
   commands.add(new Command('view.zoomIn', 'Zoom In')
     .does(function (studio) { studio.signals.emit('view.zoom', 1) }))

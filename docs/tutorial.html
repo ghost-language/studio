@@ -1752,7 +1752,12 @@ class Ui {
   release()       { this.captured = null }
 
   focus(widget) {
-    if (widget != null and widget.focusable) {
+    // Two ifs, not one and — see the note below the class.
+    if (widget == null) {
+      return null
+    }
+
+    if (widget.focusable) {
       this.focused = widget
     }
   }
@@ -1868,7 +1873,13 @@ class Ui {
   paintTooltip() {
     target = this.hot
 
-    if (target == null or this.hoverAge &lt; 0.6 or target.hint == '') {
+    // Split rather than `target == null or ... or target.hint == ''` — see
+    // the warning below this class.
+    if (target == null) {
+      return null
+    }
+
+    if (this.hoverAge &lt; 0.6 or target.hint == '') {
       return null
     }
 
@@ -1894,6 +1905,35 @@ class Ui {
   }
 }</code></pre>
 </figure>
+
+<div class="note warn">
+  <h4><code>and</code> / <code>or</code> do not short-circuit — and this file just used both to avoid it</h4>
+  <p>
+    Both operands of <code>and</code>/<code>or</code> are <strong>always evaluated</strong>, left
+    then right, then combined — no short-circuit, regardless of what the left side decides. Every
+    language this syntax resembles gets this wrong in the helpful direction: Python and Ruby spell
+    it <code>and</code>/<code>or</code> and short-circuit; JavaScript and PHP spell it
+    <code>&amp;&amp;</code>/<code>||</code> and short-circuit. Ghost borrows the words from the
+    first pair and the behaviour from neither, so the null guard every one of those languages
+    teaches —
+  </p>
+<pre style="margin:8px 0"><code class="gs">if (target == null or target.hint == '') { ... }   // raises when target is null</code></pre>
+  <p>
+    — reads correctly, passes review, and raises
+    <code>property error: cannot read property `hint` of null</code> the moment
+    <code>target</code> actually is one, because Ghost evaluates <code>target.hint == ''</code>
+    regardless of whether <code>target == null</code> already answered the question. A bare truthy
+    guard (<code>if (x and x.foo)</code>) fails the identical way.
+  </p>
+  <p>
+    <code>focus()</code> and <code>paintTooltip()</code> above are already written the only way
+    that is safe: <strong>a null check that guards a dereference is its own <code>if</code>,
+    never folded into the same expression as the dereference.</strong> This is not a one-off — it
+    recurs anywhere a guarded value's member is read on the far side of <code>and</code>/<code>or</code>,
+    including inside a <code>while</code> condition or a return expression, and Part 11's keymap
+    hits it three more times.
+  </p>
+</div>
 
 <p>
   Now <code>main.gs</code> reaches its final shape. It never changes again: nine forwarding calls,
@@ -2294,7 +2334,13 @@ class Signals {
   // Blanking the slot keeps every token handed out earlier pointing at the
   // right handler.
   forget(token) {
-    if (token == null or !this.listeners.has(token.name)) {
+    // Two ifs — see Part 07's warning: or does not short-circuit, so a
+    // one-line version here would evaluate token.name on a null token.
+    if (token == null) {
+      return false
+    }
+
+    if (!this.listeners.has(token.name)) {
       return false
     }
 
@@ -2659,7 +2705,13 @@ class Keymap {
     // the menu row and the tooltip never have to be told separately.
     known = this.commands.get(command)
 
-    if (known != null and known.accel == '') {
+    // Two ifs — a chord bound to a command name that is not registered yet
+    // must not evaluate known.accel. See Part 07's warning on and/or.
+    if (known == null) {
+      return this
+    }
+
+    if (known.accel == '') {
       known.shortcut(chord)
     }
 
@@ -2680,7 +2732,13 @@ class Keymap {
     for (name in names) {
       test = this.guards.get(name)
 
-      if (test != null and !test(studio)) {
+      // A misspelled or not-yet-registered guard name must skip, not call
+      // null as a function — which `test != null and !test(studio)` would do.
+      if (test == null) {
+        continue
+      }
+
+      if (!test(studio)) {
         return false
       }
     }
@@ -2697,7 +2755,15 @@ class Keymap {
 
     route = this.routes.get(chord)
 
-    if (route == null or !this.passes(route.middleware, studio)) {
+    // The one that matters most: every keypress with no binding reaches here
+    // with route == null. Folding this into `route == null or
+    // !this.passes(route.middleware, studio)` would evaluate
+    // route.middleware and crash on the very next unbound key.
+    if (route == null) {
+      return false
+    }
+
+    if (!this.passes(route.middleware, studio)) {
       return false
     }
 
@@ -2705,6 +2771,18 @@ class Keymap {
   }
 }</code></pre>
 </figure>
+
+<div class="note warn">
+  <h4>Three more, in one file</h4>
+  <p>
+    Part 07 already warned about this, and the keymap still needed three separate fixes: a
+    guard registered too late, a middleware name with no guard behind it, and — the one that
+    actually matters, because it runs on <em>every</em> keypress — a chord with no binding at
+    all. <code>and</code>/<code>or</code> never earn the benefit of the doubt: if either side of
+    one can be null and the other side dereferences it, they are two <code>if</code>s, not one
+    line.
+  </p>
+</div>
 
 <p>
   Buttons and menu rows now name a command instead of carrying a closure. Two lines on
@@ -3912,6 +3990,27 @@ lumen package . -o studio.lumen    # one archive, for people who have Lumen</cod
 </p>
 
 <h3>Ghost</h3>
+
+<div class="cut sev-high">
+  <div class="title"><strong><code>and</code> / <code>or</code> do not short-circuit</strong><span class="tag">high · shipped two crashes</span></div>
+  <p>
+    Both operands are always evaluated — the spec says so outright, and the interpreter agrees.
+    The danger is entirely borrowed familiarity: Ghost spells these the way Python and Ruby do,
+    most Ghost code reads like JavaScript or PHP, and <code>&amp;&amp;</code>/<code>||</code>
+    short-circuit in all four of those languages. The null guard every one of them teaches —
+    <code>if (target == null or target.hint == '')</code> — reads correctly, passes review, and
+    raises the moment <code>target</code> actually is null, because the right side gets evaluated
+    regardless. A bare truthy guard (<code>if (x and x.foo)</code>) fails identically.
+  </p>
+  <p>
+    This reached a real run of <code>lumen .</code> twice in this toolkit: once in a tooltip, once
+    in the keymap's <code>dispatch()</code> — which crashed on every keypress with no binding, so
+    on almost every keypress. An audit of every <code>and</code>/<code>or</code> in the codebase
+    once the pattern was known found six more, none yet triggered. The fix throughout: two
+    <code>if</code>s, never one line that both checks null and dereferences on the other side.
+  </p>
+  <p class="fix"><b>Would fix it</b> short-circuit evaluation, matching every language this syntax is presented as resembling.</p>
+</div>
 
 <div class="cut sev-high">
   <div class="title"><strong>A function cannot assign to a variable outside itself</strong><span class="tag">high · silent</span></div>

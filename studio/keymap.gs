@@ -29,7 +29,15 @@ class Keymap {
     // menu row and a tooltip never have to be told separately.
     known = this.commands.get(command)
 
-    if (known != null and known.accel == '') {
+    // Two ifs, not one `and`: `and`/`or` evaluate both operands regardless of
+    // the first's result, so `known != null and known.accel == ''` would
+    // still evaluate `known.accel` - and raise - when a chord is bound to a
+    // command name that was never registered.
+    if (known == null) {
+      return this
+    }
+
+    if (known.accel == '') {
       known.shortcut(chord)
     }
 
@@ -50,7 +58,14 @@ class Keymap {
     for (name in names) {
       test = this.guards.get(name)
 
-      if (test != null and !test(studio)) {
+      // A group can name a guard before guard() registers it, or misspell
+      // one - `test != null and !test(studio)` would still call `test(studio)`
+      // and crash, since `and` does not short-circuit on the first operand.
+      if (test == null) {
+        continue
+      }
+
+      if (!test(studio)) {
         return false
       }
     }
@@ -77,7 +92,16 @@ class Keymap {
 
     route = this.routes.get(chord)
 
-    if (route == null or !this.passes(route.middleware, studio)) {
+    // The most important guard in this file to get right: every keypress
+    // with no binding reaches here with route == null. `or` does not
+    // short-circuit, so folding this into one line - `route == null or
+    // !this.passes(route.middleware, studio)` - would evaluate
+    // `route.middleware` and crash on the very first unbound key.
+    if (route == null) {
+      return false
+    }
+
+    if (!this.passes(route.middleware, studio)) {
       return false
     }
 

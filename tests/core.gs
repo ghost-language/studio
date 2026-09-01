@@ -18,6 +18,7 @@ import { History } from "studio/history"
 import { Editable } from "studio/traits/editable"
 import { linePixels } from "studio/support/line-pixels"
 import { normalizeChord } from "chisel/support/normalize-chord"
+import { registerCoreCommands } from "studio/commands"
 import "tests/fixtures/toolkit" as toolkitModule
 
 results = { passed: 0, failed: 0 }
@@ -149,6 +150,37 @@ check('the runner did not run', ran.count, 1)
 check('an unknown command answers false', registry.run('nope', null), false)
 check('label and accel come from the command', registry.get('test.run').accel, 'ctrl+r')
 
+// registerCoreCommands() builds the real undo/redo commands this app ships.
+// Their availability guards used to read `studio.document != null and
+// studio.document.history.canUndo()` — broken the same way, since `and`
+// still evaluates the second half and dereferences a null document.
+//
+// The real Keymap can't be constructed here (it imports chord-of.gs, which
+// imports "lumen:keyboard"), so this is a minimal stand-in exposing just the
+// three methods registerCoreCommands calls on it. A plain map's own function
+// values are callable through dot-call syntax, which is what makes this work
+// with no class at all.
+fakeKeymap = {}
+fakeKeymap.guard = function (name, test) { return null }
+fakeKeymap.bind = function (chord, command) { return null }
+fakeKeymap.group = function (names, callback) { callback(fakeKeymap) }
+
+fakeStudio = { commands: new CommandRegistry(), keymap: fakeKeymap, document: null }
+
+registerCoreCommands(fakeStudio)
+
+check(
+  'undo is unavailable with no document open, rather than a crash',
+  fakeStudio.commands.get('history.undo').isEnabled(fakeStudio),
+  false
+)
+
+check(
+  'redo is unavailable with no document open, rather than a crash',
+  fakeStudio.commands.get('history.redo').isEnabled(fakeStudio),
+  false
+)
+
 // --- normalizeChord ---------------------------------------------------------------
 
 console.log('Chords')
@@ -192,6 +224,12 @@ signals.emit('news', 'ignored')
 check('a forgotten listener stays quiet', heard.last, 'hello')
 
 check('emitting into silence is fine', signals.emit('nobody', null), false)
+
+// forget(null) used to crash: `token == null or !this.listeners.has(token.name)`
+// still evaluates `token.name` when token is null, because `or` does not
+// short-circuit. See "Import aliasing" below for the general shape of this
+// class of bug.
+check('forgetting a null token is safe rather than a crash', signals.forget(null), false)
 
 // --- History ----------------------------------------------------------------------
 

@@ -5,9 +5,9 @@ repository because the architecture is shaped around it.
 
 **Every Ghost behaviour below was executed against a build of the interpreter**, not
 inferred from `SPEC.md` — three of them contradict the spec. Two were caught before they
-shipped, by this repository's own tests failing; one was not, and reached a real run of
-`lumen .` as a crash, because the engine-independent test suite has no way to exercise
-`chisel/theme.gs` without Lumen itself.
+shipped, by this repository's own tests failing; two reached a real run of `lumen .` as a
+crash, both in code the engine-independent test suite could not exercise without Lumen
+itself.
 
 Severity is from the point of view of someone writing a GUI toolkit:
 
@@ -18,6 +18,40 @@ Severity is from the point of view of someone writing a GUI toolkit:
 ---
 
 ## Ghost
+
+### `and` / `or` do not short-circuit — *high, shipped a crash, looks exactly like the languages it's borrowing from*
+
+```ghost
+target = null
+
+if (target == null or target.hint == '') {   // raises: cannot read property `hint` of null
+  return null
+}
+```
+
+Both operands of `and`/`or` are always evaluated — `SPEC.md` §8.4 says this outright ("no
+built-in short-circuit special-casing beyond ordinary infix evaluation order: left is
+evaluated, then right, then combined"), and the interpreter matches the spec here. The
+danger is that Ghost borrows `and`/`or` from Python and Ruby, most of a reader's Ghost code
+looks like JavaScript or PHP, and `&&`/`||` short-circuit in every one of those four
+languages. A null guard written in the idiom every one of those languages teaches —
+`x == null or x.field`, `x != null and x.method()` — passes review, reads correctly, and
+crashes the moment the guarded side is actually null. A bare truthy guard has the identical
+failure mode: `if (x and x.foo)` evaluates `x.foo` even when `x` is falsy.
+
+This reached a real run of `lumen .` twice while building this toolkit: once as
+`Ui.paintTooltip()`'s `target == null or ... or target.hint == ''`, and again — the more
+dangerous one — as `Keymap.dispatch()`'s `route == null or !this.passes(route.middleware,
+studio)`, which crashed on every keypress with no binding, meaning almost every keypress.
+Six more instances were found by an audit of every `and`/`or` in the codebase once the
+pattern was known (`Ui.focus`, `Keymap.bind`, `Keymap.passes`, two command availability
+guards, `Signals.forget`) — none yet triggered by a real run, all real bugs. The fix
+throughout is the same: replace the one-line guard with two `if` statements, so the null
+check has already returned before the dereferencing side is ever reached.
+
+**Would fix it:** short-circuit `and`/`or`, matching every language this one is presented
+as similar to. If a non-short-circuiting form is wanted for some reason, it should not be
+the operator spelled the same way `&&`/`||` are taught.
 
 ### A function cannot assign to a variable outside itself — *high, silent*
 

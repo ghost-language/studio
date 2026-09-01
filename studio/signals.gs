@@ -37,7 +37,14 @@ class Signals {
   // Blanking the slot keeps every token handed out earlier pointing at the
   // right handler.
   forget(token) {
-    if (token == null or !this.listeners.has(token.name)) {
+    // `or` evaluates both sides regardless of the first's result, so
+    // `token == null or !this.listeners.has(token.name)` would still
+    // dereference `token.name` and crash on a null token.
+    if (token == null) {
+      return false
+    }
+
+    if (!this.listeners.has(token.name)) {
       return false
     }
 

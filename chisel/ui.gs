@@ -75,7 +75,15 @@ class Ui {
   release()       { this.captured = null }
 
   focus(widget) {
-    if (widget != null and widget.focusable) {
+    // `and`/`or` evaluate both operands regardless of the first's result -
+    // there is no short-circuit - so `widget != null and widget.focusable`
+    // would still evaluate `widget.focusable` when widget is null and raise.
+    // Every null guard in this file is its own `if`, for that reason.
+    if (widget == null) {
+      return null
+    }
+
+    if (widget.focusable) {
       this.focused = widget
     }
   }
@@ -217,7 +225,14 @@ class Ui {
   paintTooltip() {
     target = this.hot
 
-    if (target == null or this.hoverAge < 0.6 or target.hint == '') {
+    // Split from the natural one-line guard because `or` does not
+    // short-circuit: `target == null or ... or target.hint == ''` would
+    // still evaluate `target.hint` when target is null.
+    if (target == null) {
+      return null
+    }
+
+    if (this.hoverAge < 0.6 or target.hint == '') {
       return null
     }
 
