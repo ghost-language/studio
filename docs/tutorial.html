@@ -962,7 +962,7 @@ function draw() {
 
 <figure class="code">
   <figcaption><span>chisel/theme.gs</span><span class="chip new">new</span></figcaption>
-<pre><code class="gs">import "lumen:font"
+<pre><code class="gs">import "lumen:font" as fontModule
 import "ghost:math"
 import { Font } from "lumen:font"
 
@@ -1023,12 +1023,16 @@ class Theme {
 
   // A pixel typeface is only crisp at whole multiples of its design size.
   // Pass a path to a pixel TTF, or nothing for Lumen's built-in font.
+  //
+  // The import above is aliased to `fontModule` rather than the bare `font`
+  // its scheme suggests — see the note below the class for why that is not
+  // optional.
   loadFonts(path) {
     base = 8 * this.scale
 
     if (path == null) {
-      this.fonts.set('small', font.system(base))
-      this.fonts.set('body', font.system(base * 2))
+      this.fonts.set('small', fontModule.system(base))
+      this.fonts.set('body', fontModule.system(base * 2))
 
       return this
     }
@@ -1044,6 +1048,27 @@ class Theme {
   }
 }</code></pre>
 </figure>
+
+<div class="note warn">
+  <h4>A method's own name shadows a same-named import — for every method in its class</h4>
+  <p>
+    This class has a method called <code>font</code>, and the module it needs is
+    <code>lumen:font</code>, which a bare <code>import "lumen:font"</code> would also bind to the
+    name <code>font</code>. Write it that way and <code>loadFonts()</code> compiles fine and fails
+    at runtime: <code>font.system(base)</code> resolves to the class's own <code>font</code>
+    method — a class's methods live in its class environment, and a method's scope resolves
+    through that environment <em>before</em> it ever reaches the file's imports, the same
+    mechanism that lets one method call a sibling by bare name. The error is
+    <code>property error: function has no method `system`</code>, pointing at the call, with
+    nothing at the import or the method to explain why.
+  </p>
+  <p>
+    This is not hypothetical — it shipped in the toolkit this tutorial builds, and stayed
+    undetected until someone ran <code>lumen .</code> for real, because Ghost's own test runner
+    cannot import a <code>lumen:</code> module and so never exercised this file. The fix is the
+    alias above: import under a name distinct from every method the class declares.
+  </p>
+</div>
 
 <p>
   <code>Theme</code> holds a palette but does not contain one — a theme file does, and a theme file
@@ -3930,6 +3955,25 @@ lumen package . -o studio.lumen    # one archive, for people who have Lumen</cod
     solving it.
   </p>
   <p class="fix"><b>Would fix it</b> explicit <code>export</code>, with the current behaviour as the fallback for files that declare nothing.</p>
+</div>
+
+<div class="cut sev-high">
+  <div class="title"><strong>A method's own name shadows a same-named import, for every method in its class</strong><span class="tag">high · shipped a crash</span></div>
+  <p>
+    A method's function scope resolves through its class's own environment before it ever reaches
+    the file's imports — the mechanism that lets one method call a sibling by bare name, cutting the
+    other way. A method named <code>font</code> shadows a bare <code>import "lumen:font"</code> in
+    every method of that class, not just the one declaring it, raising
+    <code>property error: function has no method `system`</code> at the call site with nothing at
+    either the import or the method to explain why.
+  </p>
+  <p>
+    This shipped in this toolkit's own <code>Theme</code> class — see the note in part 03 — and
+    reached a real run of <code>lumen .</code> before it was caught, because Ghost's own test runner
+    cannot import a <code>lumen:</code> module and so never exercised the file. Fixed with
+    <code>import "lumen:font" as fontModule</code>.
+  </p>
+  <p class="fix"><b>Would fix it</b> a compile-time warning when a class member shadows an import — the same fix the everything-is-exported item needs would not reach this, since it is member resolution order, not visibility.</p>
 </div>
 
 <div class="cut sev-mid">

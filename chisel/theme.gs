@@ -1,5 +1,5 @@
 import "lumen:color"
-import "lumen:font"
+import "lumen:font" as fontModule
 import "ghost:math"
 import { Font } from "lumen:font"
 
@@ -61,12 +61,20 @@ class Theme {
   }
 
   // Pass a path to a pixel TTF, or null for Lumen's built-in font.
+  //
+  // The module is imported as `fontModule` rather than the bare `font` its
+  // scheme suggests, because this class also has a method named `font()`
+  // (below). A method's own name shadows a same-named import for every
+  // method in the class - method lookup walks the class environment before
+  // it ever reaches the file's imports - so `font.system(...)` here would
+  // silently resolve to the method object instead of the module, and raise
+  // `no method \`system\`` the moment it was called.
   loadFonts(path) {
     base = 8 * this.scale
 
     if (path == null) {
-      this.fonts.set('small', font.system(base))
-      this.fonts.set('body', font.system(base * 2))
+      this.fonts.set('small', fontModule.system(base))
+      this.fonts.set('body', fontModule.system(base * 2))
 
       return this
     }

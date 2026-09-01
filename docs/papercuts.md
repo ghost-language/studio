@@ -4,8 +4,10 @@ A working list of what Ghost and Lumen made hard while building this toolkit, ke
 repository because the architecture is shaped around it.
 
 **Every Ghost behaviour below was executed against a build of the interpreter**, not
-inferred from `SPEC.md` — three of them contradict the spec, and two were found by tests
-in this repository failing.
+inferred from `SPEC.md` — three of them contradict the spec. Two were caught before they
+shipped, by this repository's own tests failing; one was not, and reached a real run of
+`lumen .` as a crash, because the engine-independent test suite has no way to exercise
+`chisel/theme.gs` without Lumen itself.
 
 Severity is from the point of view of someone writing a GUI toolkit:
 
@@ -65,6 +67,43 @@ it.
 
 **Would fix it:** an explicit `export`, with today's behaviour as the fallback for files
 that declare nothing.
+
+### A method's own name shadows a same-named import, in every method of its class — *high, shipped a crash*
+
+```ghost
+import "lumen:font"        // binds `font` to the module
+
+class Theme {
+  loadFonts(path) {
+    this.fonts.set('small', font.system(base))   // resolves to the method below,
+  }                                               // not the import — raises at runtime
+
+  font(role) { return this.fonts.get(role) }
+}
+```
+
+A class's own methods live in its class environment, and a method's function scope
+resolves through that environment before it ever reaches the file's imports — the same
+mechanism that lets one method call a sibling by bare name. So a method named `font`
+shadows an unaliased `import "lumen:font"` for every method in the class, not just the one
+declaring it. The failure is `property error: function has no method \`system\`` (or
+whichever member is called), pointing at the *call site*, with nothing at either the
+import or the method definition to suggest why.
+
+This shipped in `chisel/theme.gs`: `Theme.font(role)` shadowed `import "lumen:font"`
+inside `loadFonts()`, and it was never caught here because this repository has no engine
+to run `main.gs` against — Ghost's own tests can't import a `lumen:` module, so a plain
+`ghost test.gs` run stays green while the shape of the bug sits untested. It surfaced the
+first time someone ran `lumen .` for real. Fixed by importing under an alias distinct
+from the method name (`import "lumen:font" as fontModule`); `tests/core.gs` now has a
+regression test for the *pattern* — a fixture module and a class with a colliding method
+name, proving the alias keeps them apart — since it cannot exercise `Theme` itself without
+Lumen.
+
+**Would fix it:** the same explicit `export` that would fix everything-is-exported above
+would not help here — this is member resolution order, not visibility. A class member
+shadowing an import warrants at least a compile-time warning, since nothing else marks the
+two as unrelated.
 
 ### A function held in a field cannot be called through the field — *mid, loud*
 

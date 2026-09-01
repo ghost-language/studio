@@ -18,6 +18,7 @@ import { History } from "studio/history"
 import { Editable } from "studio/traits/editable"
 import { linePixels } from "studio/support/line-pixels"
 import { normalizeChord } from "chisel/support/normalize-chord"
+import "tests/fixtures/toolkit" as toolkitModule
 
 results = { passed: 0, failed: 0 }
 
@@ -259,6 +260,35 @@ check('a diagonal steps once per cell', visited.join(' '), '0,0 1,1 2,2')
 visited = []
 linePixels(2, 2, 0, 0, function (x, y) { visited.push(`${x},${y}`) })
 check('it runs backwards too', visited.join(' '), '2,2 1,1 0,0')
+
+// --- import aliasing -----------------------------------------------------------
+
+console.log('Import aliasing')
+
+// Regression test for a bug that shipped in chisel/theme.gs: Theme has a
+// method named font(role), and the file also (bare) imported "lumen:font",
+// which binds the name `font`. Inside another method, the bare identifier
+// `font` resolved to the class's own method rather than the module -
+// method lookup walks the class environment before it ever reaches the
+// file's imports - so `font.system(...)` raised `no method \`system\`` the
+// moment Studio actually ran under Lumen. The fix was importing the module
+// under an alias distinct from the method name. This proves that pattern
+// holds: a method may share a name with an import as long as the import
+// itself is bound under a different name.
+class Labeled {
+  font(role) {
+    return `role:${role}`
+  }
+
+  build(value) {
+    return toolkitModule.system(value)
+  }
+}
+
+labeled = new Labeled()
+
+check('an aliased import is not shadowed by a same-named method', labeled.build('x'), 'built-x')
+check('the method itself still resolves normally', labeled.font('small'), 'role:small')
 
 // --- report ------------------------------------------------------------------------
 
