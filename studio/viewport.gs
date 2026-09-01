@@ -149,6 +149,16 @@ class Viewport extends Widget {
     this.paintEdge(ui, at)
 
     ui.painter.unclip()
+
+    // The cursor is part of the tool, not the chrome: a crosshair over the
+    // artwork, a hand while panning it.
+    if (ui.isHot(this)) {
+      if (this.panning) {
+        ui.cursor('hand')
+      } else {
+        ui.cursor('crosshair')
+      }
+    }
   }
 
   // A one-pixel border around the document. Without it a sprite with

@@ -198,6 +198,18 @@ imports by full path from the project root.
 Also: a file's imports resolve relative to the file the interpreter was *handed*, which is
 why `tests/core.gs` is launched through a root-level `test.gs`.
 
+### Reserved words are unusable as method names *and* at call sites — *mid*
+
+`use` is a keyword (it pulls traits into a class), so a method called `use` will not parse
+— and neither will `cursors.use('arrow')`, which is a call on an unrelated object that
+happens to share the name. The error is `syntax error: expected a name, found (`, pointing
+at the parenthesis rather than at the word that caused it. `continue` has the same problem,
+which is why this toolkit's tools have a `drag` verb rather than a `continue` one.
+
+A keyword only meaningful inside a class body (`use`) blocking a method name everywhere is
+the surprising half; a parser that could accept a keyword after a `.` would remove most of
+the sting.
+
 ### Small surprises, learned once — *low*
 
 - Circular imports are a hard fault. Useful, but it dictates the file graph.

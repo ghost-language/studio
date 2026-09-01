@@ -1,5 +1,7 @@
 import { Painter } from "chisel/painter"
 import { Ui } from "chisel/ui"
+import { Icons } from "chisel/icons"
+import { Cursors } from "chisel/cursors"
 import { Signals } from "studio/signals"
 import { Preferences } from "studio/preferences"
 import { CommandRegistry } from "studio/command-registry"
@@ -35,9 +37,32 @@ class Studio {
     // framework never calls into it, it only hands it to widgets that ask.
     this.ui.studio = this
 
+    this.loadArt()
     this.applyPreferences()
 
     registerCoreCommands(this)
+  }
+
+  // The icon and cursor sheets. Both are placeholder art in a documented
+  // format - 16x16 cells, 8 per row, white on transparent - so replacing them
+  // is a matter of dropping in a new PNG, not touching code.
+  loadArt() {
+    this.ui.icons = new Icons('resources/icons.png', 16)
+      .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
+      .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
+      .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])
+
+    this.ui.cursors = new Cursors('resources/cursors.png', 16)
+      .define('arrow', 0, 0)
+      .define('crosshair', 7, 7)
+      .define('hand', 8, 8)
+      .define('ibeam', 6, 8)
+      .define('resize-h', 8, 6)
+      .define('resize-v', 7, 8)
+
+    this.ui.cursors.claim()
+
+    return this
   }
 
   // ui.font is a path to a pixel TTF; ui.fontSize is the size that font is

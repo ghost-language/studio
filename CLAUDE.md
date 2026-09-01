@@ -56,6 +56,12 @@ the full list and what would fix each one upstream.
 - **Circular imports are a hard fault.** Keep shared types in leaf modules.
 - **Import by full path from the project root** (`import { Rect } from
   "chisel/geometry/rect"`). Search paths accumulate globally and first match wins.
+- **Keywords cannot be method names, or method-call names.** `use` is reserved for traits,
+  so `cursors.use('arrow')` fails to parse at the call site as well as the definition —
+  `expected a name, found (`. `continue` is reserved too. Rename the method.
+- **Every parameter needs a default to be optional** (`face = null`). Adding a bare
+  parameter to an existing method silently breaks every existing call, at the moment it
+  runs. This has bitten twice; the arity sweep in the commit history is the cheap guard.
 - **A class method's name shadows a same-named import** in every method of that class.
   Import under an alias when they would collide (`import "lumen:font" as fontModule`).
 

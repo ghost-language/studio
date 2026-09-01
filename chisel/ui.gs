@@ -33,6 +33,12 @@ class Ui {
     this.root = null
     this.overlays = []
 
+    // Optional, and set by the application: chisel draws icons and a cursor
+    // if it is given them, and looks the same minus the art if it is not.
+    this.icons = null
+    this.cursors = null
+    this.cursorName = 'arrow'
+
     this.hot = null
     this.active = null
     this.focused = null
@@ -104,10 +110,19 @@ class Ui {
     }
   }
 
+  // A widget asks for a cursor during paint; the request lasts one frame, so
+  // moving off a widget restores the arrow without anyone having to undo it.
+  cursor(name) {
+    this.cursorName = name
+
+    return this
+  }
+
   paint() {
     canvas.clear(this.theme.of('window.face'))
 
     this.overlays = []
+    this.cursorName = 'arrow'
 
     if (this.root != null) {
       this.root.paint(this)
@@ -118,6 +133,11 @@ class Ui {
     }
 
     this.paintTooltip()
+
+    if (this.cursors != null) {
+      this.cursors.show(this.cursorName)
+      this.cursors.paint(this, this.theme.scale)
+    }
   }
 
   // ---- input --------------------------------------------------------------------

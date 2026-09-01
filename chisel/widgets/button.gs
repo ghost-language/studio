@@ -17,6 +17,8 @@ class Button extends Widget {
 
   // ---- fluent surface ----------------------------------------------------
 
+  // Either a name from the ui's icon set, or nothing. Named art beats a
+  // handle so a button can be declared before the sheet is loaded.
   icon(glyph)     { this.glyph = glyph;    return this }
   selects(flag)   { this.selected = flag;  return this }
   does(command)   { this.command = command; return this }
@@ -54,12 +56,15 @@ class Button extends Widget {
       body = body.offset(1, 1)
     }
 
+    drawn = false
+
     if (this.glyph != null) {
-      this.glyph.draw(
-        body.x + (body.w - this.glyph.getWidth()) / 2,
-        body.y + (body.h - this.glyph.getHeight()) / 2
-      )
-    } else {
+      if (ui.icons != null) {
+        drawn = ui.icons.drawIn(this.glyph, body, this.ink(ui), ui.theme.scale)
+      }
+    }
+
+    if (!drawn) {
       ui.painter.textIn('body', this.label, body, 'center', 'middle', this.ink(ui))
     }
 

@@ -20,9 +20,12 @@ class Toolbar extends Widget {
     this.value = null
   }
 
+  // The label is the fallback for when the icon sheet has no art by that
+  // name, so a toolbar is legible before a single icon is drawn.
   tool(name, label, key) {
     button = new Button(label)
       .named(name)
+      .icon(name)
       .tooltip(name, key)
       .on('click', makeSelectHandler(this, name))
 

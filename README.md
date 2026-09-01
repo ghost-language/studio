@@ -38,6 +38,64 @@ map, with tabs to switch between them.
 On macOS every `Ctrl+` binding answers to `Cmd+` too — `ctrl` in a binding means "the
 platform's accelerator", and literal Ctrl keeps working there as well.
 
+## The playground
+
+```
+lumen playground.gs
+```
+
+Every control in the kit on one screen, driven by real input: buttons, checkboxes,
+radios, sliders, scrollbars, text fields, dropdowns, tabs, labels, icon buttons and the
+palette. It imports `chisel/` and nothing else — no Studio, no documents — which is the
+point: the framework has to stand on its own before an application leans on it.
+
+Build widgets here first. A bevel is only obviously wrong when you can see it beside
+twenty others, and a theme change lands everywhere at once where you can watch it.
+
+## Icons and cursors
+
+Both are placeholder art in a fixed format, so replacing them is a matter of dropping in a
+new PNG.
+
+| | `resources/icons.png` | `resources/cursors.png` |
+| --- | --- | --- |
+| Cell | 16 × 16 px | 16 × 16 px |
+| Columns | 8 per row | 8 per row |
+| Colour | **white on transparent** | **white on transparent** |
+| Order | left to right, top to bottom | left to right, top to bottom |
+
+**White matters.** Every icon is tinted at draw time, so one sheet serves the normal,
+dimmed, hovered and selected states and a theme swap recolours all of them at once.
+Anything that is not white will fight the tint.
+
+Names are bound to frames in sheet order, in `Studio.loadArt()` and `playground.gs`:
+
+```ghost
+new Icons('resources/icons.png', 16)
+  .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
+  .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
+  .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])
+```
+
+Cursors additionally need a **hotspot** — the pixel that is actually "the point", since an
+arrow points from its corner and a crosshair from its centre:
+
+```ghost
+new Cursors('resources/cursors.png', 16)
+  .define('arrow', 0, 0)
+  .define('crosshair', 7, 7)
+  .define('hand', 8, 8)
+```
+
+Lumen has no cursor API beyond showing and hiding the system pointer, so the cursor is
+drawn by us, as pixel art, like everything else. A widget asks for one during paint
+(`ui.cursor('crosshair')`); the request lasts one frame, so moving away restores the arrow
+with nobody having to undo it.
+
+To add art: draw into the next free cell, add its name to the matching `define()` list, and
+it is available as `ui.icons.drawIn(name, rect, tint, scale)` or on any button via
+`.icon('name')`.
+
 ## Changing the font
 
 **A pixel font is only crisp at whole multiples of its native size.** Lumen draws all text

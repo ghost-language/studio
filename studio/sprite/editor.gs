@@ -4,7 +4,8 @@ import { Panel } from "chisel/widgets/panel"
 import { Tabs } from "chisel/widgets/tabs"
 import { Menubar } from "chisel/widgets/menubar"
 import { Toolbar } from "chisel/widgets/toolbar"
-import { Swatches } from "chisel/widgets/swatches"
+import { Colorbar } from "studio/sprite/colorbar"
+import { Timeline } from "studio/sprite/timeline"
 import { Statusbar } from "chisel/widgets/statusbar"
 import { Viewport } from "studio/viewport"
 import { Pencil } from "studio/sprite/tools/pencil"
@@ -139,19 +140,16 @@ class SpriteEditor {
     dock.top(this.tabs().named('tabs'), theme.metric('tab'))
     dock.top(new Panel('Pixel-perfect   Alpha   Opacity 255').named('context'), theme.metric('bar'))
 
-    // The palette asks for its own width rather than being handed a guess -
+    // The colour bar asks for its own width rather than being handed a guess -
     // the guess used to fit two of its four columns.
-    colours = new Swatches(document.palette)
-      .named('colorbar')
-      .across(4)
-      .on('pick', makeColourPicker(document))
+    colours = new Colorbar(document).named('colorbar').across(4)
 
     dock.left(colours, colours.widthFor(theme))
 
     dock.right(this.toolbar().named('tools'), theme.metric('tool') + 8)
 
     dock.bottom(new Statusbar(studio).named('status'), theme.metric('row'))
-    dock.bottom(new Panel('Timeline').named('timeline'), theme.metric('row') * 3)
+    dock.bottom(new Timeline(document).named('timeline'), theme.metric('row') * 4)
 
     dock.fill(new Viewport(studio, document).named('viewport'))
 

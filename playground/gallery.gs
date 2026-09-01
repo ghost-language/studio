@@ -58,8 +58,11 @@ class Gallery extends Widget {
 
   // A line is one horizontal band of a card holding one or more controls. A
   // line of several shares the width; a line of one takes all of it.
-  line(card, widgets, height) {
-    card.lines.push({ widgets: widgets, height: height })
+  // `widths` is optional and parallel to `widgets`: a positive number fixes
+  // that widget's width, a zero lets it share what is left. Without it a
+  // vertical scrollbar stretches across the whole card.
+  line(card, widgets, height, widths = null) {
+    card.lines.push({ widgets: widgets, height: height, widths: widths })
 
     for (widget in widgets) {
       this.add(widget)
@@ -128,7 +131,10 @@ class Gallery extends Widget {
     this.line(bars, [new Scrollbar(false).measures(300, 200)], this.theme.metric('scroll'))
     // A vertical bar wants a narrow column, so it shares its line with a
     // label rather than stretching across the card.
-    this.line(bars, [new Label('Vertical').dim(), new Scrollbar(true).measures(300, 60)], row * 3)
+    this.line(bars,
+      [new Label('Vertical').dim(), new Scrollbar(true).measures(300, 60)],
+      row * 3,
+      [0, this.theme.metric('scroll')])
 
     // ---- tabs -------------------------------------------------------------
     strip = this.card('Tabs', 2, 1)
@@ -138,6 +144,28 @@ class Gallery extends Widget {
       .tab('overworld', 'b')
       .tab('title', 'c')
       .on('change', makeSay(this, 'Tab changed'))], this.theme.metric('tab'))
+
+    // Icon buttons: the same Button, given a name from the sheet. The label
+    // still shows if the sheet has no art by that name.
+    icons = this.card('Icon buttons', 0, 2)
+
+    this.line(icons, [
+      new Button('P').icon('pencil').tooltip('Pencil', 'B').on('click', makeSay(this, 'Pencil')),
+      new Button('E').icon('eraser').tooltip('Eraser', 'E').on('click', makeSay(this, 'Eraser')),
+      new Button('B').icon('bucket').tooltip('Bucket', 'G').on('click', makeSay(this, 'Bucket')),
+      new Button('I').icon('picker').tooltip('Picker', 'I').on('click', makeSay(this, 'Picker')),
+      new Button('M').icon('select').tooltip('Select', 'M').on('click', makeSay(this, 'Select')),
+      new Button('H').icon('move').tooltip('Move', 'V').on('click', makeSay(this, 'Move'))
+    ], this.theme.metric('tool'))
+
+    this.line(icons, [
+      new Button('/').icon('line').tooltip('Line', 'L'),
+      new Button('R').icon('rectangle').tooltip('Rectangle', 'U'),
+      new Button('O').icon('ellipse').tooltip('Ellipse', 'U'),
+      new Button('T').icon('text').tooltip('Text', 'T'),
+      new Button('Z').icon('zoom').tooltip('Zoom', 'Z'),
+      new Button('#').icon('grid').tooltip('Grid', "Ctrl+'")
+    ], this.theme.metric('tool'))
 
     this.line(strip, [new Label('Palette').dim()], row)
     this.line(strip, [new Swatches(this.colours()).across(8).on('pick', makeSay(this, 'Colour picked'))], row * 2)
@@ -196,13 +224,46 @@ class Gallery extends Widget {
 
       for (line in card.lines) {
         count = line.widgets.length()
-        share = math.floor((inner.w - gap * (count - 1)) / count)
+        fixed = 0
+        flexible = 0
+
+        for (index = 0; index < count; index++) {
+          width = 0
+
+          if (line.widths != null) {
+            width = line.widths[index]
+          }
+
+          if (width > 0) {
+            fixed = fixed + width
+          } else {
+            flexible = flexible + 1
+          }
+        }
+
+        spare = inner.w - fixed - gap * (count - 1)
+        share = 0
+
+        if (flexible > 0) {
+          share = math.floor(spare / flexible)
+        }
+
         left = inner.x
 
-        for (widget in line.widgets) {
-          widget.place(new Rect(left, at, share, line.height))
+        for (index = 0; index < count; index++) {
+          width = 0
 
-          left = left + share + gap
+          if (line.widths != null) {
+            width = line.widths[index]
+          }
+
+          if (width == 0) {
+            width = share
+          }
+
+          line.widgets[index].place(new Rect(left, at, width, line.height))
+
+          left = left + width + gap
         }
 
         at = at + line.height + gap

@@ -4,6 +4,8 @@ import { Ui } from "chisel/ui"
 import { Painter } from "chisel/painter"
 import { Rect } from "chisel/geometry/rect"
 import { Label } from "chisel/widgets/label"
+import { Icons } from "chisel/icons"
+import { Cursors } from "chisel/cursors"
 import { asepriteDark } from "chisel/themes/aseprite-dark"
 import { Gallery } from "playground/gallery"
 
@@ -25,6 +27,23 @@ function load() {
   theme = asepriteDark().useScale(1).loadFonts(null)
 
   app.ui = new Ui(theme, new Painter(theme))
+
+  // 16x16 cells, 8 to a row, named in sheet order.
+  app.ui.icons = new Icons('resources/icons.png', 16)
+    .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
+    .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
+    .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])
+
+  app.ui.cursors = new Cursors('resources/cursors.png', 16)
+    .define('arrow', 0, 0)
+    .define('crosshair', 7, 7)
+    .define('hand', 8, 8)
+    .define('ibeam', 6, 8)
+    .define('resize-h', 8, 6)
+    .define('resize-v', 7, 8)
+
+  app.ui.cursors.claim()
+
   app.gallery = new Gallery(theme)
 
   app.ui.mount(app.gallery)
