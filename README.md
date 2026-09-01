@@ -137,20 +137,23 @@ Widgets, painting and documents need a running engine and are exercised in the a
 ## Layout
 
 ```
-main.gs                     the entry file: nine forwarding calls into the toolkit
+main.gs                     the pixel editor: forwarding calls into the toolkit
+playground.gs               the widget gallery — chisel only, no application
 test.gs                     the test entry point
 
 chisel/                     the GUI framework
-  support/                  one function per file: snap, chordOf, normalizeChord
+  support/                  one function per file: snap, normalizeChord
   geometry/rect.gs          Rect — the unit of layout
   traits/                   one trait per file: Conditionable, Tappable, EmitsEvents
-  theme.gs painter.gs       every colour; every canvas call
-  pointer.gs ui.gs          input state, the frame, overlays
-  widget.gs                 the base class
+  theme.gs painter.gs       every colour and metric; every canvas call
+  pointer.gs modifiers.gs   input state, portable modifier tracking
+  ui.gs widget.gs           the frame, overlays, the base class
+  icons.gs cursors.gs       sprite-sheet art and the software pointer
   themes/                   one function per theme
-  layout/dock.gs            the workspace
-  widgets/                  panel, button, toolbar, swatches, tabs, menu, menubar,
-                            statusbar, slider, ruler
+  layout/                   dock, row, column
+  widgets/                  panel button label checkbox radio slider scrollbar
+                            field dropdown tabs menu menubar toolbar swatches
+                            statusbar ruler
 
 studio/                     the editor shell
   studio.gs                 the context object handed to everything
@@ -159,10 +162,11 @@ studio/                     the editor shell
   tool.gs tool-registry.gs history.gs
   viewport.gs               the document, drawn — shared by both editors
   traits/editable.gs        the document contract
-  support/line-pixels.gs
-  sprite/                   the pixel editor
+  sprite/                   the pixel editor: colour bar, timeline, tools
   map/                      the map editor
 
+playground/gallery.gs       every control on one screen
+resources/                  icons.png, cursors.png — placeholder art
 docs/tutorial.html          how all of it was built, from first principles
 docs/papercuts.md           what Ghost and Lumen made hard, and what would fix it
 ```
