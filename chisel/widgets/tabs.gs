@@ -81,10 +81,12 @@ class Tabs extends Widget {
       ui.painter.fill(box, face)
 
       // Top and both sides only: the bottom is where the tab joins the
-      // workspace, so it is left open.
-      ui.painter.hline(box.x, box.y, box.w - 1, ui.theme.of('bevel.light'))
-      ui.painter.vline(box.x, box.y, box.h, ui.theme.of('bevel.light'))
-      ui.painter.vline(box.right() - 1, box.y, box.h, ui.theme.of('bevel.dark'))
+      // workspace, so it is left open. That single missing edge is what makes
+      // a tab read as a tab rather than as a button.
+      ui.painter.hline(box.x, box.y, box.w - 1, ui.theme.of('outline'))
+      ui.painter.vline(box.x, box.y, box.h, ui.theme.of('outline'))
+      ui.painter.vline(box.right() - 1, box.y, box.h, ui.theme.of('outline'))
+      ui.painter.hline(box.x + 1, box.y + 1, box.w - 3, ui.theme.of('bevel.light'))
 
       ui.painter.textIn('small', this.entries[index].title, box, 'center', 'middle', ink)
     }

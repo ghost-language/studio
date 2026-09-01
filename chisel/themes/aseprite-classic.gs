@@ -5,18 +5,24 @@ import { Theme } from "chisel/theme"
 // reading this file, a colour literal escaped into a widget somewhere.
 function asepriteClassic() {
   return new Theme('aseprite.classic').set({
-    'window.face':     color.hex('#ded9cc'),
-    'panel.face':      color.hex('#cfcabb'),
-    'panel.well':      color.hex('#a9a496'),
-    'bevel.light':     color.hex('#f6f3ec'),
-    'bevel.dark':      color.hex('#8d897c'),
-    'button.face':     color.hex('#cfcabb'),
-    'button.hover':    color.hex('#ded9cc'),
-    'button.pressed':  color.hex('#bdb8a9'),
-    'button.selected': color.hex('#3d6ea8'),
+    'window.face':     color.hex('#c8c8c0'),
+    'panel.face':      color.hex('#d4d0c8'),
+    'panel.well':      color.hex('#a8a49c'),
+    'field.face':      color.hex('#f4f2ec'),
+
+    'outline':         color.hex('#4a4842'),
+    'bevel.light':     color.hex('#ffffff'),
+    'bevel.dark':      color.hex('#88857e'),
+
+    'button.face':     color.hex('#d4d0c8'),
+    'button.hover':    color.hex('#e2ded6'),
+    'button.pressed':  color.hex('#bab6ae'),
+    'button.selected': color.hex('#3c6ea5'),
+
     'text.normal':     color.hex('#1d1b17'),
     'text.dim':        color.hex('#6a665b'),
     'text.selected':   color.hex('#ffffff'),
+
     'accent':          color.hex('#a8560a'),
     'checker.light':   color.hex('#c8c8c8'),
     'checker.dark':    color.hex('#a0a0a0')

@@ -123,6 +123,19 @@ class Widget {
   wheeled(ui)    { return false }
   keyed(ui, key) { return false }
 
+  // Text typed while focused, already decoded - one call per character or
+  // composed sequence, which is what makes non-Latin input work at all.
+  typed(ui, text) { return false }
+
   // Called on an overlay when a press lands outside it.
   dismissed(ui)  { return false }
+
+  // How a widget draws itself during the overlay pass. Defaulting to paint()
+  // suits a popup that IS the overlay, like a menu; a widget that is only
+  // partly an overlay - a dropdown, whose list floats but whose box does not -
+  // overrides this to draw just the floating part. It must never re-register
+  // the overlay, or the pass would append to the list it is walking.
+  paintOverlay(ui) {
+    return this.paint(ui)
+  }
 }

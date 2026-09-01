@@ -21,21 +21,32 @@ class Theme {
     this.native = 19
 
     // Metrics at 1x, multiplied by the scale on read.
-    //
-    // These are sized around the font rather than chosen freely: silver.ttf at
-    // 19px reports a line height of 21px, so a row shorter than that clips its
-    // own text. Every row-like metric below clears 21 with a little air.
     this.metrics = {
       unit: 4,
-      gutter: 4,
+      gutter: 3,
       pad: 6,
-      row: 24,
-      bar: 26,
-      tab: 28,
-      tool: 28,
+
+      // Rows are sized around the ink, not the em box. Silver at 19px has a
+      // 21px line box but only a 9px cap height, so reserving the whole box
+      // wasted 12px per row and pushed every label above its own centre.
+      row: 18,
+      bar: 20,
+      tab: 22,
+      tool: 22,
       icon: 16,
-      swatch: 16,
-      scroll: 12
+      swatch: 14,
+      check: 11,
+      scroll: 12,
+
+      // Measured from a render of silver.ttf at 19px, as offsets from the y
+      // that canvas.print() is given (which is the top of the line box):
+      //   caps occupy +3..+11, x-height +6..+11, descenders reach +13.
+      // Text is centred on the cap band, which is what makes a row of chrome
+      // look optically centred rather than merely arithmetically centred.
+      capTop: 3,
+      cap: 9,
+      baseline: 11,
+      descender: 13
     }
   }
 

@@ -51,18 +51,63 @@ class Painter {
     this.vline(rect.right() - 1, rect.y, rect.h - 1, dark)
   }
 
-  panel(rect, face) {
+  // An outline around the whole shape, then the bevel inside it, then the
+  // face. Two pixels of border rather than one is what gives Aseprite's
+  // controls their weight - a single bevel line on a dark ground reads as a
+  // smudge, and the near-black outline is what separates a raised thing from
+  // the panel behind it.
+  outline(rect) {
+    ink = this.theme.of('outline')
+
+    this.hline(rect.x, rect.y, rect.w - 1, ink)
+    this.hline(rect.x, rect.bottom() - 1, rect.w - 1, ink)
+    this.vline(rect.x, rect.y, rect.h - 1, ink)
+    this.vline(rect.right() - 1, rect.y, rect.h - 1, ink)
+  }
+
+  // A raised control: button, tab, dropdown, scrollbar thumb.
+  raised(rect, face = null) {
+    if (face == null) {
+      face = this.theme.of('button.face')
+    }
+
+    this.fill(rect, face)
+    this.outline(rect)
+    this.bevel(rect.inset(1), true)
+  }
+
+  // A pressed control - the same frame with the light and dark swapped, which
+  // is the whole animation budget of this interface.
+  sunk(rect, face = null) {
+    if (face == null) {
+      face = this.theme.of('button.pressed')
+    }
+
+    this.fill(rect, face)
+    this.outline(rect)
+    this.bevel(rect.inset(1), false)
+  }
+
+  // A flat surface that holds other things: a docked bar, a card. One outline,
+  // no bevel - panels are the ground, not objects sitting on it.
+  panel(rect, face = null) {
     if (face == null) {
       face = this.theme.of('panel.face')
     }
 
     this.fill(rect, face)
-    this.bevel(rect, true)
+    this.outline(rect)
   }
 
-  well(rect) {
-    this.fill(rect, this.theme.of('panel.well'))
-    this.bevel(rect, false)
+  // A hole: the canvas surround, a text field, a list, a scroll track.
+  well(rect, face = null) {
+    if (face == null) {
+      face = this.theme.of('panel.well')
+    }
+
+    this.fill(rect, face)
+    this.outline(rect)
+    this.bevel(rect.inset(1), false)
   }
 
   // One dark line with one light line under it. This separator does more for
@@ -84,6 +129,12 @@ class Painter {
 
   // What widgets actually call: aligned inside a rect, in whole pixels, so a
   // row of labels never shears by one.
+  //
+  // Vertical alignment is measured against the CAP BAND, not the line box.
+  // A pixel font's line box carries a lot of air - silver.ttf at 19px is 21px
+  // tall for a 9px capital - so centring the box leaves every label sitting
+  // visibly high in its row, and forces rows to be taller than they need to
+  // be. Centring the caps is what makes a bar of chrome look right.
   textIn(role, string, rect, horizontal, vertical, paint) {
     face = this.theme.font(role)
 
@@ -92,8 +143,12 @@ class Painter {
 
     if (horizontal == 'center') { x = rect.x + (rect.w - face.getWidth(string)) / 2 }
     if (horizontal == 'right')  { x = rect.right() - face.getWidth(string) }
-    if (vertical == 'middle')   { y = rect.y + (rect.h - face.getHeight()) / 2 }
-    if (vertical == 'bottom')   { y = rect.bottom() - face.getHeight() }
+
+    capTop = this.theme.metric('capTop')
+    cap = this.theme.metric('cap')
+
+    if (vertical == 'middle') { y = rect.y + (rect.h - cap) / 2 - capTop }
+    if (vertical == 'bottom') { y = rect.bottom() - cap - capTop - this.theme.metric('gutter') }
 
     this.text(role, string, x, y, paint)
   }

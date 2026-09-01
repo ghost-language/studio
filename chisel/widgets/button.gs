@@ -42,8 +42,11 @@ class Button extends Widget {
   paint(ui) {
     raised = !ui.isActive(this)
 
-    ui.painter.fill(this.bounds, this.face(ui))
-    ui.painter.bevel(this.bounds, raised)
+    if (raised) {
+      ui.painter.raised(this.bounds, this.face(ui))
+    } else {
+      ui.painter.sunk(this.bounds, this.face(ui))
+    }
 
     body = this.bounds
 

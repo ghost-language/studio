@@ -36,25 +36,21 @@ class Slider extends Widget {
   paint(ui) {
     ui.painter.well(this.bounds)
 
-    span = this.bounds.w - 2
+    inner = this.bounds.inset(2)
     range = math.max(1, this.high - this.low)
-    filled = math.floor(span * ((this.value - this.low) / range))
+    filled = math.floor(inner.w * ((this.value - this.low) / range))
 
     if (filled > 0) {
-      ui.painter.fill(
-        this.bounds.inset(1).sized(filled, this.bounds.h - 2),
-        ui.theme.of('button.selected')
-      )
+      ui.painter.fill(inner.sized(filled, inner.h), ui.theme.of('button.selected'))
     }
 
-    ui.painter.textIn(
-      'small',
-      `${this.label}: ${this.value}`,
-      this.bounds,
-      'center',
-      'middle',
-      ui.theme.of('text.normal')
-    )
+    // Label left, value right, the way Aseprite reads: the name is what you
+    // scan for and the number is what you check, so they do not compete for
+    // the same space in the middle.
+    text = this.bounds.inset(ui.theme.metric('pad'))
+
+    ui.painter.textIn('body', this.label, text, 'left', 'middle', ui.theme.of('text.normal'))
+    ui.painter.textIn('body', `${this.value}`, text, 'right', 'middle', ui.theme.of('text.normal'))
   }
 
   pressed(ui) {

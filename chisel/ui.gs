@@ -114,7 +114,7 @@ class Ui {
     }
 
     for (entry in this.overlays) {
-      entry.widget.paint(this)
+      entry.widget.paintOverlay(this)
     }
 
     this.paintTooltip()
@@ -230,6 +230,14 @@ class Ui {
 
   keyReleased(key) {
     return this.modifiers.up(key)
+  }
+
+  typed(text) {
+    if (this.focused != null) {
+      return this.focused.typed(this, text)
+    }
+
+    return false
   }
 
   // A modifier held while the window loses focus never sends its release here,

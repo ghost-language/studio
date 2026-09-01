@@ -116,6 +116,10 @@ class Studio {
     return this.ui.keyReleased(key)
   }
 
+  typed(text) {
+    return this.ui.typed(text)
+  }
+
   focusChanged(hasFocus) {
     return this.ui.focusChanged(hasFocus)
   }

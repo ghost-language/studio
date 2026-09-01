@@ -55,6 +55,7 @@ function keypressed(key, isRepeat)          { app.studio.keyed(key, isRepeat) }
 // keyreleased and focus are not optional extras: modifier state is tracked
 // from these events, so without them a held Ctrl would never come back up.
 function keyreleased(key)                   { app.studio.keyReleased(key) }
+function textinput(text)                    { app.studio.typed(text) }
 function focus(hasFocus)                    { app.studio.focusChanged(hasFocus) }
 
 function quit() {
