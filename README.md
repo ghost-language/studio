@@ -98,10 +98,10 @@ it is available as `ui.icons.drawIn(name, rect, tint, scale)` or on any button v
 
 ## Changing the font
 
-**A pixel font is only crisp at whole multiples of its native size.** Lumen draws all text
-through SDL_ttf's blended path, so a size even one pixel off the font's own grid comes
-back as grey fringing rather than hard edges. That is the whole of "why does the text look
-blurry".
+**On a stock Lumen, a pixel font is only crisp at whole multiples of its native size.**
+Text goes through SDL_ttf's blended path, so a size even one pixel off the font's own grid
+comes back as grey fringing rather than hard edges. That is the whole of "why does the text
+look blurry".
 
 Lumen's bundled `silver.ttf` has `unitsPerEm` 1900 on a 100-unit glyph grid, so it is
 exact at **19px, 38px, 57px** and blurry at everything in between. The theme draws at

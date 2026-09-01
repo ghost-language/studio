@@ -88,12 +88,11 @@ class Theme {
   // the text look blurry". ghost-language/lumen#21 turns antialiasing off for
   // the built-in font, after which any size is crisp and this can drop to 16
   // or 14 for tighter chrome. Until that lands, 19 is the only safe choice.
-  // Lumen's built-in silver.ttf has unitsPerEm 1900 and draws its glyphs on a
-  // 100-unit grid, so one font pixel is exactly one screen pixel at 19px, 38px,
-  // 57px - and at nothing in between. At 16px or 32px every glyph edge lands
-  // on a fraction of a pixel, and since Lumen renders text through SDL_ttf's
-  // *blended* path (there is no aliased option), those fractions come back as
-  // grey fringes rather than hard edges.
+  // silver.ttf has unitsPerEm 1900 and draws its glyphs on a 100-unit grid, so
+  // one font pixel is exactly one screen pixel at 19px, 38px, 57px - and at
+  // nothing in between. Blended, every other size lands glyph edges on a
+  // fraction of a pixel and comes back as grey fringes; unblended, none of
+  // that arises and the size is free.
   //
   // To find the native size of another font: unitsPerEm divided by the grid
   // its coordinates are multiples of. For silver that is 1900 / 100.
