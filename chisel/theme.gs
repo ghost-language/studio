@@ -37,16 +37,23 @@ class Theme {
       bar: 18,
       tab: 20,
       tool: 20,
-      icon: 16,
+      icon: 8,
       swatch: 14,
       check: 11,
       scroll: 12,
+
+      // The transparency checkerboard, in framebuffer pixels. Screen-space, so
+      // it does not zoom with the artwork.
+      checker: 16,
 
       // The corner radius, as a circular quadrant in whole pixels. 0 is square.
       // Five cuts three pixels at the very corner and straightens quickly,
       // which reads as properly rounded at this size; the painter caps it at
       // half the shorter side so a checkbox never gets a bite taken out of it.
       radius: 5,
+
+      // The corner cut on a control, as distinct from a window.
+      cut: 5,
 
       // Measured from a render of silver.ttf at 16px, as offsets from the y
       // that canvas.print() is given (which is the top of the line box):
@@ -63,6 +70,15 @@ class Theme {
 
   set(tokens) {
     this.tokens = this.tokens.merge(tokens)
+
+    return this
+  }
+
+  // Metrics a theme overrides. Picotron's chrome is built on a 12px row where
+  // this kit's default was 16, and half the widgets read a metric rather than a
+  // constant, so a theme that cannot change these can only ever be a recolour.
+  sized(metrics) {
+    this.metrics = this.metrics.merge(metrics)
 
     return this
   }

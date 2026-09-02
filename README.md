@@ -77,47 +77,60 @@ twenty others, and a theme change lands everywhere at once where you can watch i
 
 ## Icons and cursors
 
-Both are placeholder art in a fixed format, so replacing them is a matter of dropping in a
-new PNG.
+The art lives in [tools/make-icons.py](tools/make-icons.py) as ASCII, and the
+PNGs are build output:
 
-| | `resources/icons.png` | `resources/cursors.png` |
+```
+python3 tools/make-icons.py
+```
+
+Keeping it that way means changing an icon is a readable diff rather than a
+binary blob nobody can review.
+
+Picotron uses **two** icon languages, and the difference is not decorative:
+
+| | `resources/icons.png` | `resources/glyphs.png` |
 | --- | --- | --- |
-| Cell | 16 × 16 px | 16 × 16 px |
-| Columns | 8 per row | 8 per row |
-| Colour | **white on transparent** | **white on transparent** |
-| Order | left to right, top to bottom | left to right, top to bottom |
+| What | tools, toolbar buttons, arrows | document, sprite, map, sound, palette, cartridge, font, folder |
+| Cell | **8 × 8** px (7×7 of art) | 16 × 16 px (15×16 of art) |
+| Colour | **white on transparent**, tinted at draw | full colour, shipped as drawn |
+| Outline | none | 1px `#1d2b53` |
 
-**White matters.** Every icon is tinted at draw time, so one sheet serves the normal,
-dimmed, hovered and selected states and a theme swap recolours all of them at once.
-Anything that is not white will fight the tint.
+Control icons are monochrome silhouettes, so one sheet serves the normal,
+dimmed, hovered and selected states and a theme swap recolours all of them at
+once. File icons are pictures, not symbols — tinting one would flatten it to a
+silhouette and destroy it.
 
-Names are bound to frames in sheet order, in `Studio.loadArt()` and `playground.gs`:
+**The glyph sheet is Picotron's own art, lifted pixel for pixel** from its icon
+browser, which shows the file-type set at 1:1 on a 480×270 screen. Every colour
+in it resolves to a palette entry at distance nought, which is the check that
+the transcription is exact rather than close.
+
+**The size matters as much as the style.** Picotron's control icons are 7×7 and
+its rows are 12px tall. The old sheet used 16×16 cells, which is taller than the
+row an icon sits in — most of why it could never have looked right no matter how
+well it was drawn.
+
+Cursors additionally need a **hotspot** — the pixel that is actually "the
+point". Picotron's pointer is a *hollow outline* rather than a filled arrow with
+a border, so every interior pixel is whatever is behind it. It is reproduced
+here pixel for pixel: `tools/pixelmatch.py` puts it at 100% against the
+reference.
 
 ```ghost
-new Icons('resources/icons.png', 16)
-  .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
-  .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
-  .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])
+new Cursors('resources/cursors.png', 8)
+  .define('arrow', 1, 0)
+  .define('crosshair', 3, 3)
 ```
 
-Cursors additionally need a **hotspot** — the pixel that is actually "the point", since an
-arrow points from its corner and a crosshair from its centre:
+Lumen has no cursor API beyond showing and hiding the system pointer, so the
+cursor is drawn by us, as pixel art, like everything else. A widget asks for one
+during paint (`ui.cursor('crosshair')`); the request lasts one frame, so moving
+away restores the arrow with nobody having to undo it.
 
-```ghost
-new Cursors('resources/cursors.png', 16)
-  .define('arrow', 0, 0)
-  .define('crosshair', 7, 7)
-  .define('hand', 8, 8)
-```
-
-Lumen has no cursor API beyond showing and hiding the system pointer, so the cursor is
-drawn by us, as pixel art, like everything else. A widget asks for one during paint
-(`ui.cursor('crosshair')`); the request lasts one frame, so moving away restores the arrow
-with nobody having to undo it.
-
-To add art: draw into the next free cell, add its name to the matching `define()` list, and
-it is available as `ui.icons.drawIn(name, rect, tint, scale)` or on any button via
-`.icon('name')`.
+To add art: add an entry to the matching table in `tools/make-icons.py`, run it,
+and add the name to the `define()` list. It is then available as
+`ui.icons.drawIn(name, rect, tint, scale)` or on any button via `.icon('name')`.
 
 ## Changing the font
 
@@ -164,7 +177,7 @@ commands, keymap, modifiers, tools, signals, history, line drawing — runs unde
 with no window, and **exits non-zero on a failed assertion** so it can gate a build:
 
 ```
-ghost test.gs        # 88 assertions
+ghost test.gs        # 119 assertions
 python3 tools/lint.py
 ```
 
@@ -180,7 +193,31 @@ of this app has lived. It checks the three mistakes that actually shipped:
 
 Both run in CI on every push, along with a parse sweep over every `.gs` file.
 
-Widgets, painting and documents need a running engine and are exercised in the app.
+### Pixel matching
+
+Neither of those can see a pixel. The interface is being rebuilt against
+Picotron, and "looks right" is not a check, so there is a third one that renders
+the real thing and holds it against regions cropped from Picotron's own
+screenshots:
+
+```
+tools/verify.sh      # renders headlessly, compares every tile, exits non-zero
+```
+
+It runs `verify.gs` through Xvfb, reads the framebuffer back, and compares in
+**palette space** — because most Picotron screenshots are not colour-accurate.
+Three of the five references here come through a pipeline that darkens every
+channel by up to 9, so a pixel-perfect reproduction scores 48.8% against them on
+raw RGB. `tools/pixelmatch.py` carries the measured capture map, detects which
+profile fits an image, and matches within it. [docs/picotron.md](docs/picotron.md)
+has the whole story, including why snapping to the nearest palette entry is the
+wrong fix.
+
+The gate is real: changing the corner chamfer from 2px to 3px fails five of the
+eight tiles.
+
+Widgets, painting and documents need a running engine; the chrome is covered by
+the tiles above and the rest is exercised in the app.
 
 ## Layout
 
@@ -246,5 +283,12 @@ Lumen's audio API exposes no samples and no playhead).
 
 ## Reading
 
-[docs/tutorial.html](docs/tutorial.html) builds this repository from an empty folder, in
-order, explaining the reasoning as it goes. Open it in a browser.
+[docs/picotron.md](docs/picotron.md) is the current spec: every measurement the
+interface is built against, how they were taken, and which of them are exact.
+
+[docs/tutorial.html](docs/tutorial.html) builds the repository from an empty folder,
+explaining the reasoning as it goes — **but it documents the interface as it was before
+the Picotron rebuild**, and its chapters on painting and theming are now wrong. The
+structural half (the widget tree, the dock, input capture, commands, the keymap) and the
+Ghost papercut reference are still accurate. Rewriting it against the current design is
+outstanding work.

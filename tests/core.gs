@@ -18,6 +18,12 @@ import { History } from "studio/history"
 import { Editable } from "studio/traits/editable"
 import { linePixels } from "studio/support/line-pixels"
 import { normalizeChord } from "chisel/support/normalize-chord"
+import { chamfer } from "chisel/support/chamfer"
+import { logicalSize } from "chisel/support/logical-size"
+import { fitZoom } from "chisel/support/fit-zoom"
+import { paletteRamps } from "chisel/support/palette-ramps"
+import { paletteExtras } from "chisel/support/palette-extras"
+import { rampStep } from "chisel/support/ramp-step"
 import { cornerInsets } from "chisel/support/corner-insets"
 import { registerCoreCommands } from "studio/commands"
 import { Keymap } from "studio/keymap"
@@ -463,6 +469,143 @@ for (index = 1; index < profile.length(); index++) {
 
 check('a profile never widens as it descends', monotonic.ok, true)
 check('a profile ends flush with the edge', cornerInsets(8).last(), 0)
+
+// --- logical framebuffer ------------------------------------------------------------
+
+console.log('')
+console.log('Logical size')
+
+// The magnification is chosen to put the logical height nearest Picotron's
+// 270, and the window is then divided by it - so a bigger monitor buys
+// workspace rather than margins.
+full = logicalSize(1920, 1080)
+
+check('1080p magnifies four times', full.scale, 4)
+check('and gives exactly Picotron', `${full.w}x${full.h}`, '480x270')
+
+laptop = logicalSize(1440, 900)
+
+check('900 tall magnifies three times', laptop.scale, 3)
+check('and gives more room than Picotron', `${laptop.w}x${laptop.h}`, '480x300')
+
+// Whole numbers only. A fractional magnification resamples every drawn pixel
+// to a different width, which is the one thing that cannot be allowed.
+odd = logicalSize(1333, 777)
+
+check('an awkward window still magnifies wholly', odd.scale, 3)
+check('and divides down evenly', `${odd.w}x${odd.h}`, '444x259')
+
+check('a chosen magnification wins', logicalSize(1920, 1080, 2).scale, 2)
+check('and is honoured', logicalSize(1920, 1080, 2).w, 960)
+
+// A window smaller than one magnification would divide to nothing.
+check('magnification never falls below one', logicalSize(100, 100).scale, 1)
+check('a tiny window still has a framebuffer', logicalSize(4, 4, 8).w, 1)
+
+// --- fitting a document to its viewport ---------------------------------------------
+
+console.log('')
+console.log('Fit zoom')
+
+// The old default was a fixed 12x, which was fine at window resolution and
+// badly wrong on a 480x270 framebuffer: a 32x32 sprite came out 384px tall in
+// a region 170px tall, so the canvas showed a horizontal slice through the
+// middle of the artwork rather than the artwork.
+check('a small sprite fills its region', fitZoom(32, 32, 400, 170), 5)
+check('and is square whichever side is tighter', fitZoom(32, 32, 170, 400), 5)
+check('a wide region is limited by height', fitZoom(64, 16, 640, 64), 4)
+
+// Whole numbers only: a fractional zoom draws some source pixels two screen
+// pixels wide and their neighbours three, which is how pixel art gets uneven.
+check('a zoom is never fractional', fitZoom(30, 30, 100, 100), 3)
+
+// A document bigger than its region is shown at 1:1 and scrolled, not shrunk
+// into mush.
+check('an oversized document stays at 1:1', fitZoom(512, 512, 100, 100), 1)
+check('a region of nothing still gives a zoom', fitZoom(32, 32, 0, 0), 1)
+check('a document of nothing does not divide by it', fitZoom(0, 0, 100, 100), 1)
+
+// --- chamfer ------------------------------------------------------------------------
+
+console.log('')
+console.log('Chamfer')
+
+// [2, 1] is not a preference, it is what every window in every Picotron
+// reference measures: two pixels off the first row, one off the second.
+check('a 2px cut is the measured profile', chamfer(2).toString(), [2, 1].toString())
+check('no cut leaves no profile', chamfer(0).length(), 0)
+check('a cut is as deep as it is wide', chamfer(4).length(), 4)
+check('a cut starts at its full depth', chamfer(4)[0], 4)
+check('a cut ends flush with the edge', chamfer(4).last(), 1)
+
+// A chamfer is a straight 45-degree cut, so each row gives back exactly one
+// pixel. A curve does not, which is why cornerInsets() is a separate helper
+// rather than this one with a flag.
+even = { ok: true }
+profile = chamfer(6)
+
+for (index = 1; index < profile.length(); index++) {
+  if (profile[index - 1] - profile[index] != 1) {
+    even.ok = false
+  }
+}
+
+check('a chamfer loses exactly one pixel a row', even.ok, true)
+
+// --- palette ------------------------------------------------------------------------
+
+console.log('')
+console.log('Palette')
+
+ramps = paletteRamps()
+extras = paletteExtras()
+
+// The ramp grid was measured off a real palette thumbnail, so its shape is
+// fixed: five ramps of five. The extras are not - Picotron's system palette is
+// 64 entries and this list grows as references arrive - so nothing here
+// asserts a total. An earlier version did, on the grounds that 25 + 7 came to
+// a number Picotron documents; that arithmetic was a coincidence of the
+// screenshots to hand rather than a fact about the palette, and a later one
+// used two colours neither list could explain.
+counted = { total: 0 }
+
+for (name in ramps.keys()) {
+  counted.total = counted.total + ramps.get(name).length()
+}
+
+check('five ramps', ramps.keys().length(), 5)
+check('five steps each', counted.total, 25)
+check('the extras are open-ended, not a fixed count', extras.keys().length() > 6, true)
+
+// Every entry has to be a real hex triplet, because these strings are handed
+// straight to color.hex() at startup - a typo here is a crash on frame one,
+// in a file the tests cannot otherwise reach.
+malformed = { count: 0 }
+
+for (name in ramps.keys()) {
+  for (entry in ramps.get(name)) {
+    if (entry.length() != 7) {
+      malformed.count = malformed.count + 1
+    }
+  }
+}
+
+for (name in extras.keys()) {
+  if (extras.get(name).length() != 7) {
+    malformed.count = malformed.count + 1
+  }
+}
+
+check('every entry is a #rrggbb string', malformed.count, 0)
+
+// The clamp is what lets 'one step lighter' be a rule the whole interface
+// shares instead of an edge case in every widget.
+neutral = ramps.get('neutral')
+
+check('a step is the colour at that index', rampStep(neutral, 2), '#a28879')
+check('below the ramp clamps to the darkest', rampStep(neutral, -3), '#452d32')
+check('above the ramp clamps to the lightest', rampStep(neutral, 99), '#fff1e8')
+check('an unknown ramp gives nothing back', rampStep(null, 0), null)
 
 // --- report ------------------------------------------------------------------------
 

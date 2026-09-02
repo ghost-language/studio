@@ -27,6 +27,7 @@ class Toolbar extends Widget {
       .named(name)
       .icon(name)
       .tooltip(name, key)
+      .bare()
       .on('click', makeSelectHandler(this, name))
 
     return this.add(button)

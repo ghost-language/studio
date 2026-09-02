@@ -59,22 +59,37 @@ class Studio {
     registerCoreCommands(this)
   }
 
-  // The icon and cursor sheets. Both are placeholder art in a documented
-  // format - 16x16 cells, 8 per row, white on transparent - so replacing them
-  // is a matter of dropping in a new PNG, not touching code.
+  // The icon and cursor sheets, drawn by tools/make-icons.py from ASCII art
+  // kept in that file - so changing an icon is a readable diff rather than a
+  // binary blob nobody can review.
+  //
+  // Eight pixel cells, not sixteen. Picotron's control icons are 7x7 silhouettes
+  // and its rows are 12px tall; a 16px icon is taller than the row it sits in.
+  // That mismatch is most of why the old sheet could not have looked right no
+  // matter how well it was drawn.
   loadArt() {
-    this.ui.icons = new Icons('resources/icons.png', 16)
+    this.ui.icons = new Icons('resources/icons.png', 8)
       .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
       .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
       .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])
 
-    this.ui.cursors = new Cursors('resources/cursors.png', 16)
-      .define('arrow', 0, 0)
-      .define('crosshair', 7, 7)
-      .define('hand', 8, 8)
-      .define('ibeam', 6, 8)
-      .define('resize-h', 8, 6)
-      .define('resize-v', 7, 8)
+    // Picotron's pointer is a hollow outline rather than a filled arrow with a
+    // border, so every interior pixel is whatever is behind it. Hotspots come
+    // from tools/make-icons.py, which is where the art is.
+    this.ui.cursors = new Cursors('resources/cursors.png', 8)
+      .define('arrow', 1, 0)
+      .define('crosshair', 3, 3)
+      .define('hand', 3, 1)
+      .define('ibeam', 2, 3)
+      .define('resize-h', 3, 3)
+      .define('resize-v', 3, 3)
+
+    // Picotron's file-type icons, lifted pixel for pixel from its own icon
+    // browser. These are pictures rather than symbols, so they ship at their
+    // real colours and are drawn with a white tint - which is to say, undimmed.
+    // Tinting one would flatten it to a silhouette and destroy it.
+    this.ui.glyphs = new Icons('resources/glyphs.png', 16)
+      .define(['document', 'sprite', 'map', 'sound', 'palette', 'cartridge', 'font', 'folder'])
 
     this.ui.cursors.claim()
 
@@ -182,7 +197,10 @@ class Studio {
   }
 
   openPreferences() {
-    dialog = new Window('Preferences', 320 * this.theme.scale, 200 * this.theme.scale)
+    // Sized in framebuffer pixels. 320x200 was reasonable when the interface
+    // drew at window resolution; on a 480x270 framebuffer it is two thirds of
+    // the screen, which is not a dialog, it is a takeover.
+    dialog = new Window('Preferences', 210 * this.theme.scale, 126 * this.theme.scale)
 
     dialog.holds(new PreferencesWindow(this))
 

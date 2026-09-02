@@ -1,0 +1,14 @@
+{
+  "_comment": "Each tile is a region of Picotron's own file-browser screenshot, cropped at 1:1. verify.gs draws the same chrome at the same coordinates on a 480x270 framebuffer, so a tile can be compared where it sits with no alignment step. Chrome only: regions carrying list rows, title glyphs or the scrollbar are excluded, because the harness does not draw content and a mismatch there would mean nothing.",
+  "scene": "window-chrome",
+  "tiles": {
+    "picotron-window-tl":   [190,  88,  6,  6],
+    "picotron-window-tr":   [387,  88,  5,  4],
+    "picotron-window-bl":   [190, 220,  6,  6],
+    "picotron-window-br":   [387, 221,  5,  5],
+    "picotron-title-left":  [190,  88,  6, 14],
+    "picotron-title-rule":  [200,  98, 60,  4],
+    "picotron-edge-left":   [190, 110,  3, 40],
+    "picotron-edge-right":  [389, 110,  3, 40]
+  }
+}
