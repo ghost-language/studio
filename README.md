@@ -283,5 +283,12 @@ Lumen's audio API exposes no samples and no playhead).
 
 ## Reading
 
-[docs/tutorial.html](docs/tutorial.html) builds this repository from an empty folder, in
-order, explaining the reasoning as it goes. Open it in a browser.
+[docs/picotron.md](docs/picotron.md) is the current spec: every measurement the
+interface is built against, how they were taken, and which of them are exact.
+
+[docs/tutorial.html](docs/tutorial.html) builds the repository from an empty folder,
+explaining the reasoning as it goes — **but it documents the interface as it was before
+the Picotron rebuild**, and its chapters on painting and theming are now wrong. The
+structural half (the widget tree, the dock, input capture, commands, the keymap) and the
+Ghost papercut reference are still accurate. Rewriting it against the current design is
+outstanding work.

@@ -491,6 +491,18 @@ hr.rule { border: 0; border-top: 1px solid var(--line); margin: 46px 0 0; max-wi
 footer { margin-top: 68px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); max-width: 920px; }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  .stale-notice {
+    margin: 1.6rem 0 2rem;
+    padding: 1rem 1.15rem;
+    border-left: 4px solid #d08b2a;
+    background: rgba(208, 139, 42, 0.09);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .stale-notice b { color: #d08b2a; }
 </style>
 
 <div class="shell">
@@ -535,6 +547,22 @@ footer { margin-top: 68px; padding-top: 20px; border-top: 1px solid var(--line);
     Aseprite's look, Ghost's grain, and one toolkit that hosts a pixel editor, a map editor and —
     eventually — a sound editor.
   </p>
+
+  <div class="stale-notice" role="note">
+    <b>This document is out of date, and knowingly so.</b>
+    It builds the interface Studio had before it was rebuilt on
+    <a href="picotron.md">Picotron</a>: bevelled surfaces with a highlight-and-shadow
+    pair, circular corner profiles, a 16px icon grid, free hex colour per theme, and
+    rendering at the window's own resolution. The code now does none of those things —
+    it draws flat fills into a magnified 480×270 framebuffer, cuts its corners rather
+    than rounding them, outlines windows but not controls, and indexes every colour to
+    a fixed palette.
+    <br><br>
+    The reasoning about <em>structure</em> — the widget tree, the dock, capture-based
+    input, commands and the keymap, and every Ghost papercut in the reference section —
+    is still accurate and still worth reading. The chapters on painting and theming are
+    not. <code>docs/picotron.md</code> is the current spec.
+  </div>
 
   <dl class="facts">
     <div class="fact"><dt>Layers</dt><dd>chisel → studio → editors</dd></div>
