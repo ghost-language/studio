@@ -13,6 +13,8 @@ import { Pencil } from "studio/sprite/tools/pencil"
 import { Eraser } from "studio/sprite/tools/eraser"
 import { Picker } from "studio/sprite/tools/picker"
 import { Bucket } from "studio/sprite/tools/bucket"
+import { Line } from "studio/sprite/tools/line"
+import { Rectangle } from "studio/sprite/tools/rectangle"
 import { registerSpriteCommands } from "studio/sprite/commands"
 
 // Closure factories. Ghost cannot capture a loop variable, so anything built
@@ -47,13 +49,15 @@ function makeActivator(studio) {
 class SpriteEditor {
   constructor(studio) {
     this.studio = studio
-    this.tools = ['pencil', 'eraser', 'bucket', 'picker']
+    this.tools = ['pencil', 'eraser', 'bucket', 'line', 'rectangle', 'picker']
   }
 
   boot() {
     this.studio.tools.add(new Pencil())
     this.studio.tools.add(new Eraser())
     this.studio.tools.add(new Bucket())
+    this.studio.tools.add(new Line())
+    this.studio.tools.add(new Rectangle())
     this.studio.tools.add(new Picker())
 
     // One command per tool, so a menu row, a shortcut and the tool bar are all
@@ -68,6 +72,8 @@ class SpriteEditor {
       keys.bind('b', 'tool.pencil')
       keys.bind('e', 'tool.eraser')
       keys.bind('g', 'tool.bucket')
+      keys.bind('l', 'tool.line')
+      keys.bind('u', 'tool.rectangle')
       keys.bind('i', 'tool.picker')
     })
 
@@ -103,6 +109,8 @@ class SpriteEditor {
         menu.item('tool.pencil')
         menu.item('tool.eraser')
         menu.item('tool.bucket')
+        menu.item('tool.line')
+        menu.item('tool.rectangle')
         menu.item('tool.picker')
       })
   }
@@ -151,11 +159,16 @@ class SpriteEditor {
     // the guess used to fit two of its four columns.
     colours = new Colorbar(document).named('colorbar').across(4)
 
-    dock.left(colours, colours.widthFor(theme))
+    // Order matters: the dock carves regions in the order they are declared,
+    // so the status bar is taken first to span the full width, then the
+    // columns, then the timeline from what is left between them. Declaring the
+    // colour bar first instead ran it to the bottom of the window, underneath
+    // the timeline, and left the status bar spanning only the middle.
+    dock.bottom(new Statusbar(studio).named('status'), theme.metric('row'))
 
+    dock.left(colours, colours.widthFor(theme))
     dock.right(this.toolbar().named('tools'), theme.metric('tool') + 8)
 
-    dock.bottom(new Statusbar(studio).named('status'), theme.metric('row'))
     dock.bottom(new Timeline(document).named('timeline'), theme.metric('row') * 4)
 
     dock.fill(new Viewport(studio, document).named('viewport'))

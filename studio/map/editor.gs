@@ -144,11 +144,13 @@ class MapEditor {
       .across(4)
       .on('pick', makeBrushPicker(document))
 
-    dock.left(tiles, tiles.widthFor(theme))
+    // The status bar is carved first so it spans the full width; the columns
+    // then take their height from what is left above it.
+    dock.bottom(new Statusbar(studio).named('status'), theme.metric('row'))
 
+    dock.left(tiles, tiles.widthFor(theme))
     dock.right(this.toolbar().named('tools'), theme.metric('tool') + 8)
 
-    dock.bottom(new Statusbar(studio).named('status'), theme.metric('row'))
     dock.bottom(new Panel('Layers: ground · objects · collision').named('layers'), theme.metric('row') * 3)
 
     dock.fill(new Viewport(studio, document).named('viewport'))

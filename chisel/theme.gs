@@ -42,9 +42,11 @@ class Theme {
       check: 11,
       scroll: 12,
 
-      // How many pixels are cut from each corner, as a staircase. 0 is square.
-      // Two reads as "rounded" without ever costing a grey pixel.
-      radius: 2,
+      // The corner radius, as a circular quadrant in whole pixels. 0 is square.
+      // Five cuts three pixels at the very corner and straightens quickly,
+      // which reads as properly rounded at this size; the painter caps it at
+      // half the shorter side so a checkbox never gets a bite taken out of it.
+      radius: 5,
 
       // Measured from a render of silver.ttf at 16px, as offsets from the y
       // that canvas.print() is given (which is the top of the line box):

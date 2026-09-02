@@ -43,11 +43,14 @@ class Colorbar extends Widget {
     return new Rect(inner.x, inner.y, inner.w, rows * step)
   }
 
+  // Anchored to the bottom of the column, the way Aseprite's are: the palette
+  // grows downward from the top, the chips stay put, and the space between
+  // them is deliberate rather than left over.
   chipsRect(ui) {
-    size = this.swatchSize(ui.theme) * 2
+    size = this.swatchSize(ui.theme) * 2 + 4
     inner = this.bounds.inset(ui.theme.metric('gutter'))
 
-    return new Rect(inner.x, this.gridRect(ui).bottom() + ui.theme.metric('pad'), inner.w, size + 4)
+    return new Rect(inner.x, inner.bottom() - size, inner.w, size)
   }
 
   indexAt(ui, x, y) {
@@ -92,6 +95,16 @@ class Colorbar extends Widget {
         ui.painter.hline(cell.x, cell.y - 1, cell.w, ui.theme.of('accent'))
       }
     }
+
+    chips = this.chipsRect(ui)
+
+    // A groove marks where the palette ends and the current colours begin, so
+    // the gap between them reads as structure rather than as a mistake.
+    ui.painter.groove(
+      this.bounds.x + 2,
+      chips.y - ui.theme.metric('pad'),
+      this.bounds.w - 4
+    )
 
     this.paintChips(ui)
   }

@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    name: Test and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out Studio
+        uses: actions/checkout@v4
+
+      # Ghost is built from source rather than downloaded: there is no release
+      # artifact to pin, and building it takes seconds.
+      - name: Check out Ghost
+        uses: actions/checkout@v4
+        with:
+          repository: ghost-language/ghost
+          ref: '1.0'
+          path: .ghost
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: .ghost/go.sum
+
+      - name: Build Ghost
+        run: |
+          cd .ghost
+          go build -o "$HOME/.local/bin/ghost" ./cmd
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # The engine-independent half of the toolkit. Exits non-zero on a failed
+      # assertion, so a broken build cannot go green.
+      - name: Tests
+        run: ghost test.gs
+
+      # The three mistakes that have actually shipped here, each of which lived
+      # in a file the test suite cannot execute because it imports `lumen:`.
+      - name: Lint
+        run: python3 tools/lint.py
+
+      # Every source file has to at least parse. `ghost <file>` reports a syntax
+      # fault before it evaluates anything, so a file that only fails on a
+      # `lumen:` import is fine - a file that fails to parse is not.
+      - name: Parse every source file
+        run: |
+          status=0
+          for file in $(find . -name '*.gs' -not -path './.ghost/*'); do
+            if ghost "$file" 2>&1 | grep -q 'syntax error'; then
+              echo "syntax error in $file"
+              ghost "$file" 2>&1 | head -8
+              status=1
+            fi
+          done
+          exit $status

@@ -90,8 +90,14 @@ class Window extends Widget {
 
     bar = new Rect(this.bounds.x, this.bounds.y, this.bounds.w, this.barHeight(ui.theme))
 
-    ui.painter.fillRounded(bar, ui.theme.of('button.selected'), ui.painter.radius())
-    ui.painter.outlineRounded(bar, ui.painter.radius())
+    // Rounded on top only: the bar's underside meets the window body, and a
+    // curve there would leave two notches of background showing through.
+    ui.painter.fillRounded(
+      bar,
+      ui.theme.of('button.selected'),
+      ui.painter.radius() - 1,
+      [true, true, false, false]
+    )
 
     ui.painter.textIn(
       'body',

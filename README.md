@@ -35,7 +35,8 @@ map, with tabs to switch between them.
 
 - Draw with the left button, background colour with the right.
 - Scroll to zoom, middle-drag to pan.
-- `B`/`E`/`I` pick pencil, eraser and picker; `S`/`X` are the map's stamp and rubber.
+- `B`/`E`/`G`/`L`/`U`/`I` pick pencil, eraser, bucket, line, rectangle and picker;
+  `S`/`X` are the map's stamp and rubber.
 - `Ctrl+Z` / `Ctrl+Shift+Z` undo and redo, `Ctrl+N` a new sprite, `Ctrl+M` a new map.
 - `Ctrl+'` toggles the pixel grid, which is off by default.
 - `Ctrl+=` and `Ctrl+-` change the UI scale, and it is remembered.
@@ -156,14 +157,28 @@ size from a real render — text is centred on the cap band, not the em box, whi
 makes a row of chrome look optically centred. Changing `native` means measuring them
 again.
 
-## Tests
+## Tests and checks
 
-The engine-independent half — geometry, the widget tree, the dock, commands, tools,
-signals, history, line drawing — runs under plain Ghost with no window:
+The engine-independent half — geometry, corner profiles, the widget tree, the dock,
+commands, keymap, modifiers, tools, signals, history, line drawing — runs under plain Ghost
+with no window, and **exits non-zero on a failed assertion** so it can gate a build:
 
 ```
-ghost test.gs
+ghost test.gs        # 88 assertions
+python3 tools/lint.py
 ```
+
+The linter covers what the tests structurally cannot. Anything importing a `lumen:` module
+is invisible to `ghost test.gs`, and that is exactly where every bug that reached a real run
+of this app has lived. It checks the three mistakes that actually shipped:
+
+| check | the bug it catches |
+| --- | --- |
+| `arity` | a call passing fewer arguments than a callable requires — Ghost needs a default on every optional parameter (shipped 3×) |
+| `guards` | `x == null or x.field` — `and`/`or` do not short-circuit, so the guarded side is dereferenced anyway (shipped 2×) |
+| `shadow` | a method whose name matches one of its file's imports, which it shadows for the whole class (shipped 1×) |
+
+Both run in CI on every push, along with a parse sweep over every `.gs` file.
 
 Widgets, painting and documents need a running engine and are exercised in the app.
 

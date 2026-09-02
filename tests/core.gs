@@ -18,10 +18,12 @@ import { History } from "studio/history"
 import { Editable } from "studio/traits/editable"
 import { linePixels } from "studio/support/line-pixels"
 import { normalizeChord } from "chisel/support/normalize-chord"
+import { cornerInsets } from "chisel/support/corner-insets"
 import { registerCoreCommands } from "studio/commands"
 import { Keymap } from "studio/keymap"
 import { Modifiers } from "chisel/modifiers"
 import "tests/fixtures/toolkit" as toolkitModule
+import "ghost:os"
 
 results = { passed: 0, failed: 0 }
 
@@ -435,7 +437,40 @@ labeled = new Labeled()
 check('an aliased import is not shadowed by a same-named method', labeled.build('x'), 'built-x')
 check('the method itself still resolves normally', labeled.font('small'), 'role:small')
 
+// --- corner insets -------------------------------------------------------------
+
+console.log('Corner insets')
+
+// The rounded-corner profile is a circular quadrant, not a diagonal: a 45
+// degree stair reads as a chamfer, a circle reads as round. These are the
+// exact profiles the painter draws, and getting one wrong bites a notch out
+// of every control at once.
+check('radius 0 has no profile', cornerInsets(0).length(), 0)
+check('radius 2 cuts one pixel', cornerInsets(2).join(','), '1,0')
+check('radius 5 curves', cornerInsets(5).join(','), '3,1,1,0,0')
+check('radius 6 curves further', cornerInsets(6).join(','), '4,2,1,1,0,0')
+
+// The profile must never increase down the corner, or the shape folds back on
+// itself and the outline crosses its own fill.
+monotonic = { ok: true }
+profile = cornerInsets(8)
+
+for (index = 1; index < profile.length(); index++) {
+  if (profile[index] > profile[index - 1]) {
+    monotonic.ok = false
+  }
+}
+
+check('a profile never widens as it descends', monotonic.ok, true)
+check('a profile ends flush with the edge', cornerInsets(8).last(), 0)
+
 // --- report ------------------------------------------------------------------------
 
 console.log('')
 console.log(`${results.passed} passed, ${results.failed} failed`)
+
+// A suite that cannot fail the build is decoration. Exiting non-zero is what
+// makes CI mean anything.
+if (results.failed > 0) {
+  os.exit(1)
+}
