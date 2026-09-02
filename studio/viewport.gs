@@ -4,6 +4,7 @@ import "ghost:math"
 import { Target } from "lumen:canvas"
 import { Widget } from "chisel/widget"
 import { snap } from "chisel/support/snap"
+import { fitZoom } from "chisel/support/fit-zoom"
 
 // The document, drawn.
 //
@@ -23,8 +24,12 @@ class Viewport extends Widget {
     this.document = document
     this.cell = document.cellSize()
 
-    this.zoom = math.max(1, math.floor(12 / this.cell))
-    this.home = this.zoom
+    // A placeholder until the viewport knows how big it is. The real zoom is
+    // chosen in place(), because "fit the document on open" needs the region,
+    // and a constructor does not have one.
+    this.zoom = 1
+    this.home = 1
+    this.fitted = false
     this.panX = 0
     this.panY = 0
 
@@ -94,6 +99,41 @@ class Viewport extends Widget {
     }
 
     return [column, row]
+  }
+
+  // Fit the document the first time the viewport is given a size, and never
+  // again - once someone has zoomed, a resize must not throw that away.
+  //
+  // The old default was a fixed 12x, which was reasonable when the interface
+  // drew at window resolution and became badly wrong the moment it moved to a
+  // 480x270 framebuffer: a 32x32 sprite came out 384px tall in a region 170px
+  // tall, so what the canvas showed was a horizontal slice through the middle
+  // of the artwork. It looked like a stretched canvas rather than a zoom fault,
+  // which is why it took a screenshot to see.
+  place(rect) {
+    super.place(rect)
+
+    if (this.fitted) {
+      return this
+    }
+
+    if (rect.w < 8 or rect.h < 8) {
+      return this
+    }
+
+    padding = 8
+
+    this.zoom = fitZoom(
+      this.document.width() * this.cell,
+      this.document.height() * this.cell,
+      rect.w - padding,
+      rect.h - padding
+    )
+
+    this.home = this.zoom
+    this.fitted = true
+
+    return this
   }
 
   // Whole numbers only. Fractional zoom is exactly how pixel art gets uneven
@@ -181,7 +221,7 @@ class Viewport extends Widget {
   // it does not zoom with the artwork. 16px is Aseprite's own default; 8 was
   // small enough to read as texture rather than as "nothing is here".
   paintChecker(ui, at) {
-    size = 16 * ui.theme.scale
+    size = ui.theme.metric("checker")
     width = this.document.width() * this.scale()
     height = this.document.height() * this.scale()
 

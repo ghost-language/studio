@@ -78,6 +78,12 @@ function picotron() {
     check: 9,
     scroll: 5,
 
+    // Eight, not sixteen. The checker is measured in framebuffer pixels and
+    // every one of those covers three or four screen pixels, so Aseprite's
+    // 16px default lands as a 48px chessboard that reads as the subject of the
+    // canvas rather than as its background.
+    checker: 8,
+
     // A cut, not a curve: a straight 45-degree chamfer taking two pixels off
     // the first row and one off the second. Every window in every reference
     // measures [2, 1].

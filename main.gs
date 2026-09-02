@@ -1,6 +1,10 @@
 import "lumen:window"
+import "lumen:canvas"
+import "lumen:lumen"
 import { Studio } from "studio/studio"
-import { ghostDark } from "chisel/themes/ghost-dark"
+import { picotron } from "chisel/themes/picotron"
+import { logicalSize } from "chisel/support/logical-size"
+import { wantsScreenshot } from "chisel/support/wants-screenshot"
 import { SpriteEditor } from "studio/sprite/editor"
 import { MapEditor } from "studio/map/editor"
 import { Sprite } from "studio/sprite/sprite"
@@ -13,14 +17,23 @@ app = {}
 
 function load() {
   window.setTitle('Studio')
-  window.setMode(1280, 800)
+  window.setMode(1440, 810)
   window.setResizable(true)
   window.setVsync(true)
 
-  // Scale 1 by default: the interface is already sized around a 19px font, and
-  // 2x makes every bar twice the weight of the equivalent in Aseprite. Ctrl+=
-  // raises it at runtime, and the choice is remembered.
-  theme = ghostDark()
+  // Draw into a magnified low-resolution framebuffer, the way Picotron does.
+  // Its 12px rows and 7x7 icons only mean anything if one drawn pixel covers
+  // several screen pixels; the magnification is picked from the window so a
+  // larger monitor buys workspace rather than bigger chrome.
+  frame = logicalSize(1440, 810)
+
+  window.setLogicalSize(frame.w, frame.h)
+  window.setPixelPerfect(true)
+
+  // Scale 1: the framebuffer does the magnifying now, so every metric is used
+  // at the size it was measured at. Ctrl+= changes the magnification instead,
+  // which is the same control with an honest name.
+  theme = picotron()
     .useScale(1)
     .loadFonts(null)
 
@@ -39,12 +52,42 @@ function load() {
   app.studio.open(sprite, sprites)
 
   app.studio.say('Welcome to Studio')
+
+  app.shooting = wantsScreenshot()
+  app.frames = 0
 }
 
 function update(dt) { app.studio.ui.tick(dt) }
-function draw()     { app.studio.ui.paint() }
 
-function resize(width, height) { app.studio.ui.resized(width, height) }
+function draw() {
+  app.studio.ui.paint()
+
+  if (!app.shooting) {
+    return false
+  }
+
+  app.frames = app.frames + 1
+
+  // Frame one can land before the first present on some drivers, so the read
+  // back is taken on the second.
+  if (app.frames == 2) {
+    console.log(`SHOT:${canvas.screenshot('studio.png')}`)
+    lumen.quit()
+  }
+
+  return true
+}
+
+// Lumen reports the resize in real window pixels; everything above works in
+// framebuffer pixels. Recomputing the magnification here is what makes a wider
+// window buy workspace rather than bigger chrome.
+function resize(width, height) {
+  frame = logicalSize(width, height)
+
+  window.setLogicalSize(frame.w, frame.h)
+
+  return app.studio.ui.resized(frame.w, frame.h)
+}
 
 function mousepressed(x, y, button, clicks) { app.studio.ui.pressed(x, y, button, clicks) }
 function mousereleased(x, y, button)        { app.studio.ui.released(x, y, button) }

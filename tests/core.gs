@@ -20,6 +20,7 @@ import { linePixels } from "studio/support/line-pixels"
 import { normalizeChord } from "chisel/support/normalize-chord"
 import { chamfer } from "chisel/support/chamfer"
 import { logicalSize } from "chisel/support/logical-size"
+import { fitZoom } from "chisel/support/fit-zoom"
 import { paletteRamps } from "chisel/support/palette-ramps"
 import { paletteExtras } from "chisel/support/palette-extras"
 import { rampStep } from "chisel/support/ramp-step"
@@ -500,6 +501,29 @@ check('and is honoured', logicalSize(1920, 1080, 2).w, 960)
 // A window smaller than one magnification would divide to nothing.
 check('magnification never falls below one', logicalSize(100, 100).scale, 1)
 check('a tiny window still has a framebuffer', logicalSize(4, 4, 8).w, 1)
+
+// --- fitting a document to its viewport ---------------------------------------------
+
+console.log('')
+console.log('Fit zoom')
+
+// The old default was a fixed 12x, which was fine at window resolution and
+// badly wrong on a 480x270 framebuffer: a 32x32 sprite came out 384px tall in
+// a region 170px tall, so the canvas showed a horizontal slice through the
+// middle of the artwork rather than the artwork.
+check('a small sprite fills its region', fitZoom(32, 32, 400, 170), 5)
+check('and is square whichever side is tighter', fitZoom(32, 32, 170, 400), 5)
+check('a wide region is limited by height', fitZoom(64, 16, 640, 64), 4)
+
+// Whole numbers only: a fractional zoom draws some source pixels two screen
+// pixels wide and their neighbours three, which is how pixel art gets uneven.
+check('a zoom is never fractional', fitZoom(30, 30, 100, 100), 3)
+
+// A document bigger than its region is shown at 1:1 and scrolled, not shrunk
+// into mush.
+check('an oversized document stays at 1:1', fitZoom(512, 512, 100, 100), 1)
+check('a region of nothing still gives a zoom', fitZoom(32, 32, 0, 0), 1)
+check('a document of nothing does not divide by it', fitZoom(0, 0, 100, 100), 1)
 
 // --- chamfer ------------------------------------------------------------------------
 

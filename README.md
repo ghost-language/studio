@@ -171,7 +171,7 @@ commands, keymap, modifiers, tools, signals, history, line drawing — runs unde
 with no window, and **exits non-zero on a failed assertion** so it can gate a build:
 
 ```
-ghost test.gs        # 103 assertions
+ghost test.gs        # 120 assertions
 python3 tools/lint.py
 ```
 

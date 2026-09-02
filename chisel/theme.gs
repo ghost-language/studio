@@ -42,6 +42,10 @@ class Theme {
       check: 11,
       scroll: 12,
 
+      // The transparency checkerboard, in framebuffer pixels. Screen-space, so
+      // it does not zoom with the artwork.
+      checker: 16,
+
       // The corner radius, as a circular quadrant in whole pixels. 0 is square.
       // Five cuts three pixels at the very corner and straightens quickly,
       // which reads as properly rounded at this size; the painter caps it at
