@@ -86,26 +86,45 @@ class Window extends Widget {
       this.arrange()
     }
 
-    ui.painter.raised(this.bounds, ui.theme.of('panel.face'))
+    // The measured Picotron window: a flat body inside a one-pixel outline with
+    // its corners cut [2, 1], a title bar of eleven rows, and a one-pixel rule
+    // under it in the outline colour. Three windows across three references
+    // all measure the same; only the colours move, which is why the edge is a
+    // theme role rather than a rule derived from the fill.
+    cut = ui.painter.radius()
+
+    ui.painter.surface(
+      this.bounds,
+      ui.theme.of('window.face'),
+      ui.theme.of('outline'),
+      cut
+    )
 
     bar = new Rect(this.bounds.x, this.bounds.y, this.bounds.w, this.barHeight(ui.theme))
 
-    // Rounded on top only: the bar's underside meets the window body, and a
-    // curve there would leave two notches of background showing through.
-    ui.painter.fillRounded(
-      bar,
-      ui.theme.of('button.selected'),
-      ui.painter.radius() - 1,
+    // Cut on top only. The bar's underside meets its rule, and cutting there
+    // would leave a notch of body showing through at each end - the same fault
+    // that took the chrome from 100% to 88.8% when it was first rendered.
+    ui.painter.chamfered(
+      new Rect(bar.x + 1, bar.y + 1, bar.w - 2, bar.h - 2),
+      ui.theme.of('title.face'),
+      cut - 1,
       [true, true, false, false]
     )
 
+    ui.painter.fill(
+      new Rect(bar.x + 1, bar.bottom() - 1, bar.w - 2, 1),
+      ui.theme.of('outline')
+    )
+
+    // Centred, which is what every window in every reference does.
     ui.painter.textIn(
       'body',
       this.title,
-      bar.inset(ui.theme.metric('pad')),
-      'left',
+      bar,
+      'center',
       'middle',
-      ui.theme.of('text.selected')
+      ui.theme.of('title.text')
     )
 
     super.paint(ui)

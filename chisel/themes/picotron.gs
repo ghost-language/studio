@@ -1,4 +1,5 @@
 import { Theme } from "chisel/theme"
+import "lumen:color"
 import { Palette } from "chisel/palette"
 
 // Picotron.
@@ -59,7 +60,11 @@ function picotron() {
     'title.face':      palette.named('purpleLight'),
     'title.text':      palette.step('blue', 1),
 
-    'scrim':           palette.step('blue', 0),
+    // The one colour here that is not a palette entry, and cannot be: a scrim
+    // is a compositing operation, not a colour. Solid black hides the workspace
+    // completely, which defeats the point - a modal should read as out of reach
+    // rather than as a different screen.
+    'scrim':           color.rgb(0, 0, 0, 0.5),
     'checker.light':   palette.step('neutral', 3),
     'checker.dark':    palette.step('neutral', 2)
   }).sized({

@@ -197,7 +197,10 @@ class Studio {
   }
 
   openPreferences() {
-    dialog = new Window('Preferences', 320 * this.theme.scale, 200 * this.theme.scale)
+    // Sized in framebuffer pixels. 320x200 was reasonable when the interface
+    // drew at window resolution; on a 480x270 framebuffer it is two thirds of
+    // the screen, which is not a dialog, it is a takeover.
+    dialog = new Window('Preferences', 210 * this.theme.scale, 126 * this.theme.scale)
 
     dialog.holds(new PreferencesWindow(this))
 

@@ -50,12 +50,16 @@ class PreferencesWindow extends Widget {
     picker = makeThemePick(studio)
 
     this.line([
-      new Radio('Ghost Dark', 'ghost.dark', this.themeChoice).on('change', picker),
-      new Radio('Ghost Light', 'ghost.light', this.themeChoice).on('change', picker)
+      new Radio('Picotron', 'picotron', this.themeChoice).on('change', picker),
+      new Radio('Ghost Dark', 'ghost.dark', this.themeChoice).on('change', picker)
     ])
 
     this.line([
-      new Radio('Aseprite Dark', 'aseprite.dark', this.themeChoice).on('change', picker),
+      new Radio('Ghost Light', 'ghost.light', this.themeChoice).on('change', picker),
+      new Radio('Aseprite Dark', 'aseprite.dark', this.themeChoice).on('change', picker)
+    ])
+
+    this.line([
       new Radio('Aseprite Classic', 'aseprite.classic', this.themeChoice).on('change', picker)
     ])
 

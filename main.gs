@@ -5,6 +5,7 @@ import { Studio } from "studio/studio"
 import { picotron } from "chisel/themes/picotron"
 import { logicalSize } from "chisel/support/logical-size"
 import { wantsScreenshot } from "chisel/support/wants-screenshot"
+import { requestedCommands } from "chisel/support/requested-commands"
 import { SpriteEditor } from "studio/sprite/editor"
 import { MapEditor } from "studio/map/editor"
 import { Sprite } from "studio/sprite/sprite"
@@ -55,6 +56,13 @@ function load() {
 
   app.shooting = wantsScreenshot()
   app.frames = 0
+
+  // `lumen . --shot run:app.preferences` renders a screen that is otherwise
+  // only reachable by clicking, which is exactly the kind least likely to have
+  // been looked at.
+  for (name in requestedCommands()) {
+    app.studio.run(name)
+  }
 }
 
 function update(dt) { app.studio.ui.tick(dt) }
