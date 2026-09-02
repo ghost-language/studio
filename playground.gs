@@ -28,19 +28,19 @@ function load() {
 
   app.ui = new Ui(theme, new Painter(theme))
 
-  // 16x16 cells, 8 to a row, named in sheet order.
-  app.ui.icons = new Icons('resources/icons.png', 16)
+  // 8x8 cells, 8 to a row, named in sheet order. Drawn by tools/make-icons.py.
+  app.ui.icons = new Icons('resources/icons.png', 8)
     .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
     .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
     .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])
 
-  app.ui.cursors = new Cursors('resources/cursors.png', 16)
-    .define('arrow', 0, 0)
-    .define('crosshair', 7, 7)
-    .define('hand', 8, 8)
-    .define('ibeam', 6, 8)
-    .define('resize-h', 8, 6)
-    .define('resize-v', 7, 8)
+  app.ui.cursors = new Cursors('resources/cursors.png', 8)
+    .define('arrow', 1, 0)
+    .define('crosshair', 3, 3)
+    .define('hand', 3, 1)
+    .define('ibeam', 2, 3)
+    .define('resize-h', 3, 3)
+    .define('resize-v', 3, 3)
 
   app.ui.cursors.claim()
 

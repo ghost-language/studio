@@ -37,7 +37,7 @@ class Theme {
       bar: 18,
       tab: 20,
       tool: 20,
-      icon: 16,
+      icon: 8,
       swatch: 14,
       check: 11,
       scroll: 12,
