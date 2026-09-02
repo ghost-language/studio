@@ -2,7 +2,7 @@ import "lumen:window"
 import "lumen:canvas"
 import "lumen:lumen"
 import { Studio } from "studio/studio"
-import { picotron } from "chisel/themes/picotron"
+import { asepriteMocha } from "chisel/themes/aseprite-mocha"
 import { logicalSize } from "chisel/support/logical-size"
 import { wantsScreenshot } from "chisel/support/wants-screenshot"
 import { requestedCommands } from "chisel/support/requested-commands"
@@ -18,15 +18,15 @@ app = {}
 
 function load() {
   window.setTitle('Studio')
-  window.setMode(1440, 810)
+  window.setMode(1440, 900)
   window.setResizable(true)
   window.setVsync(true)
 
-  // Draw into a magnified low-resolution framebuffer, the way Picotron does.
-  // Its 12px rows and 7x7 icons only mean anything if one drawn pixel covers
-  // several screen pixels; the magnification is picked from the window so a
-  // larger monitor buys workspace rather than bigger chrome.
-  frame = logicalSize(1440, 810)
+  // Draw into a magnified framebuffer. Aseprite's 12px menu bar and 16px icons
+  // only mean anything if one drawn pixel covers several screen pixels; the
+  // magnification is picked from the window so a larger monitor buys workspace
+  // rather than bigger chrome.
+  frame = logicalSize(1440, 900)
 
   window.setLogicalSize(frame.w, frame.h)
   window.setPixelPerfect(true)
@@ -34,7 +34,7 @@ function load() {
   // Scale 1: the framebuffer does the magnifying now, so every metric is used
   // at the size it was measured at. Ctrl+= changes the magnification instead,
   // which is the same control with an honest name.
-  theme = picotron()
+  theme = asepriteMocha()
     .useScale(1)
     .loadFonts(null)
 

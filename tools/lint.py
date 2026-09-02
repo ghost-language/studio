@@ -22,6 +22,7 @@ three mistakes that actually shipped, each now checked before it can again:
 Run it with `python3 tools/lint.py`; it exits non-zero if anything is found.
 """
 
+import os
 import re, glob, collections, sys
 
 def strip_strings(line):
@@ -175,6 +176,37 @@ for path in sorted(glob.glob('**/*.gs', recursive=True)):
             line = src[:at].count('\n') + body[:body.index(name)].count('\n') + 1
             print(f"locals {path}:{line}  local `{name}` shadows `this.{name}()`, called in the same method")
             problems += 1
+
+# --- palette: a theme may not invent a colour -------------------------------
+#
+# The original complaint about this interface was that it read as messy and
+# inconsistent, and a large part of that was forty hand-picked hex values that
+# only nearly agreed with each other. A colour two off a real palette entry
+# looks fine on its own and wrong beside everything else.
+#
+# So the themes that claim a palette must actually use it: every colour comes
+# from a named lookup, and a raw hex literal has to be listed here with a
+# reason. Both current exceptions are measured facts about Aseprite rather than
+# choices - it paints the transparency checker itself, in the same two greys,
+# under both the light and the dark reference.
+PALETTE_THEMES = {
+    "chisel/themes/aseprite-mocha.gs": {"#c0c0c0", "#808080"},
+    "chisel/themes/aseprite-latte.gs": {"#c0c0c0", "#808080"},
+}
+
+for path, allowed in PALETTE_THEMES.items():
+    if not os.path.exists(path):
+        continue
+
+    src = open(path).read()
+
+    for m in re.finditer(r"'(#[0-9a-fA-F]{6})'", src):
+        if m.group(1) in allowed:
+            continue
+
+        line = src[:m.start()].count("\n") + 1
+        print(f"palette {path}:{line}  raw hex {m.group(1)} - use a palette name, or list it as an exception")
+        problems += 1
 
 print()
 print(f"{problems} problem(s); {len(unique)} uniquely-named callables checked")

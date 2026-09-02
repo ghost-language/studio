@@ -68,7 +68,7 @@ class Studio {
   // That mismatch is most of why the old sheet could not have looked right no
   // matter how well it was drawn.
   loadArt() {
-    this.ui.icons = new Icons('resources/icons.png', 8)
+    this.ui.icons = new Icons('resources/icons.png', 16)
       .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
       .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
       .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])

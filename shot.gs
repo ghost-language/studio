@@ -6,7 +6,7 @@ import { Painter } from "chisel/painter"
 import { Rect } from "chisel/geometry/rect"
 import { Icons } from "chisel/icons"
 import { Cursors } from "chisel/cursors"
-import { picotron } from "chisel/themes/picotron"
+import { asepriteMocha } from "chisel/themes/aseprite-mocha"
 import { logicalSize } from "chisel/support/logical-size"
 import { Gallery } from "playground/gallery"
 
@@ -23,19 +23,19 @@ app = {}
 
 function load() {
   window.setTitle('chisel - gallery')
-  window.setMode(1440, 810)
+  window.setMode(1440, 900)
 
-  frame = logicalSize(1440, 810)
+  frame = logicalSize(1440, 900)
 
   window.setLogicalSize(frame.w, frame.h)
   window.setPixelPerfect(true)
 
-  theme = picotron().useScale(1).loadFonts(null)
+  theme = asepriteMocha().useScale(1).loadFonts(null)
 
   app.ui = new Ui(theme, new Painter(theme))
   app.frames = 0
 
-  app.ui.icons = new Icons('resources/icons.png', 8)
+  app.ui.icons = new Icons('resources/icons.png', 16)
     .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
     .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
     .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])

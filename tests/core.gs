@@ -475,28 +475,36 @@ check('a profile ends flush with the edge', cornerInsets(8).last(), 0)
 console.log('')
 console.log('Logical size')
 
-// The magnification is chosen to put the logical height nearest Picotron's
-// 270, and the window is then divided by it - so a bigger monitor buys
-// workspace rather than margins.
+// The magnification puts the logical height nearest the design's target, and
+// the window is then divided by it - so a bigger monitor buys workspace rather
+// than margins. 540 is Aseprite's, which is the default.
 full = logicalSize(1920, 1080)
 
-check('1080p magnifies four times', full.scale, 4)
-check('and gives exactly Picotron', `${full.w}x${full.h}`, '480x270')
+check('1080p magnifies twice', full.scale, 2)
+check('and gives exactly Aseprite', `${full.w}x${full.h}`, '960x540')
 
 laptop = logicalSize(1440, 900)
 
-check('900 tall magnifies three times', laptop.scale, 3)
-check('and gives more room than Picotron', `${laptop.w}x${laptop.h}`, '480x300')
+check('900 tall still magnifies twice', laptop.scale, 2)
+check('and gives less room than 1080p', `${laptop.w}x${laptop.h}`, '720x450')
+
+// The target is a parameter because two designs want different ones: Picotron
+// was drawn for 270 and Aseprite for 540. Hard-coding either means the other
+// renders at half or double the intended density.
+picotron = logicalSize(1920, 1080, null, 270)
+
+check('the Picotron target magnifies four times', picotron.scale, 4)
+check('and gives exactly Picotron', `${picotron.w}x${picotron.h}`, '480x270')
 
 // Whole numbers only. A fractional magnification resamples every drawn pixel
 // to a different width, which is the one thing that cannot be allowed.
 odd = logicalSize(1333, 777)
 
-check('an awkward window still magnifies wholly', odd.scale, 3)
-check('and divides down evenly', `${odd.w}x${odd.h}`, '444x259')
+check('an awkward window still magnifies wholly', odd.scale, 1)
+check('and divides down evenly', `${odd.w}x${odd.h}`, '1333x777')
 
-check('a chosen magnification wins', logicalSize(1920, 1080, 2).scale, 2)
-check('and is honoured', logicalSize(1920, 1080, 2).w, 960)
+check('a chosen magnification wins', logicalSize(1920, 1080, 4).scale, 4)
+check('and is honoured', logicalSize(1920, 1080, 4).w, 480)
 
 // A window smaller than one magnification would divide to nothing.
 check('magnification never falls below one', logicalSize(100, 100).scale, 1)

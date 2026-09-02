@@ -6,7 +6,7 @@ import { Rect } from "chisel/geometry/rect"
 import { Label } from "chisel/widgets/label"
 import { Icons } from "chisel/icons"
 import { Cursors } from "chisel/cursors"
-import { picotron } from "chisel/themes/picotron"
+import { asepriteMocha } from "chisel/themes/aseprite-mocha"
 import { logicalSize } from "chisel/support/logical-size"
 import { Gallery } from "playground/gallery"
 
@@ -21,15 +21,15 @@ app = {}
 
 function load() {
   window.setTitle('Chisel - widget playground')
-  window.setMode(1440, 810)
+  window.setMode(1440, 900)
   window.setResizable(true)
   window.setVsync(true)
 
   // Draw into a small framebuffer and let the engine magnify the whole frame.
-  // Picotron's 12px rows and 7x7 icons only mean anything if a drawn pixel is
+  // Aseprite's 12px rows and 16px icons only mean anything if a drawn pixel is
   // several screen pixels wide; at the window's own resolution they would be
   // physically tiny rather than chunky.
-  frame = logicalSize(1440, 810)
+  frame = logicalSize(1440, 900)
 
   window.setLogicalSize(frame.w, frame.h)
   window.setPixelPerfect(true)
@@ -38,12 +38,12 @@ function load() {
 
   // Scale 1: the framebuffer does the magnifying now, so the metrics are used
   // at the size they were measured.
-  theme = picotron().useScale(1).loadFonts(null)
+  theme = asepriteMocha().useScale(1).loadFonts(null)
 
   app.ui = new Ui(theme, new Painter(theme))
 
   // 8x8 cells, 8 to a row, named in sheet order. Drawn by tools/make-icons.py.
-  app.ui.icons = new Icons('resources/icons.png', 8)
+  app.ui.icons = new Icons('resources/icons.png', 16)
     .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
     .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
     .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])
