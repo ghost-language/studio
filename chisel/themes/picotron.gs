@@ -33,8 +33,16 @@ function picotron() {
     'bevel.light':     palette.step('blue', 0),
     'bevel.dark':      palette.step('blue', 0),
 
-    'button.face':     palette.step('neutral', 3),
-    'button.hover':    palette.step('neutral', 4),
+    // Lighter than the panel, not the same as it. A control is read by its
+    // tone against its ground, and with no outline to fall back on a button
+    // that matches the bar it sits on is simply not there - which is exactly
+    // how the first render of this came out.
+    //
+    // Picotron's own button is the darker of its pair, #c2c3c7 on the #fff1e8
+    // body; ours mostly sit on #c2c3c7 toolbars, so ours is the lighter one.
+    // The rule is the step, not the direction.
+    'button.face':     palette.step('neutral', 4),
+    'button.hover':    palette.named('peach'),
     'button.pressed':  palette.named('purpleGrey'),
     'button.selected': palette.named('purpleGrey'),
 
@@ -89,10 +97,22 @@ function picotron() {
     // canvas rather than as its background.
     checker: 8,
 
-    // A cut, not a curve: a straight 45-degree chamfer taking two pixels off
-    // the first row and one off the second. Every window in every reference
-    // measures [2, 1].
+    // A cut, not a curve: a straight 45-degree chamfer. Every window in every
+    // reference measures [2, 1].
     radius: 2,
+
+    // Controls are cut by one, not two, and are not outlined at all. Both were
+    // measured off a real Picotron button: a flat #c2c3c7 fill on the #fff1e8
+    // body, one pixel off each corner, and no border of any kind. A tab strip
+    // measures the same way.
+    //
+    // This is the largest single difference between an interface that looks
+    // like Picotron and one that merely uses its palette. Outlining every
+    // button, cell and field - which is what this kit did - puts a black line
+    // around forty things that Picotron leaves as flat tone against flat tone,
+    // and the result reads as heavy and busy without any one control being
+    // wrong.
+    cut: 1,
 
     // Measured from a render of silver.ttf at 12px: caps occupy +2..+7,
     // descenders reach +9. Text is centred on the cap band rather than the em

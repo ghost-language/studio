@@ -58,7 +58,7 @@ class Checkbox extends Widget {
   paint(ui) {
     box = this.boxRect(ui)
 
-    ui.painter.well(box, ui.theme.of('field.face'))
+    ui.painter.boxed(box, ui.theme.of('field.face'))
 
     if (this.checked) {
       this.paintTick(ui, box)

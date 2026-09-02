@@ -261,29 +261,43 @@ class Painter {
   }
 
   // A raised control: button, tab, dropdown, scrollbar thumb.
+  // The corner cut on a control, which is not the one a window uses: measured
+  // at one pixel against a window's two.
+  controlCut() {
+    return this.theme.metric('cut')
+  }
+
   // A control sitting on the ground: a button, a tab, a toolbar item.
   //
-  // Flat fill inside a one-pixel outline, corners cut. Picotron has no bevel -
-  // no highlight-and-shadow pair anywhere in any reference - so raised and sunk
-  // differ by their fill alone rather than by which edge catches the light.
-  // That sounds like a loss of vocabulary and is not: with a ramp behind it,
-  // "pressed" is one step darker and "hovered" one step lighter, which reads
-  // more clearly at 12px than a one-pixel highlight ever did.
+  // A flat fill with its corners cut and NO OUTLINE. That last part is
+  // measured, not a simplification: a real Picotron button is #c2c3c7 against
+  // the #fff1e8 body with no border of any kind, and a tab strip is the same.
+  // Only windows are outlined.
+  //
+  // It is the largest single difference between looking like Picotron and
+  // merely using its palette. A black line around forty controls that Picotron
+  // leaves as flat tone against flat tone reads as heavy and busy without any
+  // one of them being identifiably wrong - which is why it survived so long.
+  //
+  // There is no bevel either, so raised and sunk differ by fill alone rather
+  // than by which edge catches the light. With a ramp behind them, pressed is
+  // one step darker and hovered one step lighter, which reads better at 12px
+  // than a one-pixel highlight ever did.
   raised(rect, face = null, corners = null) {
     if (face == null) {
       face = this.theme.of('button.face')
     }
 
-    this.surface(rect, face, this.theme.of('outline'), this.radius(), corners)
+    this.chamfered(rect, face, this.controlCut(), corners)
   }
 
-  // A pressed control. Same frame, darker fill.
+  // A pressed control. Same shape, darker fill.
   sunk(rect, face = null, corners = null) {
     if (face == null) {
       face = this.theme.of('button.pressed')
     }
 
-    this.surface(rect, face, this.theme.of('outline'), this.radius(), corners)
+    this.chamfered(rect, face, this.controlCut(), corners)
   }
 
   // A flat surface that holds other things: a docked bar, a card. Panels are
@@ -297,15 +311,33 @@ class Painter {
     this.fill(rect, face)
   }
 
-  // A hole: the canvas surround, a text field, a list, a scroll track. Same
-  // construction as a control, which is the point - in Picotron a well is not
-  // an inverted button, it is a surface with a different fill.
+  // A small square control that is outlined: a checkbox, a radio, a colour
+  // swatch.
+  //
+  // The exception to "controls are not outlined", and a measured one: a
+  // checkbox is 9x9 with a 1px border and a 1px inset gap. It earns the border
+  // by being small - a 9px flat fill one tone from its ground is a smudge,
+  // where a 40px button is plainly a button.
+  boxed(rect, fill, edge = null) {
+    if (edge == null) {
+      edge = this.theme.of('outline')
+    }
+
+    this.surface(rect, fill, edge, 0)
+  }
+
+  // A hole: the canvas surround, a text field, a list, a scroll track.
+  //
+  // Same construction as a control, which is the point - in Picotron a well is
+  // not an inverted button, it is a flat fill in a different tone. The path
+  // field in its file browser is a plain dark rectangle on the toolbar with no
+  // border, which is the whole of it.
   well(rect, face = null, corners = null) {
     if (face == null) {
       face = this.theme.of('panel.well')
     }
 
-    this.surface(rect, face, this.theme.of('outline'), this.radius(), corners)
+    this.chamfered(rect, face, this.controlCut(), corners)
   }
 
   // One dark line with one light line under it. This separator does more for

@@ -52,6 +52,9 @@ class Theme {
       // half the shorter side so a checkbox never gets a bite taken out of it.
       radius: 5,
 
+      // The corner cut on a control, as distinct from a window.
+      cut: 5,
+
       // Measured from a render of silver.ttf at 16px, as offsets from the y
       // that canvas.print() is given (which is the top of the line box):
       //   caps occupy +3..+10, x-height +6..+10, descenders reach +12.

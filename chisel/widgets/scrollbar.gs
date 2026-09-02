@@ -79,16 +79,21 @@ class Scrollbar extends Widget {
     return ui.pointer.x - this.bounds.x
   }
 
+  // Measured off Picotron's own: a 5px bar with a solid #83769c thumb on a
+  // light track. The thumb is deliberately not button.face - a scrollbar has
+  // to read at a glance against a track that is usually the lightest thing on
+  // screen, and taking the button tone left it the same colour as its own
+  // groove and therefore invisible.
   paint(ui) {
-    ui.painter.well(this.bounds)
+    ui.painter.chamfered(this.bounds, ui.theme.of('panel.well'), 0, null)
 
     thumb = this.thumbRect(ui)
-    face = ui.theme.of('button.face')
+    face = ui.theme.of('text.dim')
 
-    if (ui.isHot(this))    { face = ui.theme.of('button.hover') }
-    if (ui.isActive(this)) { face = ui.theme.of('button.pressed') }
+    if (ui.isHot(this))    { face = ui.theme.of('accent') }
+    if (ui.isActive(this)) { face = ui.theme.of('accent') }
 
-    ui.painter.raised(thumb, face)
+    ui.painter.chamfered(thumb, face, ui.painter.controlCut(), null)
   }
 
   pressed(ui) {
