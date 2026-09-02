@@ -47,6 +47,7 @@ function load() {
     .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
     .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
     .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])
+    .define(['eye', 'lock'])
 
   app.ui.cursors = new Cursors('resources/cursors.png', 8)
     .define('arrow', 1, 0)

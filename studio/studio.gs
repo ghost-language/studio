@@ -72,6 +72,7 @@ class Studio {
       .define(['pencil', 'eraser', 'bucket', 'picker', 'select', 'move', 'line', 'rectangle'])
       .define(['ellipse', 'text', 'zoom', 'grid', 'layers', 'frame', 'play', 'stop'])
       .define(['undo', 'redo', 'save', 'open', 'plus', 'minus', 'check', 'close'])
+      .define(['eye', 'lock'])
 
     // Picotron's pointer is a hollow outline rather than a filled arrow with a
     // border, so every interior pixel is whatever is behind it. Hotspots come
