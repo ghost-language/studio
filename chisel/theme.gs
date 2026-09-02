@@ -16,9 +16,13 @@ class Theme {
     this.tokens = {}
     this.fonts = {}
 
-    // The size the text is drawn at, at scale 1. See loadFonts() for why this
-    // is 19 and not a rounder number.
-    this.native = 19
+    // The size text is drawn at, at scale 1.
+    //
+    // 16 rather than 19 because ghost-language/lumen#21 landed: the built-in
+    // font is no longer antialiased, so it is crisp at any size and the choice
+    // is free. 19 was never a design decision - it was the smallest size that
+    // survived blending.
+    this.native = 16
 
     // Metrics at 1x, multiplied by the scale on read.
     this.metrics = {
@@ -26,27 +30,28 @@ class Theme {
       gutter: 3,
       pad: 6,
 
-      // Rows are sized around the ink, not the em box. Silver at 19px has a
-      // 21px line box but only a 9px cap height, so reserving the whole box
-      // wasted 12px per row and pushed every label above its own centre.
-      row: 18,
-      bar: 20,
-      tab: 22,
-      tool: 22,
+      // Rows are sized around the ink, not the em box. Silver at 16px has an
+      // 18px line box around an 8px capital, so reserving the whole box wastes
+      // ten pixels a row and pushes every label above its own centre.
+      row: 16,
+      bar: 18,
+      tab: 20,
+      tool: 20,
       icon: 16,
       swatch: 14,
       check: 11,
       scroll: 12,
 
-      // Measured from a render of silver.ttf at 19px, as offsets from the y
+      // Measured from a render of silver.ttf at 16px, as offsets from the y
       // that canvas.print() is given (which is the top of the line box):
-      //   caps occupy +3..+11, x-height +6..+11, descenders reach +13.
+      //   caps occupy +3..+10, x-height +6..+10, descenders reach +12.
       // Text is centred on the cap band, which is what makes a row of chrome
       // look optically centred rather than merely arithmetically centred.
+      // These are per-size: changing `native` means measuring these again.
       capTop: 3,
-      cap: 9,
-      baseline: 11,
-      descender: 13
+      cap: 8,
+      baseline: 10,
+      descender: 12
     }
   }
 
@@ -84,10 +89,13 @@ class Theme {
   // font is drawn at natively, or null for Lumen's built-in face.
   //
   // A PIXEL FONT IS ONLY CRISP AT WHOLE MULTIPLES OF ITS NATIVE SIZE *if the
-  // engine antialiases it*, and getting this wrong is the whole of "why does
-  // the text look blurry". ghost-language/lumen#21 turns antialiasing off for
-  // the built-in font, after which any size is crisp and this can drop to 16
-  // or 14 for tighter chrome. Until that lands, 19 is the only safe choice.
+  // engine antialiases it*. ghost-language/lumen#21 turned antialiasing off
+  // for the built-in font, so on a current Lumen every size is crisp and the
+  // size is a design choice again. On an older build, only multiples of 19
+  // are sharp.
+  //
+  // A font you supply yourself still keeps its smoothing, so `native` has to
+  // be that font's own design size or its text will blur.
   // silver.ttf has unitsPerEm 1900 and draws its glyphs on a 100-unit grid, so
   // one font pixel is exactly one screen pixel at 19px, 38px, 57px - and at
   // nothing in between. Blended, every other size lands glyph edges on a

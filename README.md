@@ -98,21 +98,21 @@ it is available as `ui.icons.drawIn(name, rect, tint, scale)` or on any button v
 
 ## Changing the font
 
-**On a stock Lumen, a pixel font is only crisp at whole multiples of its native size.**
-Text goes through SDL_ttf's blended path, so a size even one pixel off the font's own grid
-comes back as grey fringing rather than hard edges. That is the whole of "why does the text
-look blurry".
+**A pixel font is only crisp at whole multiples of its native size — if the engine
+antialiases it.** Blended text puts grey fringing wherever a glyph edge lands off the
+pixel grid, which is the whole of "why does the text look blurry".
 
-Lumen's bundled `silver.ttf` has `unitsPerEm` 1900 on a 100-unit glyph grid, so it is
-exact at **19px, 38px, 57px** and blurry at everything in between. The theme draws at
-`19 × ui.scale`, and the interface metrics are sized around the 21px line height that
-produces.
+Lumen's bundled `silver.ttf` has `unitsPerEm` 1900 on a 100-unit glyph grid, so *blended*
+it is exact at 19px, 38px and 57px and blurry at everything between.
 
-**This is a property of the rasteriser, not of the font.**
-[ghost-language/lumen#21](https://github.com/ghost-language/lumen/pull/21) renders the
-built-in font with hard edges instead of blending it, after which *every* size is crisp —
-measured at zero mid-grey pixels from 8px to 38px — and `theme.native` can drop to 16 or 14
-for chrome as tight as Aseprite's. Until that lands, 19 is the only sharp size.
+**That was a property of the rasteriser, not of the font, and it is fixed.**
+[ghost-language/lumen#21](https://github.com/ghost-language/lumen/pull/21) is merged: the
+built-in font is drawn with hard edges rather than blended, so **every size is crisp** —
+measured at zero mid-grey pixels from 8px to 38px. The theme draws at **16 × ui.scale**
+accordingly, with metrics sized around the 8px cap height that produces.
+
+On a Lumen older than that PR, only multiples of 19 are sharp; set `theme.native` back to
+19 if you are pinned to one.
 
 To use your own, set two preferences — or call `theme.loadFonts(path, native)` directly:
 
@@ -126,8 +126,13 @@ coordinates are multiples of. A font built on an 8px design grid is crisp at 8, 
 and blurry at 12. Getting this wrong is the only way to make the interface blurry; getting
 it right is the only way to make it sharp.
 
-If you want chrome as tight as Aseprite's, you want a *smaller* face — silver at 19px is a
-fairly large pixel font, and the row heights here are sized to fit it.
+A font you supply yourself still keeps its smoothing, so `ui.fontSize` has to be that
+font's own design size or its text will blur.
+
+The cap metrics in `Theme` (`capTop`, `cap`, `baseline`, `descender`) are measured per
+size from a real render — text is centred on the cap band, not the em box, which is what
+makes a row of chrome look optically centred. Changing `native` means measuring them
+again.
 
 ## Tests
 
