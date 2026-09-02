@@ -21,6 +21,7 @@ import { normalizeChord } from "chisel/support/normalize-chord"
 import { chamfer } from "chisel/support/chamfer"
 import { logicalSize } from "chisel/support/logical-size"
 import { fitZoom } from "chisel/support/fit-zoom"
+import { hsvToRgb } from "chisel/support/hsv"
 import { paletteRamps } from "chisel/support/palette-ramps"
 import { paletteExtras } from "chisel/support/palette-extras"
 import { rampStep } from "chisel/support/ramp-step"
@@ -532,6 +533,44 @@ check('a zoom is never fractional', fitZoom(30, 30, 100, 100), 3)
 check('an oversized document stays at 1:1', fitZoom(512, 512, 100, 100), 1)
 check('a region of nothing still gives a zoom', fitZoom(32, 32, 0, 0), 1)
 check('a document of nothing does not divide by it', fitZoom(0, 0, 100, 100), 1)
+
+// --- hue, saturation, value -----------------------------------------------------------
+
+console.log('')
+console.log('HSV')
+
+// The six primaries sit exactly on sector boundaries, which is where an
+// off-by-one in the sector arithmetic shows up first.
+red = hsvToRgb(0, 1, 1)
+check('hue 0 is red', `${red.r},${red.g},${red.b}`, '255,0,0')
+green = hsvToRgb(120, 1, 1)
+check('hue 120 is green', `${green.r},${green.g},${green.b}`, '0,255,0')
+blue = hsvToRgb(240, 1, 1)
+check('hue 240 is blue', `${blue.r},${blue.g},${blue.b}`, '0,0,255')
+
+yellow = hsvToRgb(60, 1, 1)
+check('hue 60 is yellow', `${yellow.r},${yellow.g},${yellow.b}`, '255,255,0')
+cyan = hsvToRgb(180, 1, 1)
+check('hue 180 is cyan', `${cyan.r},${cyan.g},${cyan.b}`, '0,255,255')
+magenta = hsvToRgb(300, 1, 1)
+check('hue 300 is magenta', `${magenta.r},${magenta.g},${magenta.b}`, '255,0,255')
+
+// No saturation is a grey whatever the hue claims, and no value is black
+// whatever else it claims.
+grey = hsvToRgb(200, 0, 0.5)
+check('no saturation is grey', `${grey.r},${grey.g},${grey.b}`, '128,128,128')
+black = hsvToRgb(200, 1, 0)
+check('no value is black', `${black.r},${black.g},${black.b}`, '0,0,0')
+white = hsvToRgb(0, 0, 1)
+check('no saturation at full value is white', `${white.r},${white.g},${white.b}`, '255,255,255')
+
+// A drag that runs off the edge of the field hands back a component slightly
+// out of range; unclamped that becomes 256 and wraps to black, which reads as
+// the picker breaking exactly when the pointer leaves it.
+over = hsvToRgb(0, 1, 1.2)
+check('an overshot value clamps rather than wraps', over.r, 255)
+under = hsvToRgb(0, 1, -0.2)
+check('an undershot value clamps too', under.r, 0)
 
 // --- chamfer ------------------------------------------------------------------------
 

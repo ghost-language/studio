@@ -201,9 +201,12 @@ class Painter {
   }
 
   fillRounded(rect, paint, radius, corners = null) {
-    radius = this.fittedRadius(rect, radius)
+    // `fitted`, not `radius`. Reassigning the parameter would permanently
+    // destroy this.radius() on the painter - Ghost does not scope a method's
+    // locals to that method - and two widgets call it for their corner.
+    fitted = this.fittedRadius(rect, radius)
 
-    if (radius < 1) {
+    if (fitted < 1) {
       return this.fill(rect, paint)
     }
 
@@ -211,12 +214,16 @@ class Painter {
       corners = this.allCorners()
     }
 
-    insets = cornerInsets(radius)
+    insets = cornerInsets(fitted)
 
-    // The straight middle in one draw, then one thin row per corner step.
-    this.fill(new Rect(rect.x, rect.y + radius, rect.w, rect.h - radius * 2), paint)
+    // The straight middle in one draw, then one thin row per corner step. Every
+    // use below is `fitted` rather than `radius`: a corner larger than half the
+    // rectangle would otherwise draw rows that overlap in the middle and leave
+    // the shape with a bite out of it, which is the whole reason fittedRadius
+    // exists.
+    this.fill(new Rect(rect.x, rect.y + fitted, rect.w, rect.h - fitted * 2), paint)
 
-    for (step = 0; step < radius; step++) {
+    for (step = 0; step < fitted; step++) {
       cut = insets[step]
 
       topLeft = 0

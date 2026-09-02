@@ -151,31 +151,45 @@ for path in sorted(glob.glob('**/*.gs', recursive=True)):
         print(f"shadow {path}  method `{name}()` shadows the import bound to the same name")
         problems += 1
 
-# --- locals: a variable named the same as a method it then calls ------------
+# --- locals: a variable named the same as ANY method of its own class --------
 #
-# Ghost resolves `this.name()` through the enclosing scope before it reaches the
-# class, so a local called `name` in the same method turns the call into an
-# attempt to invoke a number. It raises only when that line runs, which for a
-# paint method means the first frame that draws the widget - and it shipped
-# exactly that way in Scrollbar.thumbRect().
+# Ghost does not scope a method's locals to that method. Assigning `gap = 4`
+# inside one method permanently replaces the method `gap()` on that object, for
+# the object's lifetime, and every later call anywhere in the class raises
+# "is a number, which cannot be called".
+#
+# Reduced, this prints 7 and then fails:
+#
+#     class Probe {
+#       gap() { return 7 }
+#       first() { gap = 99; return gap }
+#       second() { return this.gap() }
+#     }
+#     p = new Probe(); p.second(); p.first(); p.second()
+#
+# An earlier version of this check only looked for the call in the same method
+# as the local, because that is how the first instance of it presented. That
+# was wrong, and the narrow rule let a second one through: a local `gap` in
+# Colorbar.placePicker() broke this.gap() in Colorbar.gridRect(). The hazard is
+# any local sharing a name with any method of the same class, and because the
+# breakage is time-dependent - the same call works before the poisoning line
+# runs and fails after - it cannot be relied on to show up in testing.
 for path in sorted(glob.glob('**/*.gs', recursive=True)):
     src = open(path).read()
 
-    # Split the file into method bodies by their opening line, so a local in one
-    # method is not blamed for a call in another.
-    starts = [(m.start(), m.group(1)) for m in re.finditer(r'^\s{2,}(\w+)\s*\([^)]*\)\s*\{', src, re.M)]
+    methods = set(re.findall(r'^\s{2,}([a-zA-Z_]\w*)\s*\([^)]*\)\s*\{', src, re.M))
+    methods.discard('constructor')
 
-    for index, (at, method) in enumerate(starts):
-        end = starts[index + 1][0] if index + 1 < len(starts) else len(src)
-        body = src[at:end]
+    if not methods:
+        continue
 
-        assigned = set(re.findall(r'^\s+(\w+)\s*=\s*[^=]', body, re.M))
-        called = set(re.findall(r'this\.(\w+)\s*\(', body))
+    for m in re.finditer(r'^\s{4,}([a-zA-Z_]\w*)\s*=\s*[^=]', src, re.M):
+        if m.group(1) not in methods:
+            continue
 
-        for name in sorted(assigned & called):
-            line = src[:at].count('\n') + body[:body.index(name)].count('\n') + 1
-            print(f"locals {path}:{line}  local `{name}` shadows `this.{name}()`, called in the same method")
-            problems += 1
+        line = src[:m.start()].count('\n') + 1
+        print(f"locals {path}:{line}  local `{m.group(1)}` destroys the method `{m.group(1)}()` on this object")
+        problems += 1
 
 # --- palette: a theme may not invent a colour -------------------------------
 #

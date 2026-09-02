@@ -1,18 +1,34 @@
 import "ghost:math"
 import { Widget } from "chisel/widget"
 import { Rect } from "chisel/geometry/rect"
+import { ColorPicker } from "studio/sprite/colorpicker"
 
-// Aseprite's colour bar: the palette grid, and under it the foreground and
-// background colours as two overlapping chips.
+// The handler is built outside the class because a closure made inside one
+// cannot capture `this` in Ghost.
+function makePickHandler(bar) {
+  return function (chosen) {
+    bar.document.palette[bar.document.foreground] = chosen
+  }
+}
+
+// Aseprite's colour bar, top to bottom: the palette grid, the saturation-value
+// picker with its hue strip, then the foreground and background chips.
 //
-// The chips are the part people actually use - left-click paints foreground,
-// right-click background - so they get real estate rather than a legend.
+// That order is Aseprite's and it is the right way round. The palette is what
+// you use constantly and belongs where the eye lands first; the picker is what
+// you use when the palette does not already have the colour, so it takes the
+// space left over; the chips show what the last two decisions were.
 class Colorbar extends Widget {
   constructor(document) {
     super.constructor('colorbar')
 
     this.document = document
     this.columns = 4
+
+    this.picker = new ColorPicker(document)
+    this.picker.on('change', makePickHandler(this))
+
+    this.add(this.picker)
   }
 
   across(count) {
@@ -55,9 +71,8 @@ class Colorbar extends Widget {
   chipsRect(ui) {
     size = this.swatchSize(ui.theme) * 2 + 4
     inner = this.bounds.inset(ui.theme.metric('gutter'))
-    grid = this.gridRect(ui)
 
-    return new Rect(inner.x, grid.bottom() + ui.theme.metric('pad'), inner.w, size)
+    return new Rect(inner.x, inner.bottom() - size, inner.w, size)
   }
 
   indexAt(ui, x, y) {
@@ -80,7 +95,38 @@ class Colorbar extends Widget {
     return found
   }
 
+  // The picker is placed here rather than in arrange(), which has no theme to
+  // measure with. Placing is cheap - it sets a rectangle - and the picker's own
+  // cache is keyed on size rather than on being placed, so this costs nothing
+  // per frame.
+  placePicker(ui) {
+    grid = this.gridRect(ui)
+    chips = this.chipsRect(ui)
+    inner = this.bounds.inset(ui.theme.metric('gutter'))
+
+    // `spacing`, not `gap`: a local named `gap` would destroy this.gap(), which
+    // gridRect() above calls to size the palette.
+    spacing = ui.theme.metric('pad')
+
+    top = grid.bottom() + spacing
+
+    // Whatever room is left, but no taller than the picker asks for. Filling a
+    // full-height dock made the saturation-value field a tall ribbon, where
+    // Aseprite's is roughly square and reads as a field of colour rather than
+    // as a gradient strip.
+    available = chips.y - spacing - top
+    wanted = this.picker.heightFor(ui.theme)
+
+    height = math.max(ui.theme.metric('row'), math.min(available, wanted))
+
+    this.picker.place(new Rect(inner.x, top, inner.w, height))
+
+    return this
+  }
+
   paint(ui) {
+    this.placePicker(ui)
+
     ui.painter.panel(this.bounds, null)
 
     grid = this.gridRect(ui)
@@ -122,6 +168,11 @@ class Colorbar extends Widget {
     )
 
     this.paintChips(ui)
+
+    // Children last, so the picker sits over the panel rather than under it.
+    // This bar painted itself and stopped for as long as it had no children;
+    // adding one made the omission a bug rather than a redundancy.
+    super.paint(ui)
   }
 
   paintChips(ui) {
