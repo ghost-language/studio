@@ -19,6 +19,7 @@ import { Editable } from "studio/traits/editable"
 import { linePixels } from "studio/support/line-pixels"
 import { normalizeChord } from "chisel/support/normalize-chord"
 import { chamfer } from "chisel/support/chamfer"
+import { logicalSize } from "chisel/support/logical-size"
 import { paletteRamps } from "chisel/support/palette-ramps"
 import { paletteExtras } from "chisel/support/palette-extras"
 import { rampStep } from "chisel/support/ramp-step"
@@ -467,6 +468,38 @@ for (index = 1; index < profile.length(); index++) {
 
 check('a profile never widens as it descends', monotonic.ok, true)
 check('a profile ends flush with the edge', cornerInsets(8).last(), 0)
+
+// --- logical framebuffer ------------------------------------------------------------
+
+console.log('')
+console.log('Logical size')
+
+// The magnification is chosen to put the logical height nearest Picotron's
+// 270, and the window is then divided by it - so a bigger monitor buys
+// workspace rather than margins.
+full = logicalSize(1920, 1080)
+
+check('1080p magnifies four times', full.scale, 4)
+check('and gives exactly Picotron', `${full.w}x${full.h}`, '480x270')
+
+laptop = logicalSize(1440, 900)
+
+check('900 tall magnifies three times', laptop.scale, 3)
+check('and gives more room than Picotron', `${laptop.w}x${laptop.h}`, '480x300')
+
+// Whole numbers only. A fractional magnification resamples every drawn pixel
+// to a different width, which is the one thing that cannot be allowed.
+odd = logicalSize(1333, 777)
+
+check('an awkward window still magnifies wholly', odd.scale, 3)
+check('and divides down evenly', `${odd.w}x${odd.h}`, '444x259')
+
+check('a chosen magnification wins', logicalSize(1920, 1080, 2).scale, 2)
+check('and is honoured', logicalSize(1920, 1080, 2).w, 960)
+
+// A window smaller than one magnification would divide to nothing.
+check('magnification never falls below one', logicalSize(100, 100).scale, 1)
+check('a tiny window still has a framebuffer', logicalSize(4, 4, 8).w, 1)
 
 // --- chamfer ------------------------------------------------------------------------
 

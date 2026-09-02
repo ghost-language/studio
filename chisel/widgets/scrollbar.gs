@@ -40,10 +40,15 @@ class Scrollbar extends Widget {
   // The thumb is never allowed below a usable size, or a long document leaves
   // nothing to grab.
   thumbRect(ui) {
-    span = this.span()
+    // `length` rather than `span`: a local whose name matches a method of the
+    // same class shadows that method for the whole call, so `this.span()` here
+    // resolved to the local number and raised "is a number, which cannot be
+    // called". Same family as a method name shadowing an import - Ghost's
+    // lookup reaches the enclosing scope before it reaches the class.
+    length = this.span()
     minimum = ui.theme.metric('scroll')
-    size = math.max(minimum, math.floor(span * (this.window / this.total)))
-    travel = span - size
+    size = math.max(minimum, math.floor(length * (this.window / this.total)))
+    travel = length - size
 
     at = 0
 

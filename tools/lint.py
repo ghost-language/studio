@@ -150,6 +150,32 @@ for path in sorted(glob.glob('**/*.gs', recursive=True)):
         print(f"shadow {path}  method `{name}()` shadows the import bound to the same name")
         problems += 1
 
+# --- locals: a variable named the same as a method it then calls ------------
+#
+# Ghost resolves `this.name()` through the enclosing scope before it reaches the
+# class, so a local called `name` in the same method turns the call into an
+# attempt to invoke a number. It raises only when that line runs, which for a
+# paint method means the first frame that draws the widget - and it shipped
+# exactly that way in Scrollbar.thumbRect().
+for path in sorted(glob.glob('**/*.gs', recursive=True)):
+    src = open(path).read()
+
+    # Split the file into method bodies by their opening line, so a local in one
+    # method is not blamed for a call in another.
+    starts = [(m.start(), m.group(1)) for m in re.finditer(r'^\s{2,}(\w+)\s*\([^)]*\)\s*\{', src, re.M)]
+
+    for index, (at, method) in enumerate(starts):
+        end = starts[index + 1][0] if index + 1 < len(starts) else len(src)
+        body = src[at:end]
+
+        assigned = set(re.findall(r'^\s+(\w+)\s*=\s*[^=]', body, re.M))
+        called = set(re.findall(r'this\.(\w+)\s*\(', body))
+
+        for name in sorted(assigned & called):
+            line = src[:at].count('\n') + body[:body.index(name)].count('\n') + 1
+            print(f"locals {path}:{line}  local `{name}` shadows `this.{name}()`, called in the same method")
+            problems += 1
+
 print()
 print(f"{problems} problem(s); {len(unique)} uniquely-named callables checked")
 

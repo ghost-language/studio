@@ -67,6 +67,15 @@ class Theme {
     return this
   }
 
+  // Metrics a theme overrides. Picotron's chrome is built on a 12px row where
+  // this kit's default was 16, and half the widgets read a metric rather than a
+  // constant, so a theme that cannot change these can only ever be a recolour.
+  sized(metrics) {
+    this.metrics = this.metrics.merge(metrics)
+
+    return this
+  }
+
   // A missing token paints magenta rather than raising: the oldest trick in
   // pixel art is making a mistake impossible to miss.
   of(token) {

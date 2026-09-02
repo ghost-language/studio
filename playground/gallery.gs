@@ -285,7 +285,7 @@ class Gallery extends Widget {
       )
 
       ui.painter.textIn('body', card.title, title, 'left', 'middle', ui.theme.of('accent'))
-      ui.painter.groove(card.bounds.x + 1, title.bottom() - 2, card.bounds.w - 2)
+      ui.painter.groove(card.bounds.x + 1, title.bottom() - 1, card.bounds.w - 2)
     }
 
     super.paint(ui)

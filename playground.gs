@@ -6,7 +6,8 @@ import { Rect } from "chisel/geometry/rect"
 import { Label } from "chisel/widgets/label"
 import { Icons } from "chisel/icons"
 import { Cursors } from "chisel/cursors"
-import { ghostDark } from "chisel/themes/ghost-dark"
+import { picotron } from "chisel/themes/picotron"
+import { logicalSize } from "chisel/support/logical-size"
 import { Gallery } from "playground/gallery"
 
 // The widget playground. Run it with:
@@ -20,11 +21,24 @@ app = {}
 
 function load() {
   window.setTitle('Chisel - widget playground')
-  window.setMode(1180, 720)
+  window.setMode(1440, 810)
   window.setResizable(true)
   window.setVsync(true)
 
-  theme = ghostDark().useScale(1).loadFonts(null)
+  // Draw into a small framebuffer and let the engine magnify the whole frame.
+  // Picotron's 12px rows and 7x7 icons only mean anything if a drawn pixel is
+  // several screen pixels wide; at the window's own resolution they would be
+  // physically tiny rather than chunky.
+  frame = logicalSize(1440, 810)
+
+  window.setLogicalSize(frame.w, frame.h)
+  window.setPixelPerfect(true)
+
+  app.frame = frame
+
+  // Scale 1: the framebuffer does the magnifying now, so the metrics are used
+  // at the size they were measured.
+  theme = picotron().useScale(1).loadFonts(null)
 
   app.ui = new Ui(theme, new Painter(theme))
 
@@ -64,7 +78,17 @@ function draw() {
   app.ui.painter.textIn('body', 'chisel playground', bar.inset(theme.metric('pad')), 'right', 'middle', theme.of('text.dim'))
 }
 
-function resize(width, height) { app.ui.resized(width, height) }
+// Lumen reports the resize in real window pixels, while everything above this
+// line works in framebuffer pixels. Recomputing the magnification here is what
+// makes a wider window buy workspace rather than bigger chrome.
+function resize(width, height) {
+  frame = logicalSize(width, height)
+
+  window.setLogicalSize(frame.w, frame.h)
+
+  app.frame = frame
+  app.ui.resized(frame.w, frame.h)
+}
 
 function mousepressed(x, y, button, clicks) { app.ui.pressed(x, y, button, clicks) }
 function mousereleased(x, y, button)        { app.ui.released(x, y, button) }

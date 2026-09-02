@@ -261,61 +261,61 @@ class Painter {
   }
 
   // A raised control: button, tab, dropdown, scrollbar thumb.
+  // A control sitting on the ground: a button, a tab, a toolbar item.
+  //
+  // Flat fill inside a one-pixel outline, corners cut. Picotron has no bevel -
+  // no highlight-and-shadow pair anywhere in any reference - so raised and sunk
+  // differ by their fill alone rather than by which edge catches the light.
+  // That sounds like a loss of vocabulary and is not: with a ramp behind it,
+  // "pressed" is one step darker and "hovered" one step lighter, which reads
+  // more clearly at 12px than a one-pixel highlight ever did.
   raised(rect, face = null, corners = null) {
     if (face == null) {
       face = this.theme.of('button.face')
     }
 
-    radius = this.radius()
-
-    this.fillRounded(rect, this.theme.of('outline'), radius, corners)
-    this.fillRounded(rect.inset(1), face, radius - 1, corners)
-    this.bevelRounded(rect.inset(1), true, radius - 1, corners)
+    this.surface(rect, face, this.theme.of('outline'), this.radius(), corners)
   }
 
-  // A pressed control - the same frame with the light and dark swapped, which
-  // is the whole animation budget of this interface.
+  // A pressed control. Same frame, darker fill.
   sunk(rect, face = null, corners = null) {
     if (face == null) {
       face = this.theme.of('button.pressed')
     }
 
-    radius = this.radius()
-
-    this.fillRounded(rect, this.theme.of('outline'), radius, corners)
-    this.fillRounded(rect.inset(1), face, radius - 1, corners)
-    this.bevelRounded(rect.inset(1), false, radius - 1, corners)
+    this.surface(rect, face, this.theme.of('outline'), this.radius(), corners)
   }
 
-  // A flat surface that holds other things: a docked bar, a card. One outline,
-  // no bevel - panels are the ground, not objects sitting on it.
+  // A flat surface that holds other things: a docked bar, a card. Panels are
+  // the ground rather than objects on it, so they are square and unoutlined -
+  // a bar that meets the window edge has nothing to be outlined against.
   panel(rect, face = null) {
     if (face == null) {
       face = this.theme.of('panel.face')
     }
 
     this.fill(rect, face)
-    this.outline(rect)
   }
 
-  // A hole: the canvas surround, a text field, a list, a scroll track.
+  // A hole: the canvas surround, a text field, a list, a scroll track. Same
+  // construction as a control, which is the point - in Picotron a well is not
+  // an inverted button, it is a surface with a different fill.
   well(rect, face = null, corners = null) {
     if (face == null) {
       face = this.theme.of('panel.well')
     }
 
-    radius = this.radius()
-
-    this.fillRounded(rect, this.theme.of('outline'), radius, corners)
-    this.fillRounded(rect.inset(1), face, radius - 1, corners)
-    this.bevelRounded(rect.inset(1), false, radius - 1, corners)
+    this.surface(rect, face, this.theme.of('outline'), this.radius(), corners)
   }
 
   // One dark line with one light line under it. This separator does more for
   // the "real tool" feeling than any other single detail.
+  // One line. The old two-line groove - a dark rule with a light one under it -
+  // was the single detail that did most for the "real tool" feel of a bevelled
+  // interface, and it is exactly wrong here: at a 12px row it reads as a thick
+  // black bar rather than a separator, and Picotron has no such thing anywhere.
   groove(x, y, width) {
-    this.hline(x, y, width, this.theme.of('bevel.dark'))
-    this.hline(x, y + 1, width, this.theme.of('bevel.light'))
+    this.hline(x, y, width, this.theme.of('outline'))
   }
 
   // ---- text --------------------------------------------------------------
