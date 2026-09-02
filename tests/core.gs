@@ -18,6 +18,7 @@ import { History } from "studio/history"
 import { Editable } from "studio/traits/editable"
 import { linePixels } from "studio/support/line-pixels"
 import { normalizeChord } from "chisel/support/normalize-chord"
+import { chamfer } from "chisel/support/chamfer"
 import { paletteRamps } from "chisel/support/palette-ramps"
 import { paletteExtras } from "chisel/support/palette-extras"
 import { rampStep } from "chisel/support/ramp-step"
@@ -466,6 +467,33 @@ for (index = 1; index < profile.length(); index++) {
 
 check('a profile never widens as it descends', monotonic.ok, true)
 check('a profile ends flush with the edge', cornerInsets(8).last(), 0)
+
+// --- chamfer ------------------------------------------------------------------------
+
+console.log('')
+console.log('Chamfer')
+
+// [2, 1] is not a preference, it is what every window in every Picotron
+// reference measures: two pixels off the first row, one off the second.
+check('a 2px cut is the measured profile', chamfer(2).toString(), [2, 1].toString())
+check('no cut leaves no profile', chamfer(0).length(), 0)
+check('a cut is as deep as it is wide', chamfer(4).length(), 4)
+check('a cut starts at its full depth', chamfer(4)[0], 4)
+check('a cut ends flush with the edge', chamfer(4).last(), 1)
+
+// A chamfer is a straight 45-degree cut, so each row gives back exactly one
+// pixel. A curve does not, which is why cornerInsets() is a separate helper
+// rather than this one with a flag.
+even = { ok: true }
+profile = chamfer(6)
+
+for (index = 1; index < profile.length(); index++) {
+  if (profile[index - 1] - profile[index] != 1) {
+    even.ok = false
+  }
+}
+
+check('a chamfer loses exactly one pixel a row', even.ok, true)
 
 // --- palette ------------------------------------------------------------------------
 

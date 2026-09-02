@@ -164,7 +164,7 @@ commands, keymap, modifiers, tools, signals, history, line drawing — runs unde
 with no window, and **exits non-zero on a failed assertion** so it can gate a build:
 
 ```
-ghost test.gs        # 88 assertions
+ghost test.gs        # 103 assertions
 python3 tools/lint.py
 ```
 
@@ -180,7 +180,31 @@ of this app has lived. It checks the three mistakes that actually shipped:
 
 Both run in CI on every push, along with a parse sweep over every `.gs` file.
 
-Widgets, painting and documents need a running engine and are exercised in the app.
+### Pixel matching
+
+Neither of those can see a pixel. The interface is being rebuilt against
+Picotron, and "looks right" is not a check, so there is a third one that renders
+the real thing and holds it against regions cropped from Picotron's own
+screenshots:
+
+```
+tools/verify.sh      # renders headlessly, compares every tile, exits non-zero
+```
+
+It runs `verify.gs` through Xvfb, reads the framebuffer back, and compares in
+**palette space** — because most Picotron screenshots are not colour-accurate.
+Three of the five references here come through a pipeline that darkens every
+channel by up to 9, so a pixel-perfect reproduction scores 48.8% against them on
+raw RGB. `tools/pixelmatch.py` carries the measured capture map, detects which
+profile fits an image, and matches within it. [docs/picotron.md](docs/picotron.md)
+has the whole story, including why snapping to the nearest palette entry is the
+wrong fix.
+
+The gate is real: changing the corner chamfer from 2px to 3px fails five of the
+eight tiles.
+
+Widgets, painting and documents need a running engine; the chrome is covered by
+the tiles above and the rest is exercised in the app.
 
 ## Layout
 

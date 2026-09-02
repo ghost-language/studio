@@ -60,3 +60,56 @@ jobs:
             fi
           done
           exit $status
+
+  # Everything above runs without a window and so cannot see a pixel. This job
+  # renders the interface for real and holds it against regions cropped from
+  # Picotron's own screenshots. It is the only check here that can tell a
+  # chamfer of two from a chamfer of three.
+  pixels:
+    name: Pixel match
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out Studio
+        uses: actions/checkout@v4
+
+      - name: Check out Lumen
+        uses: actions/checkout@v4
+        with:
+          repository: ghost-language/lumen
+          ref: nightly
+          path: .lumen
+
+      # Lumen's go.mod replaces ghostlang.org/x/ghost with a sibling checkout,
+      # because it tracks Ghost ahead of the published tag. The path is
+      # relative to .lumen, so the clone has to sit beside it.
+      - name: Check out Ghost
+        uses: actions/checkout@v4
+        with:
+          repository: ghost-language/ghost
+          path: ghost
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: .lumen/go.sum
+
+      - name: Install SDL2 and a virtual display
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-mixer-dev \
+            xvfb python3-pil
+
+      - name: Build Lumen
+        run: |
+          cd .lumen
+          go build -o "$HOME/.local/bin/lumen" ./cmd
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # Renders verify.gs through Xvfb, reads the framebuffer back, and
+      # compares every tile in palette space. Exits non-zero on any mismatch.
+      - name: Verify against the Picotron references
+        run: tools/verify.sh
