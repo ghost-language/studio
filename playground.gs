@@ -6,7 +6,7 @@ import { Rect } from "chisel/geometry/rect"
 import { Label } from "chisel/widgets/label"
 import { Icons } from "chisel/icons"
 import { Cursors } from "chisel/cursors"
-import { asepriteDark } from "chisel/themes/aseprite-dark"
+import { ghostDark } from "chisel/themes/ghost-dark"
 import { Gallery } from "playground/gallery"
 
 // The widget playground. Run it with:
@@ -24,7 +24,7 @@ function load() {
   window.setResizable(true)
   window.setVsync(true)
 
-  theme = asepriteDark().useScale(1).loadFonts(null)
+  theme = ghostDark().useScale(1).loadFonts(null)
 
   app.ui = new Ui(theme, new Painter(theme))
 

@@ -62,6 +62,11 @@ function registerCoreCommands(studio) {
       studio.say(`UI scale ${studio.theme.scale}x`)
     }))
 
+  commands.add(new Command('app.preferences', 'Preferences...')
+    .does(function (studio) { studio.openPreferences() }))
+
+  keys.bind('ctrl+,', 'app.preferences')
+
   keys.guard('editing', function (studio) { return studio.document != null })
 
   keys.group(['editing'], function (keys) {

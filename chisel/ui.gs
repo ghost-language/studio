@@ -39,6 +39,11 @@ class Ui {
     this.cursors = null
     this.cursorName = 'arrow'
 
+    // A modal owns the screen while it is open: it paints over everything and
+    // nothing behind it can be picked. One slot rather than a stack, because a
+    // dialog that can open a dialog is a design problem, not a feature.
+    this.modal = null
+
     this.hot = null
     this.active = null
     this.focused = null
@@ -66,6 +71,24 @@ class Ui {
     if (this.root != null) {
       this.root.place(new Rect(0, 0, width, height))
     }
+  }
+
+  openModal(widget) {
+    this.modal = widget
+    this.focused = null
+    this.captured = null
+
+    widget.centreIn(new Rect(0, 0, window.width, window.height))
+
+    return widget
+  }
+
+  closeModal() {
+    this.modal = null
+    this.focused = null
+    this.captured = null
+
+    return null
   }
 
   // An overlay is painted after the tree and picked before it: an open menu, a
@@ -132,6 +155,13 @@ class Ui {
       entry.widget.paintOverlay(this)
     }
 
+    if (this.modal != null) {
+      // A scrim, so the workspace reads as out of reach rather than merely
+      // covered.
+      this.painter.fill(new Rect(0, 0, window.width, window.height), this.theme.of('scrim'))
+      this.modal.paint(this)
+    }
+
     this.paintTooltip()
 
     if (this.cursors != null) {
@@ -143,6 +173,13 @@ class Ui {
   // ---- input --------------------------------------------------------------------
 
   pickAt(x, y) {
+    // While a modal is open it is the only thing on screen that answers, which
+    // is what makes it modal - a click on the workspace behind it hits nothing
+    // rather than quietly editing the document.
+    if (this.modal != null) {
+      return this.modal.pick(x, y)
+    }
+
     for (index = this.overlays.length() - 1; index >= 0; index--) {
       found = this.overlays[index].widget.pick(x, y)
 
@@ -240,6 +277,14 @@ class Ui {
 
   keyed(key, isRepeat) {
     this.modifiers.down(key)
+
+    if (this.modal != null) {
+      if (key.toLowerCase() == 'escape') {
+        this.modal.fire('close', this.modal)
+
+        return true
+      }
+    }
 
     if (this.focused != null) {
       return this.focused.keyed(this, key)

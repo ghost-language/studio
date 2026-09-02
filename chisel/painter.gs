@@ -1,4 +1,5 @@
 import "lumen:canvas"
+import { Rect } from "chisel/geometry/rect"
 import { snap } from "chisel/support/snap"
 
 // The only object in the toolkit that talks to the canvas.
@@ -52,10 +53,10 @@ class Painter {
   }
 
   // An outline around the whole shape, then the bevel inside it, then the
-  // face. Two pixels of border rather than one is what gives Aseprite's
-  // controls their weight - a single bevel line on a dark ground reads as a
-  // smudge, and the near-black outline is what separates a raised thing from
-  // the panel behind it.
+  // face. Two pixels of border rather than one is what gives these controls
+  // their weight - a single bevel line on a dark ground reads as a smudge,
+  // and the near-black outline is what separates a raised thing from the
+  // panel behind it.
   outline(rect) {
     ink = this.theme.of('outline')
 
@@ -65,15 +66,91 @@ class Painter {
     this.vline(rect.right() - 1, rect.y, rect.h - 1, ink)
   }
 
+  // ---- rounded shapes ---------------------------------------------------
+  //
+  // Corners are cut in whole pixels, as a staircase, rather than drawn as an
+  // arc: a radius of 2 removes two pixels from the first row and one from the
+  // second, which is how a pixel-art interface softens a corner without ever
+  // producing a grey one. Radius comes from the theme, so it scales with the
+  // interface and a square-cornered theme is radius 0.
+
+  radius() {
+    return this.theme.metric('radius')
+  }
+
+  // The body as one rectangle plus a thin row per corner step - five draws for
+  // a radius of 2, rather than one per scanline.
+  fillRounded(rect, paint, radius) {
+    if (radius < 1) {
+      return this.fill(rect, paint)
+    }
+
+    this.fill(new Rect(rect.x, rect.y + radius, rect.w, rect.h - radius * 2), paint)
+
+    for (step = 0; step < radius; step++) {
+      inset = radius - step
+
+      this.fill(new Rect(rect.x + inset, rect.y + step, rect.w - inset * 2, 1), paint)
+      this.fill(new Rect(rect.x + inset, rect.bottom() - 1 - step, rect.w - inset * 2, 1), paint)
+    }
+  }
+
+  outlineRounded(rect, radius) {
+    if (radius < 1) {
+      return this.outline(rect)
+    }
+
+    ink = this.theme.of('outline')
+
+    this.hline(rect.x + radius, rect.y, rect.w - radius * 2, ink)
+    this.hline(rect.x + radius, rect.bottom() - 1, rect.w - radius * 2, ink)
+    this.vline(rect.x, rect.y + radius, rect.h - radius * 2, ink)
+    this.vline(rect.right() - 1, rect.y + radius, rect.h - radius * 2, ink)
+
+    // The staircase pixels that turn each corner.
+    for (step = 1; step < radius; step++) {
+      left = rect.x + radius - step
+      right = rect.right() - 1 - radius + step
+      top = rect.y + step
+      bottom = rect.bottom() - 1 - step
+
+      this.fill(new Rect(left, top, 1, 1), ink)
+      this.fill(new Rect(right, top, 1, 1), ink)
+      this.fill(new Rect(left, bottom, 1, 1), ink)
+      this.fill(new Rect(right, bottom, 1, 1), ink)
+    }
+  }
+
+  // The highlight and shadow, shortened at the corners so they stop where the
+  // staircase begins rather than poking out of it.
+  bevelRounded(rect, raised, radius) {
+    light = this.theme.of('bevel.light')
+    dark = this.theme.of('bevel.dark')
+
+    if (!raised) {
+      light = this.theme.of('bevel.dark')
+      dark = this.theme.of('bevel.light')
+    }
+
+    inset = radius
+
+    this.hline(rect.x + inset, rect.y, rect.w - inset * 2, light)
+    this.vline(rect.x, rect.y + inset, rect.h - inset * 2, light)
+    this.hline(rect.x + inset, rect.bottom() - 1, rect.w - inset * 2, dark)
+    this.vline(rect.right() - 1, rect.y + inset, rect.h - inset * 2, dark)
+  }
+
   // A raised control: button, tab, dropdown, scrollbar thumb.
   raised(rect, face = null) {
     if (face == null) {
       face = this.theme.of('button.face')
     }
 
-    this.fill(rect, face)
-    this.outline(rect)
-    this.bevel(rect.inset(1), true)
+    radius = this.radius()
+
+    this.fillRounded(rect, face, radius)
+    this.outlineRounded(rect, radius)
+    this.bevelRounded(rect.inset(1), true, radius)
   }
 
   // A pressed control - the same frame with the light and dark swapped, which
@@ -83,9 +160,11 @@ class Painter {
       face = this.theme.of('button.pressed')
     }
 
-    this.fill(rect, face)
-    this.outline(rect)
-    this.bevel(rect.inset(1), false)
+    radius = this.radius()
+
+    this.fillRounded(rect, face, radius)
+    this.outlineRounded(rect, radius)
+    this.bevelRounded(rect.inset(1), false, radius)
   }
 
   // A flat surface that holds other things: a docked bar, a card. One outline,
@@ -105,9 +184,11 @@ class Painter {
       face = this.theme.of('panel.well')
     }
 
-    this.fill(rect, face)
-    this.outline(rect)
-    this.bevel(rect.inset(1), false)
+    radius = this.radius()
+
+    this.fillRounded(rect, face, radius)
+    this.outlineRounded(rect, radius)
+    this.bevelRounded(rect.inset(1), false, radius)
   }
 
   // One dark line with one light line under it. This separator does more for

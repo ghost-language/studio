@@ -18,15 +18,19 @@ class Sprite {
     this.revision = 0
     this.title = 'Sprite'
 
+    // The NES's Mario palette, because a sprite editor should open on colours
+    // someone actually wants to draw with rather than a ramp of greys - and
+    // because these sixteen are about as legible together as sixteen colours
+    // get.
     this.palette = [
-      color.hex('#000000'), color.hex('#1d2b53'), color.hex('#7e2553'), color.hex('#008751'),
-      color.hex('#ab5236'), color.hex('#5f574f'), color.hex('#c2c3c7'), color.hex('#fff1e8'),
-      color.hex('#ff004d'), color.hex('#ffa300'), color.hex('#ffec27'), color.hex('#00e436'),
-      color.hex('#29adff'), color.hex('#83769c'), color.hex('#ff77a8'), color.hex('#ffccaa')
+      color.hex('#000000'), color.hex('#ffffff'), color.hex('#7c7c7c'), color.hex('#bcbcbc'),
+      color.hex('#e52521'), color.hex('#c84c0c'), color.hex('#f8b800'), color.hex('#fbd000'),
+      color.hex('#43b047'), color.hex('#00a800'), color.hex('#049cd8'), color.hex('#5c94fc'),
+      color.hex('#3cbcfc'), color.hex('#8b4513'), color.hex('#ac7c00'), color.hex('#fcd8a8')
     ]
 
-    this.foreground = 8
-    this.background = 7
+    this.foreground = 4
+    this.background = 1
 
     this.cells = []
 

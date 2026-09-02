@@ -7,6 +7,9 @@ import { Preferences } from "studio/preferences"
 import { CommandRegistry } from "studio/command-registry"
 import { Keymap } from "studio/keymap"
 import { ToolRegistry } from "studio/tool-registry"
+import { themeNamed } from "chisel/themes/theme-named"
+import { Window } from "chisel/widgets/window"
+import { PreferencesWindow } from "studio/preferences-window"
 import { registerCoreCommands } from "studio/commands"
 
 // One object, constructed in load() and handed to everything that needs
@@ -38,6 +41,19 @@ class Studio {
     this.ui.studio = this
 
     this.loadArt()
+
+    // A remembered theme is applied before anything is built, so the first
+    // frame is already the one the user chose rather than a flash of the
+    // default.
+    remembered = this.preferences.get('ui.theme', null)
+
+    if (remembered != null) {
+      this.theme = themeNamed(remembered)
+      this.painter = new Painter(this.theme)
+      this.ui.theme = this.theme
+      this.ui.painter = this.painter
+    }
+
     this.applyPreferences()
 
     registerCoreCommands(this)
@@ -77,6 +93,49 @@ class Studio {
       )
 
     return this
+  }
+
+  // Swapping the theme swaps the object every widget reads through, so the
+  // colours land immediately - but the dock's region sizes were computed from
+  // the old metrics when the workspace was built, so the workspace is rebuilt
+  // too. The open dialog is carried across rather than dismissed: changing a
+  // theme from a preferences window that then vanishes is a poor trade.
+  useTheme(name) {
+    theme = themeNamed(name)
+
+    theme.useScale(this.theme.scale)
+
+    this.theme = theme
+    this.painter = new Painter(theme)
+
+    this.ui.theme = theme
+    this.ui.painter = this.painter
+
+    this.preferences.set('ui.theme', name)
+    this.applyPreferences()
+    this.reload()
+
+    return theme
+  }
+
+  // Rebuild the current workspace against the current theme and metrics.
+  reload() {
+    entry = this.entryFor(this.document)
+
+    if (entry == null) {
+      return false
+    }
+
+    held = this.ui.modal
+
+    this.ui.mount(entry.editor.workspace(entry.document))
+
+    if (held != null) {
+      held.theme = null
+      this.ui.openModal(held)
+    }
+
+    return true
   }
 
   // An editor is a plugin: it contributes tools, commands and panels, and it
@@ -120,6 +179,21 @@ class Studio {
 
   run(name) {
     return this.commands.run(name, this)
+  }
+
+  openPreferences() {
+    dialog = new Window('Preferences', 320 * this.theme.scale, 200 * this.theme.scale)
+
+    dialog.holds(new PreferencesWindow(this))
+
+    self = this
+
+    dialog.on('close', function () {
+      self.ui.closeModal()
+      self.preferences.save()
+    })
+
+    return this.ui.openModal(dialog)
   }
 
   say(message) {

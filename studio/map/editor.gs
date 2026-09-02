@@ -83,6 +83,8 @@ class MapEditor {
       .menu('Edit', function (menu) {
         menu.item('history.undo')
         menu.item('history.redo')
+        menu.separator()
+        menu.item('app.preferences')
       })
       .menu('View', function (menu) {
         menu.item('view.zoomIn')

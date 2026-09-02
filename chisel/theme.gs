@@ -42,6 +42,10 @@ class Theme {
       check: 11,
       scroll: 12,
 
+      // How many pixels are cut from each corner, as a staircase. 0 is square.
+      // Two reads as "rounded" without ever costing a grey pixel.
+      radius: 2,
+
       // Measured from a render of silver.ttf at 16px, as offsets from the y
       // that canvas.print() is given (which is the top of the line box):
       //   caps occupy +3..+10, x-height +6..+10, descenders reach +12.

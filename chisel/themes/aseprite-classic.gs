@@ -24,6 +24,8 @@ function asepriteClassic() {
     'text.selected':   color.hex('#ffffff'),
 
     'accent':          color.hex('#a8560a'),
+    'focus':           color.hex('#a8560a'),
+    'scrim':           color.rgb(40, 40, 40, 0.45),
     'checker.light':   color.hex('#c8c8c8'),
     'checker.dark':    color.hex('#a0a0a0')
   })

@@ -26,6 +26,8 @@ function asepriteDark() {
     'text.selected':   color.hex('#ffffff'),
 
     'accent':          color.hex('#f2a340'),
+    'focus':           color.hex('#f2a340'),
+    'scrim':           color.rgb(0, 0, 0, 0.6),
     'checker.light':   color.hex('#6b6b6b'),
     'checker.dark':    color.hex('#535353')
   })

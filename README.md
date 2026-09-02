@@ -15,8 +15,13 @@ On top of those sit the editors. A **pixel editor** and a **map editor** ship to
 a **sound editor** is designed for and blocked on engine work (see
 [Papercuts](docs/papercuts.md)).
 
-The look is Aseprite's: one-pixel bevels, integer UI scale, docked panels, desaturated
-chrome so the artwork is the only loud thing on screen.
+The look is Aseprite's construction — pixel bevels, integer UI scale, docked panels,
+chrome that recedes so the artwork is the loudest thing on screen — with corners cut as a
+two-pixel staircase rather than left square, and a palette that is closer to Ghost in the
+Shell than to a grey toolbar: near-black grounds with a violet cast, neon purple for
+anything selected, cyan held back for focus. The saturated trio for good/careful/stop is
+Mario's green, a coin's gold and Mario red, which are as legible together as three colours
+get — and the default sprite palette is the NES's Mario sixteen.
 
 ```
 lumen .
@@ -34,6 +39,23 @@ map, with tabs to switch between them.
 - `Ctrl+Z` / `Ctrl+Shift+Z` undo and redo, `Ctrl+N` a new sprite, `Ctrl+M` a new map.
 - `Ctrl+'` toggles the pixel grid, which is off by default.
 - `Ctrl+=` and `Ctrl+-` change the UI scale, and it is remembered.
+- `Ctrl+,` opens Preferences: theme, interface scale, pixel grid.
+
+## Themes
+
+Four ship, switchable live from Preferences and remembered between runs:
+
+| name | |
+| --- | --- |
+| `ghost.dark` | the default — violet-cast near-black, neon purple selection |
+| `ghost.light` | the same accent over a cool paper grey |
+| `aseprite.dark` | neutral greys, amber accent |
+| `aseprite.classic` | the grey-and-teal original |
+
+A theme is one function returning a `Theme` of role tokens (`chisel/themes/`), so adding
+one is a twenty-line file plus a line in `theme-named.gs`. Switching rebuilds the workspace,
+because the dock's region sizes come from the theme's metrics — the colours alone would
+land without it, the sizes would not.
 
 On macOS every `Ctrl+` binding answers to `Cmd+` too — `ctrl` in a binding means "the
 platform's accelerator", and literal Ctrl keeps working there as well.

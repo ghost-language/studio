@@ -1,6 +1,6 @@
 import "lumen:window"
 import { Studio } from "studio/studio"
-import { asepriteDark } from "chisel/themes/aseprite-dark"
+import { ghostDark } from "chisel/themes/ghost-dark"
 import { SpriteEditor } from "studio/sprite/editor"
 import { MapEditor } from "studio/map/editor"
 import { Sprite } from "studio/sprite/sprite"
@@ -20,7 +20,7 @@ function load() {
   // Scale 1 by default: the interface is already sized around a 19px font, and
   // 2x makes every bar twice the weight of the equivalent in Aseprite. Ctrl+=
   // raises it at runtime, and the choice is remembered.
-  theme = asepriteDark()
+  theme = ghostDark()
     .useScale(1)
     .loadFonts(null)
 

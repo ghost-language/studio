@@ -85,6 +85,8 @@ class SpriteEditor {
         menu.item('history.undo')
         menu.item('history.redo')
         menu.separator()
+        menu.item('app.preferences')
+        menu.separator()
         menu.item('sprite.clear')
       })
       .menu('View', function (menu) {
