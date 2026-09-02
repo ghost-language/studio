@@ -91,14 +91,20 @@ Picotron uses **two** icon languages, and the difference is not decorative:
 
 | | `resources/icons.png` | `resources/glyphs.png` |
 | --- | --- | --- |
-| What | tools, toolbar buttons, arrows | folder, document, cartridge |
+| What | tools, toolbar buttons, arrows | document, sprite, map, sound, palette, cartridge, font, folder |
 | Cell | **8 × 8** px (7×7 of art) | 16 × 16 px (15×16 of art) |
 | Colour | **white on transparent**, tinted at draw | full colour, shipped as drawn |
 | Outline | none | 1px `#1d2b53` |
 
 Control icons are monochrome silhouettes, so one sheet serves the normal,
 dimmed, hovered and selected states and a theme swap recolours all of them at
-once. File icons are pictures, not symbols — tinting one would destroy it.
+once. File icons are pictures, not symbols — tinting one would flatten it to a
+silhouette and destroy it.
+
+**The glyph sheet is Picotron's own art, lifted pixel for pixel** from its icon
+browser, which shows the file-type set at 1:1 on a 480×270 screen. Every colour
+in it resolves to a palette entry at distance nought, which is the check that
+the transcription is exact rather than close.
 
 **The size matters as much as the style.** Picotron's control icons are 7×7 and
 its rows are 12px tall. The old sheet used 16×16 cells, which is taller than the
@@ -171,7 +177,7 @@ commands, keymap, modifiers, tools, signals, history, line drawing — runs unde
 with no window, and **exits non-zero on a failed assertion** so it can gate a build:
 
 ```
-ghost test.gs        # 120 assertions
+ghost test.gs        # 119 assertions
 python3 tools/lint.py
 ```
 

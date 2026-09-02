@@ -84,6 +84,13 @@ class Studio {
       .define('resize-h', 3, 3)
       .define('resize-v', 3, 3)
 
+    // Picotron's file-type icons, lifted pixel for pixel from its own icon
+    // browser. These are pictures rather than symbols, so they ship at their
+    // real colours and are drawn with a white tint - which is to say, undimmed.
+    // Tinting one would flatten it to a silhouette and destroy it.
+    this.ui.glyphs = new Icons('resources/glyphs.png', 16)
+      .define(['document', 'sprite', 'map', 'sound', 'palette', 'cartridge', 'font', 'folder'])
+
     this.ui.cursors.claim()
 
     return this

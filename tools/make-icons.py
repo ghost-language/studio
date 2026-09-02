@@ -71,32 +71,88 @@ ICONS = {
 
 # --- file icons: full colour, 15x16, as measured off Picotron -----------------
 GLYPH_CELL = 16
+
+# Lifted pixel for pixel out of Picotron's own icon browser, which shows the
+# file-type set at 1:1 on a 480x270 screen. Every colour below resolved to a
+# palette entry at distance nought, which is the check that the transcription
+# is exact rather than close.
+#
+# Transparency is flood-filled from each cell's border rather than matched on
+# colour. The paper inside a document is #fff1e8, the same as the browser's own
+# page, so matching on colour hollows out every icon - which it duly did on the
+# first attempt.
 PAINTS = {
-    "K": (0x1d, 0x2b, 0x53),   # outline, on every one of them
-    "p": (0xff, 0xac, 0xc5),   # folder face
-    "r": (0xff, 0x00, 0x4d),   # accent: folder tab, document rules
-    "u": (0x65, 0x46, 0x88),   # cartridge body
-    "U": (0xbd, 0x9a, 0xdf),   # cartridge label
-    "w": (0xff, 0xf1, 0xe8),   # paper
+    "a": (0x1d, 0x2b, 0x53),   # #1d2b53
+    "b": (0xff, 0xf1, 0xe8),   # #fff1e8
+    "c": (0xff, 0x77, 0xa8),   # #ff77a8
+    "d": (0xff, 0xcc, 0xaa),   # #ffccaa
+    "e": (0xff, 0x83, 0x53),   # #ff8353
+    "f": (0x97, 0xf1, 0x45),   # #97f145
+    "g": (0x00, 0xb4, 0x53),   # #00b453
+    "h": (0xff, 0xac, 0xc5),   # #ffacc5
+    "i": (0xff, 0x00, 0x4d),   # #ff004d
+    "j": (0xa2, 0x88, 0x79),   # #a28879
+    "k": (0xc2, 0xc3, 0xc7),   # #c2c3c7
+    "l": (0x7e, 0x25, 0x53),   # #7e2553
+    "m": (0x00, 0xe4, 0x36),   # #00e436
+    "n": (0xff, 0xa3, 0x00),   # #ffa300
+    "o": (0xe4, 0x09, 0xaa),   # #e409aa
+    "p": (0x00, 0x87, 0x51),   # #008751
+    "q": (0x29, 0xad, 0xff),   # #29adff
+    "r": (0x65, 0x46, 0x88),   # #654688
+    "s": (0xbd, 0x9a, 0xdf),   # #bd9adf
+    "t": (0xe4, 0x6e, 0x00),   # #e46e00
+    "u": (0x76, 0x2a, 0x2a),   # #762a2a
 }
+
 GLYPHS = {
-    "folder": [
-        ".....KKKKKKKKKK", "....KKrrKKppppK", "...KKrrKKpppppK", "KKKKKKKKppppppK",
-        "ppppppppppppppK", "ppppppppppppppK", "ppppppppppppppK", "ppppppppppppppK",
-        "ppppppppppppppK", "ppppppppppppppK", "ppppppppppppppK", "ppppppppppppppK",
-        "ppppppppppppppK", "ppppppppppppppK", "ppppppppppppppK", "KKKKKKKKKKKKKKK",
-    ],
     "document": [
-        "KKKKKKKKKKKwwww", "KwwwwwwwKpKKwww", "KwwwwwwwKppKKww", "KwwwwwwwKpppKKw",
-        "KwwwwwwwKppppKw", "KwwwwwwwKKKKKKw", "KwwwwwwwwwwwwKw", "KwwrrrwwwwwwwKw",
-        "KwwwwwwwwwwwwKw", "KwwrrrrrwwwwwKw", "KwwwwwwwwwwwwKw", "KwwrrrrrwwwwwKw",
-        "KwwwwwwwwwwwwKw", "KwwwwwwwwwwwwKw", "KwwwwwwwwwwwwKw", "KKKKKKKKKKKKKKw",
+        ".aaaaaaaaaaa....", ".abbbbbbbacaa...", ".abbbbbbbaccaa..", ".abbbbbbbacccaa.",
+        ".abbbbbbbacccca.", ".abbbbbbbaaaaaa.", ".abbbbbbbbbbbba.", ".abbccbccbbbbba.",
+        ".abbbbbbbbbbbba.", ".abbcccbccbbbba.", ".abbbbbbbbbbbba.", ".abbccbcccbbbba.",
+        ".abbbbbbbbbbbba.", ".abbbbbbbbbbbba.", ".abbbbbbbbbbbba.", ".aaaaaaaaaaaaaa.",
+    ],
+    "sprite": [
+        ".aaaaaaaaaaa....", ".abbbbbbbadaa...", ".abbbbbbbaddaa..", ".abbbbbbbadddaa.",
+        ".abbbbbbbadddda.", ".abbbbbbbaaaaaa.", ".abbbbbbbbbbbba.", ".abbebbbbebbbba.",
+        ".abbeebbeebbbba.", ".abbeeeeeebbbba.", ".abbebeebebbbba.", ".abbebeebebbbba.",
+        ".abbbeeeebbbbba.", ".abbbbbbbbbbbba.", ".abbbbbbbbbbbba.", ".aaaaaaaaaaaaaa.",
+    ],
+    "map": [
+        ".aaaaaaaaaaa....", ".abbbbbbbafaa...", ".abbbbbbbaffaa..", ".abbbbbbbafffaa.",
+        ".abbbbbbbaffffa.", ".abbbbbbbaaaaaa.", ".abbbbbbbbbbbba.", ".abbgggbggbbbba.",
+        ".abbgggbggbbbba.", ".abbgggbbbbbbba.", ".abbbbbgggbbbba.", ".abbggbgggbbbba.",
+        ".abbggbgggbbbba.", ".abbbbbbbbbbbba.", ".abbbbbbbbbbbba.", ".aaaaaaaaaaaaaa.",
+    ],
+    "sound": [
+        ".aaaaaaaaaaa....", ".abbbbbbbahaa...", ".abbbbbbbahhaa..", ".abbbbbbbahhhaa.",
+        ".abbbbbbbahhhha.", ".abbbbbbbaaaaaa.", ".abbbbiiiiibbba.", ".abbbbibbbibbba.",
+        ".abbbbiiiiibbba.", ".abbbbibbbibbba.", ".abbbbibiiibbba.", ".abbiiibiiibbba.",
+        ".abbiiibbbbbbba.", ".abbbbbbbbbbbba.", ".abbbbbbbbbbbba.", ".aaaaaaaaaaaaaa.",
+    ],
+    "palette": [
+        ".aaaaaaaaaaa....", ".abbbbbbbajaa...", ".abbbbbbbajjaa..", ".abbbbbbbajjjaa.",
+        ".abbbbbbbajjjja.", ".abbbbbbbaaaaaa.", ".abkkkkkkkkkkba.", ".abkllmmbbcckba.",
+        ".abkllmmbbcckba.", ".abknnooppbbkba.", ".abknnooppbbkba.", ".abkbbqqbbaakba.",
+        ".abkbbqqbbaakba.", ".abkkkkkkkkkkba.", ".abbbbbbbbbbbba.", ".aaaaaaaaaaaaaa.",
     ],
     "cartridge": [
-        "KKKKKKKKKKKKKKK", "..............K", ".uuuuuuuuuuuu.K", ".uuuuuuuuuuuu.K",
-        ".uuuuuuuuuuuu.K", ".uuuuuuuuuuuu.K", ".uuuuuuuuuuuu.K", ".uuuuuuuuuuu..K",
-        ".........KKKKKK", "..UUUUUU.KUUUUK", "..UUUUUU.KUUUKK", ".........KUUKK.",
-        "UUUUUUUUUKUKK..", "KKKKKKKKKKKK...", "...............", "...............",
+        "................", "aaaaaaaaaaaaaaaa", "abbbbbbbbbbbbbba", "abrrrrrrrrrrrrba",
+        "abrrrrrrrrrrrrba", "abrrrrrrrrrrrrba", "abrrrrrrrrrrrrba", "abrrrrrrrrrrrrba",
+        "abrrrrrrrrrrrbba", "abbbbbbbbbaaaaaa", "abbssssssbassssa", "abbssssssbasssaa",
+        "abbbbbbbbbassaa.", "asssssssssasaa..", "aaaaaaaaaaaaa...", "................",
+    ],
+    "font": [
+        ".ttttttttttt....", ".tbbbbbbbtntt...", ".tbbbbbbbtnntt..", ".tbbbbbbbtnnntt.",
+        ".tbbbbbbbtnnnnt.", ".tbbbbbbbtttttt.", ".tbuuuuuuuubbbt.", ".tbubbuubbubbbt.",
+        ".tbbbbuubbbbbbt.", ".tbbbbuubbbbbbt.", ".tbbbbuubbbbbbt.", ".tbbbbuubbbbbbt.",
+        ".tbbbbuubbbbbbt.", ".tbbbuuuubbbbbt.", ".tbbbbbbbbbbbbt.", ".tttttttttttttt.",
+    ],
+    "folder": [
+        "bbbbbb..........", "bbbbb..oo..hhhh.", "bbbb..oo..hhhhh.", ".........hhhhhh.",
+        ".hhhhhhhhhhhhhh.", ".hhhhhhhhhhhhhh.", ".hhhhhhhhhhhhhh.", ".hhhhhhhhhhhhhh.",
+        ".hhhhhhhhhhhhhh.", ".hhhhhhhhhhhhhh.", ".hhhhhhhhhhhhhh.", ".hhhhhhhhhhhhhh.",
+        ".hhhhhhhhhhhhhh.", ".hhhhhhhhhhhhhh.", ".hhhhhhhhhhhhhh.", "................",
     ],
 }
 

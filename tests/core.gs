@@ -560,9 +560,13 @@ console.log('Palette')
 ramps = paletteRamps()
 extras = paletteExtras()
 
-// Twenty-five plus seven is Picotron's documented thirty-two. If either half
-// is edited without the other, this is what notices - and a palette that is
-// the wrong size means every colour matched against a reference is suspect.
+// The ramp grid was measured off a real palette thumbnail, so its shape is
+// fixed: five ramps of five. The extras are not - Picotron's system palette is
+// 64 entries and this list grows as references arrive - so nothing here
+// asserts a total. An earlier version did, on the grounds that 25 + 7 came to
+// a number Picotron documents; that arithmetic was a coincidence of the
+// screenshots to hand rather than a fact about the palette, and a later one
+// used two colours neither list could explain.
 counted = { total: 0 }
 
 for (name in ramps.keys()) {
@@ -571,8 +575,7 @@ for (name in ramps.keys()) {
 
 check('five ramps', ramps.keys().length(), 5)
 check('five steps each', counted.total, 25)
-check('seven further entries', extras.keys().length(), 7)
-check('thirty-two colours in all', counted.total + extras.keys().length(), 32)
+check('the extras are open-ended, not a fixed count', extras.keys().length() > 6, true)
 
 // Every entry has to be a real hex triplet, because these strings are handed
 // straight to color.hex() at startup - a typo here is a crash on frame one,

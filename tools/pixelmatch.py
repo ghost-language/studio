@@ -48,15 +48,23 @@ PICO8 = [
 
 # Picotron entries past the first sixteen, confirmed from colour-accurate
 # references rather than guessed. See docs/picotron.md.
-# Eight read straight off a colour-accurate capture, eight recovered from a
-# shifted one by inverting the measured capture map (marked ~ in
-# docs/picotron.md, good to about +/-3 a channel). Sixteen plus PICO-8's
-# sixteen is thirty-two, which is the palette size Picotron documents - so the
-# set is complete rather than merely as much as could be found.
+# Entries past PICO-8's sixteen, each confirmed from a reference: read straight
+# off a colour-accurate capture, or recovered from a shifted one by inverting
+# the measured capture map (marked ~ in docs/picotron.md, good to about +/-3 a
+# channel).
+#
+# This is not a complete palette and must not be treated as one. An earlier
+# version of this list stopped at sixteen because sixteen plus PICO-8's sixteen
+# is thirty-two, which is a number Picotron documents - and that arithmetic was
+# a coincidence of the sample read as confirmation. A later screenshot used two
+# colours the set could not explain. Picotron's system palette is 64 entries,
+# so more will turn up; the honest description of this list is "every entry
+# seen so far", and detect_profile() reporting a poor fit is how a missing one
+# announces itself.
 EXTENDED = [
     "#00a5a1", "#a28879", "#654688", "#452d32", "#bd9adf", "#754e97", "#1c5eac",
     "#ffacc5", "#bd003e", "#762a2a", "#e46e00", "#12535e", "#00b453", "#97f145",
-    "#2766b4", "#66dff1",
+    "#2766b4", "#66dff1", "#ff8353", "#e409aa",
 ]
 
 PALETTE = PICO8 + EXTENDED

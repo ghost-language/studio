@@ -48,14 +48,26 @@ with PICO-8's original sixteen scattered through them:
 Bold numbers are PICO-8 indices. `~` marks the eight recovered from a
 colour-shifted capture (see below), good to about ±3 a channel.
 
-Seven further entries are confirmed colours whose ramp position no reference
+Nine further entries are confirmed colours whose ramp position no reference
 showed. Four are plainly a purple ramp; its dark end has not been seen, so it
 is not guessed at:
 
-`#654688` · `#754e97` · `#83769c` **13** · `#bd9adf` · `#00a5a1` · `#1c5eac` · `#ffccaa` **15**
+`#654688` · `#754e97` · `#83769c` **13** · `#bd9adf` · `#00a5a1` · `#1c5eac` · `#ffccaa` **15** · `#ff8353` · `#e409aa`
 
-25 + 7 = **32**, which is the palette size Picotron documents. The set is
-complete, not merely as much as could be found.
+**This list is not complete, and an earlier version of this document wrongly
+said it was.** It stopped at seven extras, because 25 + 7 is 32 and 32 is a
+number Picotron documents — arithmetic that looked like independent
+confirmation and was a coincidence of the screenshots to hand. A later
+reference, an icon browser, used an orange and a magenta that the set could not
+explain at any distance. Picotron's system palette is 64 entries, so more will
+turn up.
+
+The right description is "every entry seen so far". The check that matters is
+not the count but the fit: `detect_profile()` scores how well a palette
+explains an image, and a missing entry shows up as a poor score. Adding those
+two dropped the icon browser from 0.41 to **0.04** and the file browser from
+0.19 to **0.01**, which is what confirms them — and is how the next missing one
+will announce itself.
 
 **Why the ramps matter more than the list.** A ramp is how a surface gets its
 states: a face is a step, hovered is the step above, pressed is the step below.
