@@ -33,15 +33,14 @@ function picotron() {
     'bevel.light':     palette.step('blue', 0),
     'bevel.dark':      palette.step('blue', 0),
 
-    // Lighter than the panel, not the same as it. A control is read by its
-    // tone against its ground, and with no outline to fall back on a button
-    // that matches the bar it sits on is simply not there - which is exactly
-    // how the first render of this came out.
+    // The darker of the neutral pair, which is what Picotron fills a button
+    // with: #c2c3c7 on the #fff1e8 body.
     //
-    // Picotron's own button is the darker of its pair, #c2c3c7 on the #fff1e8
-    // body; ours mostly sit on #c2c3c7 toolbars, so ours is the lighter one.
-    // The rule is the step, not the direction.
-    'button.face':     palette.step('neutral', 4),
+    // One tone can serve the whole interface only because a toolbar item is a
+    // different thing from a button - bare until hovered - rather than a
+    // button on a darker ground. Trying to make one fill work in both places
+    // is what made the Preferences dialog's - and + buttons vanish.
+    'button.face':     palette.step('neutral', 3),
     'button.hover':    palette.named('peach'),
     'button.pressed':  palette.named('purpleGrey'),
     'button.selected': palette.named('purpleGrey'),

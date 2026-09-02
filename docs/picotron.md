@@ -143,13 +143,48 @@ to build on.
 | rendering | window-resolution, metrics × scale | fixed 480×270, framebuffer scaled |
 | colour | free hex per theme | fixed 32-colour palette, indexed by ramp and step |
 | surfaces | outline + bevel highlight + shadow | **flat fill + 1px outline, no bevel** |
-| corners | radius 5 circular quadrant | 2px chamfer, profile [2,1] |
+| corners | radius 5 circular quadrant | 2px chamfer on windows, 1px on controls |
+| borders | every control outlined | **only windows are outlined** |
 | font | 16px, 8px cap | ≈5px cap |
 | row height | 16px | 12px |
 | checkbox | 11px | 9px |
 
 The bevel is the biggest stylistic difference: Picotron's surfaces are flat.
 There is no highlight-and-shadow pair anywhere in any reference.
+
+### Controls are not outlined at all
+
+The single most important rule here, and the last one found. Measured off two
+Picotron controls:
+
+| control | fill | ground | border | corner |
+| --- | --- | --- | --- | --- |
+| a button | `#c2c3c7` | `#fff1e8` | **none** | 1px cut |
+| a tab strip | `#83769c` | `#fff1e8` | **none** | — |
+
+**Only windows are outlined.** Buttons, tabs, fields, tracks, cells and toolbar
+items are flat tone against flat tone, with a one-pixel corner cut and no
+border of any kind.
+
+This is the largest single difference between an interface that looks like
+Picotron and one that merely uses its palette. Putting a one-pixel black line
+around forty controls that Picotron leaves unbordered reads as heavy and busy
+without any one control being identifiably wrong — which is exactly why it can
+survive a long time unnoticed.
+
+The corollary is that a control is read **entirely by its tone against its
+ground**, so there must always be a step between them. Picotron's button is the
+darker of its pair because it sits on the white body; a button on a `#c2c3c7`
+toolbar has to be the lighter one instead. The rule is that there is a step,
+not which direction it runs.
+
+Two things do keep a border, and both are measured rather than assumed:
+
+- **A checkbox**, 9×9 with a 1px border and a 1px inset gap. It earns one by
+  being small: a 9px flat fill one tone from its ground is a smudge, where a
+  40px button is plainly a button.
+- **A scrollbar thumb**, solid `#83769c` on a light track — not the button
+  tone, which would leave it the same colour as its own groove.
 
 ### The outline colour is a role
 

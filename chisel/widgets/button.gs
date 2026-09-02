@@ -13,6 +13,7 @@ class Button extends Widget {
     this.selected = false
     this.focusable = true
     this.command = null
+    this.isBare = false
   }
 
   // ---- fluent surface ----------------------------------------------------
@@ -24,6 +25,40 @@ class Button extends Widget {
   does(command)   { this.command = command; return this }
 
   // ---- appearance ----------------------------------------------------------
+
+  // A toolbar item rather than a button: no fill at all until it is hovered,
+  // pressed or selected.
+  //
+  // This is not a style choice, it is what Picotron's toolbars are. Its file
+  // browser draws its view and navigation controls as bare #83769c icons
+  // directly on the #c2c3c7 bar, with no button shape behind them; a filled
+  // button - #c2c3c7 on the #fff1e8 body - only ever appears on a light
+  // ground. Modelling both is what lets one button.face serve the whole
+  // interface: without it, a fill that reads on the toolbar disappears on the
+  // body and vice versa, which is exactly what happened to the Preferences
+  // dialog's - and + buttons.
+  bare() {
+    this.isBare = true
+
+    return this
+  }
+
+  // Whether anything is drawn behind the label at all.
+  filled(ui) {
+    if (!this.isBare) {
+      return true
+    }
+
+    if (this.selected) {
+      return true
+    }
+
+    if (ui.isActive(this)) {
+      return true
+    }
+
+    return ui.isHot(this)
+  }
 
   face(ui) {
     if (!this.enabled)     { return ui.theme.of('button.face') }
@@ -44,10 +79,12 @@ class Button extends Widget {
   paint(ui) {
     raised = !ui.isActive(this)
 
-    if (raised) {
-      ui.painter.raised(this.bounds, this.face(ui))
-    } else {
-      ui.painter.sunk(this.bounds, this.face(ui))
+    if (this.filled(ui)) {
+      if (raised) {
+        ui.painter.raised(this.bounds, this.face(ui))
+      } else {
+        ui.painter.sunk(this.bounds, this.face(ui))
+      }
     }
 
     body = this.bounds
