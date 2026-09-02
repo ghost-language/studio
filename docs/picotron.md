@@ -110,11 +110,15 @@ colours and no integer scale, so nothing may be measured from it.
 
 ## Geometry
 
+Measured across three windows in three different references. The geometry is
+identical in all of them; only the colours differ, which is what makes it safe
+to build on.
+
 | element | measurement |
 | --- | --- |
-| window outline | 1px, `#000000` |
+| window outline | 1px — **colour is a theme role, not a rule** |
 | window corner | 2px cut, profile **[2, 1]** — a chamfer, not a curve |
-| title bar | 12px tall including its 1px bottom rule |
+| title bar | 11px of fill plus a 1px rule = 12px (all three windows) |
 | tab row | 12px tall |
 | row pitch | **12px** (checkbox tops 12px apart) |
 | checkbox | **9×9**, 1px border, 1px inset gap, 5×5 filled when on |
@@ -134,6 +138,17 @@ colours and no integer scale, so nothing may be measured from it.
 
 The bevel is the biggest stylistic difference: Picotron's surfaces are flat.
 There is no highlight-and-shadow pair anywhere in any reference.
+
+### The outline colour is a role
+
+Worth stating plainly, because it looked briefly like a law. One window draws a
+`#ff77a8` edge against a `#ffacc5` title — exactly one step apart on the red
+ramp, which is a tidy rule and would have been a pleasing thing to derive. Two
+others draw a black edge, one of them against that same `#ffacc5` title fill.
+
+Same fill, different edge. So the ramp relationship is offered to themes rather
+than imposed on them: `surface(rect, fill, edge, cut)` takes both colours, and a
+theme that wants edge = fill - 1 step can say so.
 
 ## Verifying
 
