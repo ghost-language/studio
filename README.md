@@ -16,8 +16,8 @@ a **sound editor** is designed for and blocked on engine work (see
 [Papercuts](docs/papercuts.md)).
 
 The look is Aseprite's construction — pixel bevels, integer UI scale, docked panels,
-chrome that recedes so the artwork is the loudest thing on screen — with corners cut as a
-two-pixel staircase rather than left square, and a palette that is closer to Ghost in the
+chrome that recedes so the artwork is the loudest thing on screen — with corners following a
+circular quadrant in whole pixels rather than left square, and a palette that is closer to Ghost in the
 Shell than to a grey toolbar: near-black grounds with a violet cast, neon purple for
 anything selected, cyan held back for focus. The saturated trio for good/careful/stop is
 Mario's green, a coin's gold and Mario red, which are as legible together as three colours
