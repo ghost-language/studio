@@ -18,6 +18,9 @@ import { History } from "studio/history"
 import { Editable } from "studio/traits/editable"
 import { linePixels } from "studio/support/line-pixels"
 import { normalizeChord } from "chisel/support/normalize-chord"
+import { paletteRamps } from "chisel/support/palette-ramps"
+import { paletteExtras } from "chisel/support/palette-extras"
+import { rampStep } from "chisel/support/ramp-step"
 import { cornerInsets } from "chisel/support/corner-insets"
 import { registerCoreCommands } from "studio/commands"
 import { Keymap } from "studio/keymap"
@@ -463,6 +466,58 @@ for (index = 1; index < profile.length(); index++) {
 
 check('a profile never widens as it descends', monotonic.ok, true)
 check('a profile ends flush with the edge', cornerInsets(8).last(), 0)
+
+// --- palette ------------------------------------------------------------------------
+
+console.log('')
+console.log('Palette')
+
+ramps = paletteRamps()
+extras = paletteExtras()
+
+// Twenty-five plus seven is Picotron's documented thirty-two. If either half
+// is edited without the other, this is what notices - and a palette that is
+// the wrong size means every colour matched against a reference is suspect.
+counted = { total: 0 }
+
+for (name in ramps.keys()) {
+  counted.total = counted.total + ramps.get(name).length()
+}
+
+check('five ramps', ramps.keys().length(), 5)
+check('five steps each', counted.total, 25)
+check('seven further entries', extras.keys().length(), 7)
+check('thirty-two colours in all', counted.total + extras.keys().length(), 32)
+
+// Every entry has to be a real hex triplet, because these strings are handed
+// straight to color.hex() at startup - a typo here is a crash on frame one,
+// in a file the tests cannot otherwise reach.
+malformed = { count: 0 }
+
+for (name in ramps.keys()) {
+  for (entry in ramps.get(name)) {
+    if (entry.length() != 7) {
+      malformed.count = malformed.count + 1
+    }
+  }
+}
+
+for (name in extras.keys()) {
+  if (extras.get(name).length() != 7) {
+    malformed.count = malformed.count + 1
+  }
+}
+
+check('every entry is a #rrggbb string', malformed.count, 0)
+
+// The clamp is what lets 'one step lighter' be a rule the whole interface
+// shares instead of an edge case in every widget.
+neutral = ramps.get('neutral')
+
+check('a step is the colour at that index', rampStep(neutral, 2), '#a28879')
+check('below the ramp clamps to the darkest', rampStep(neutral, -3), '#452d32')
+check('above the ramp clamps to the lightest', rampStep(neutral, 99), '#fff1e8')
+check('an unknown ramp gives nothing back', rampStep(null, 0), null)
 
 // --- report ------------------------------------------------------------------------
 
