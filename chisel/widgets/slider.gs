@@ -1,4 +1,5 @@
 import "ghost:math"
+import { Rect } from "chisel/geometry/rect"
 import { Widget } from "chisel/widget"
 
 // A horizontal value, dragged. The capture pattern in full: press captures,
@@ -49,8 +50,23 @@ class Slider extends Widget {
     // the same space in the middle.
     text = this.bounds.inset(ui.theme.metric('pad'))
 
+    // Drawn twice, clipped to either side of the fill edge: light where it
+    // crosses the filled bar, dark where it crosses the empty track. One
+    // colour cannot do both - dark ink on the fill goes muddy and light ink on
+    // the track disappears - and picking a fill pale enough for dark ink would
+    // leave the bar barely visible against the track it sits in. The seam
+    // falls mid-glyph and reads as intended rather than as a fault.
+    edge = inner.x + filled
+
+    ui.painter.clip(new Rect(this.bounds.x, this.bounds.y, edge - this.bounds.x, this.bounds.h))
+    ui.painter.textIn('body', this.label, text, 'left', 'middle', ui.theme.of('text.selected'))
+    ui.painter.textIn('body', `${this.value}`, text, 'right', 'middle', ui.theme.of('text.selected'))
+    ui.painter.unclip()
+
+    ui.painter.clip(new Rect(edge, this.bounds.y, this.bounds.right() - edge, this.bounds.h))
     ui.painter.textIn('body', this.label, text, 'left', 'middle', ui.theme.of('text.normal'))
     ui.painter.textIn('body', `${this.value}`, text, 'right', 'middle', ui.theme.of('text.normal'))
+    ui.painter.unclip()
   }
 
   pressed(ui) {

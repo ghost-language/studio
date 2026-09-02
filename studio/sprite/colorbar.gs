@@ -46,11 +46,18 @@ class Colorbar extends Widget {
   // Anchored to the bottom of the column, the way Aseprite's are: the palette
   // grows downward from the top, the chips stay put, and the space between
   // them is deliberate rather than left over.
+  // Directly under the palette, not at the foot of the bar.
+  //
+  // The bar is docked down the full height of the window, so anchoring the
+  // chips to its bottom edge put the current colours several hundred pixels
+  // from the swatches they are chosen from, with a rule floating above them
+  // marking a boundary between nothing and nothing.
   chipsRect(ui) {
     size = this.swatchSize(ui.theme) * 2 + 4
     inner = this.bounds.inset(ui.theme.metric('gutter'))
+    grid = this.gridRect(ui)
 
-    return new Rect(inner.x, inner.bottom() - size, inner.w, size)
+    return new Rect(inner.x, grid.bottom() + ui.theme.metric('pad'), inner.w, size)
   }
 
   indexAt(ui, x, y) {
@@ -85,15 +92,23 @@ class Colorbar extends Widget {
       row = math.floor(index / this.columns)
       cell = new Rect(grid.x + column * step, grid.y + row * step, size, size)
 
-      ui.painter.fill(cell, this.document.palette[index])
-      ui.painter.outline(cell)
+      // The selected swatch is marked by the colour of its own border, not by
+      // anything drawn beside it. A tick is unreadable at 8px and would have
+      // to be light on dark swatches and dark on light ones; a mark in the gap
+      // reads as a smudge, which is exactly what the previous accent rule
+      // above the cell turned out to look like once it was rendered.
+      edge = ui.theme.of('outline')
 
-      // The current foreground gets an accent frame rather than a tick, so a
-      // dark colour and a light one are both obviously selected.
       if (index == this.document.foreground) {
-        ui.painter.bevel(cell, true)
-        ui.painter.hline(cell.x, cell.y - 1, cell.w, ui.theme.of('accent'))
+        edge = ui.theme.of('accent')
       }
+
+      // surface() rather than fill() plus outline(): the outline is drawn with
+      // line primitives and pixel snapping while the fill is a rectangle, and
+      // the two disagree by a pixel, which showed up as a fringe of the
+      // swatch's own colour leaking past its border on the right and bottom.
+      // A surface is spans only, so it cannot drift.
+      ui.painter.surface(cell, this.document.palette[index], edge, 1)
     }
 
     chips = this.chipsRect(ui)
@@ -116,13 +131,14 @@ class Colorbar extends Widget {
     back = new Rect(chips.x + size / 2, chips.y + 4, size, size)
     front = new Rect(chips.x, chips.y, size, size)
 
-    ui.painter.fill(back, this.document.palette[this.document.background])
-    ui.painter.outline(back)
-    ui.painter.bevel(back.inset(1), true)
+    // Flat fill in a one-pixel outline, like every other surface here. The
+    // pair used to be drawn with a bevel, which is the one thing Picotron has
+    // nowhere.
+    cut = ui.painter.radius()
+    edge = ui.theme.of('outline')
 
-    ui.painter.fill(front, this.document.palette[this.document.foreground])
-    ui.painter.outline(front)
-    ui.painter.bevel(front.inset(1), true)
+    ui.painter.surface(back, this.document.palette[this.document.background], edge, cut)
+    ui.painter.surface(front, this.document.palette[this.document.foreground], edge, cut)
   }
 
   pressed(ui) {
