@@ -21,11 +21,22 @@ class Timeline extends Widget {
   }
 
   cellWidth(ui) {
-    return ui.theme.metric('row')
+    return this.rowHeight(ui)
+  }
+
+  // A timeline row carries icons, so it is at least as tall as one.
+  //
+  // The default 12px row against a 16px icon is precisely the fault that made
+  // the old Picotron sheet unusable - an icon taller than the row containing
+  // it - and it reappeared here the moment the layer toggles went in: the eye
+  // and the lock were drawn four pixels wider than their slots and overlapped
+  // into each other.
+  rowHeight(ui) {
+    return math.max(ui.theme.metric('row'), ui.theme.metric('icon'))
   }
 
   headerWidth(ui) {
-    return ui.theme.metric('row') * 5
+    return this.rowHeight(ui) * 6
   }
 
   frameRect(ui, index) {
@@ -35,30 +46,49 @@ class Timeline extends Widget {
       this.bounds.x + this.headerWidth(ui) + index * size,
       this.bounds.y + ui.theme.metric('gutter'),
       size - 1,
-      ui.theme.metric('row') - 1
+      size - 1
     )
   }
 
-  layerRect(ui, index) {
-    row = ui.theme.metric('row')
+  // The two toggles live at the left of the header, the name to their right -
+  // Aseprite's order, and the useful one: the eye is what gets clicked most and
+  // sits where the pointer already is, rather than after a name of unknown
+  // length.
+  toggleRect(ui, index, slot) {
+    size = this.rowHeight(ui)
 
     return new Rect(
-      this.bounds.x + ui.theme.metric('gutter'),
-      this.bounds.y + row + ui.theme.metric('gutter') + index * row,
-      this.headerWidth(ui) - ui.theme.metric('gutter'),
-      row - 1
+      this.bounds.x + ui.theme.metric('gutter') + slot * size,
+      this.bounds.y + size + ui.theme.metric('gutter') + index * size,
+      size,
+      size
+    )
+  }
+
+  togglesWidth(ui) {
+    return this.rowHeight(ui) * 2 + ui.theme.metric('gutter')
+  }
+
+  layerRect(ui, index) {
+    size = this.rowHeight(ui)
+    left = this.togglesWidth(ui)
+
+    return new Rect(
+      this.bounds.x + ui.theme.metric('gutter') + left,
+      this.bounds.y + size + ui.theme.metric('gutter') + index * size,
+      this.headerWidth(ui) - ui.theme.metric('gutter') - left,
+      size - 1
     )
   }
 
   cellRect(ui, layer, frame) {
     size = this.cellWidth(ui)
-    row = ui.theme.metric('row')
 
     return new Rect(
       this.bounds.x + this.headerWidth(ui) + frame * size,
-      this.bounds.y + row + ui.theme.metric('gutter') + layer * row,
+      this.bounds.y + size + ui.theme.metric('gutter') + layer * size,
       size - 1,
-      row - 1
+      size - 1
     )
   }
 
@@ -99,6 +129,14 @@ class Timeline extends Widget {
       }
 
       ui.painter.textIn('body', this.layers[index], name.inset(ui.theme.metric('gutter')), 'left', 'middle', ink)
+
+      // Visible and locked, per layer. Drawn dim rather than hidden when off,
+      // because a control that disappears when inactive cannot be turned back
+      // on by anyone who has not already learnt it is there.
+      if (ui.icons != null) {
+        ui.icons.drawIn('eye', this.toggleRect(ui, index, 0), ui.theme.of('text.normal'), 1)
+        ui.icons.drawIn('lock', this.toggleRect(ui, index, 1), ui.theme.of('text.dim'), 1)
+      }
 
       for (frame = 0; frame < this.frames; frame++) {
         cell = this.cellRect(ui, index, frame)

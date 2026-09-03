@@ -167,9 +167,9 @@ class SpriteEditor {
     dock.bottom(new Statusbar(studio).named('status'), theme.metric('row'))
 
     dock.left(colours, colours.widthFor(theme))
-    dock.right(this.toolbar().named('tools'), theme.metric('tool') + 8)
+    dock.right(this.toolbar().named('tools'), theme.metric('icon') + 6)
 
-    dock.bottom(new Timeline(document).named('timeline'), theme.metric('row') * 4)
+    dock.bottom(new Timeline(document).named('timeline'), theme.metric('row') * 6)
 
     dock.fill(new Viewport(studio, document).named('viewport'))
 

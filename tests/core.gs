@@ -21,6 +21,7 @@ import { normalizeChord } from "chisel/support/normalize-chord"
 import { chamfer } from "chisel/support/chamfer"
 import { logicalSize } from "chisel/support/logical-size"
 import { fitZoom } from "chisel/support/fit-zoom"
+import { hsvToRgb } from "chisel/support/hsv"
 import { paletteRamps } from "chisel/support/palette-ramps"
 import { paletteExtras } from "chisel/support/palette-extras"
 import { rampStep } from "chisel/support/ramp-step"
@@ -475,28 +476,36 @@ check('a profile ends flush with the edge', cornerInsets(8).last(), 0)
 console.log('')
 console.log('Logical size')
 
-// The magnification is chosen to put the logical height nearest Picotron's
-// 270, and the window is then divided by it - so a bigger monitor buys
-// workspace rather than margins.
+// The magnification puts the logical height nearest the design's target, and
+// the window is then divided by it - so a bigger monitor buys workspace rather
+// than margins. 540 is Aseprite's, which is the default.
 full = logicalSize(1920, 1080)
 
-check('1080p magnifies four times', full.scale, 4)
-check('and gives exactly Picotron', `${full.w}x${full.h}`, '480x270')
+check('1080p magnifies twice', full.scale, 2)
+check('and gives exactly Aseprite', `${full.w}x${full.h}`, '960x540')
 
 laptop = logicalSize(1440, 900)
 
-check('900 tall magnifies three times', laptop.scale, 3)
-check('and gives more room than Picotron', `${laptop.w}x${laptop.h}`, '480x300')
+check('900 tall still magnifies twice', laptop.scale, 2)
+check('and gives less room than 1080p', `${laptop.w}x${laptop.h}`, '720x450')
+
+// The target is a parameter because two designs want different ones: Picotron
+// was drawn for 270 and Aseprite for 540. Hard-coding either means the other
+// renders at half or double the intended density.
+picotron = logicalSize(1920, 1080, null, 270)
+
+check('the Picotron target magnifies four times', picotron.scale, 4)
+check('and gives exactly Picotron', `${picotron.w}x${picotron.h}`, '480x270')
 
 // Whole numbers only. A fractional magnification resamples every drawn pixel
 // to a different width, which is the one thing that cannot be allowed.
 odd = logicalSize(1333, 777)
 
-check('an awkward window still magnifies wholly', odd.scale, 3)
-check('and divides down evenly', `${odd.w}x${odd.h}`, '444x259')
+check('an awkward window still magnifies wholly', odd.scale, 1)
+check('and divides down evenly', `${odd.w}x${odd.h}`, '1333x777')
 
-check('a chosen magnification wins', logicalSize(1920, 1080, 2).scale, 2)
-check('and is honoured', logicalSize(1920, 1080, 2).w, 960)
+check('a chosen magnification wins', logicalSize(1920, 1080, 4).scale, 4)
+check('and is honoured', logicalSize(1920, 1080, 4).w, 480)
 
 // A window smaller than one magnification would divide to nothing.
 check('magnification never falls below one', logicalSize(100, 100).scale, 1)
@@ -524,6 +533,44 @@ check('a zoom is never fractional', fitZoom(30, 30, 100, 100), 3)
 check('an oversized document stays at 1:1', fitZoom(512, 512, 100, 100), 1)
 check('a region of nothing still gives a zoom', fitZoom(32, 32, 0, 0), 1)
 check('a document of nothing does not divide by it', fitZoom(0, 0, 100, 100), 1)
+
+// --- hue, saturation, value -----------------------------------------------------------
+
+console.log('')
+console.log('HSV')
+
+// The six primaries sit exactly on sector boundaries, which is where an
+// off-by-one in the sector arithmetic shows up first.
+red = hsvToRgb(0, 1, 1)
+check('hue 0 is red', `${red.r},${red.g},${red.b}`, '255,0,0')
+green = hsvToRgb(120, 1, 1)
+check('hue 120 is green', `${green.r},${green.g},${green.b}`, '0,255,0')
+blue = hsvToRgb(240, 1, 1)
+check('hue 240 is blue', `${blue.r},${blue.g},${blue.b}`, '0,0,255')
+
+yellow = hsvToRgb(60, 1, 1)
+check('hue 60 is yellow', `${yellow.r},${yellow.g},${yellow.b}`, '255,255,0')
+cyan = hsvToRgb(180, 1, 1)
+check('hue 180 is cyan', `${cyan.r},${cyan.g},${cyan.b}`, '0,255,255')
+magenta = hsvToRgb(300, 1, 1)
+check('hue 300 is magenta', `${magenta.r},${magenta.g},${magenta.b}`, '255,0,255')
+
+// No saturation is a grey whatever the hue claims, and no value is black
+// whatever else it claims.
+grey = hsvToRgb(200, 0, 0.5)
+check('no saturation is grey', `${grey.r},${grey.g},${grey.b}`, '128,128,128')
+black = hsvToRgb(200, 1, 0)
+check('no value is black', `${black.r},${black.g},${black.b}`, '0,0,0')
+white = hsvToRgb(0, 0, 1)
+check('no saturation at full value is white', `${white.r},${white.g},${white.b}`, '255,255,255')
+
+// A drag that runs off the edge of the field hands back a component slightly
+// out of range; unclamped that becomes 256 and wraps to black, which reads as
+// the picker breaking exactly when the pointer leaves it.
+over = hsvToRgb(0, 1, 1.2)
+check('an overshot value clamps rather than wraps', over.r, 255)
+under = hsvToRgb(0, 1, -0.2)
+check('an undershot value clamps too', under.r, 0)
 
 // --- chamfer ------------------------------------------------------------------------
 

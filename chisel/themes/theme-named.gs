@@ -3,11 +3,15 @@ import { ghostLight } from "chisel/themes/ghost-light"
 import { asepriteDark } from "chisel/themes/aseprite-dark"
 import { asepriteClassic } from "chisel/themes/aseprite-classic"
 import { picotron } from "chisel/themes/picotron"
+import { asepriteMocha } from "chisel/themes/aseprite-mocha"
+import { asepriteLatte } from "chisel/themes/aseprite-latte"
 
 // Every theme by name, so a preference can name one and a menu can list them.
 //
-// Picotron is the default: it is the one the interface is measured against,
-// and the only one whose colours all come from a fixed palette.
+// Aseprite Mocha is the default: its layout and metrics are what the interface
+// is measured against, and its colours come from a published palette rather
+// than from anyone's judgement. Picotron is kept because its measurements are
+// real and its flat-surface rules are what the painter is still built on.
 //
 // A function rather than a map because Ghost has no statics and a module-level
 // map would be built once and shared - and a Theme is mutable (it carries the
@@ -15,8 +19,9 @@ import { picotron } from "chisel/themes/picotron"
 function themeNamed(name) {
   if (name == 'ghost.light')       { return ghostLight() }
   if (name == 'picotron')          { return picotron() }
+  if (name == 'aseprite.latte')    { return asepriteLatte() }
   if (name == 'aseprite.dark')     { return asepriteDark() }
   if (name == 'aseprite.classic')  { return asepriteClassic() }
 
-  return picotron()
+  return asepriteMocha()
 }

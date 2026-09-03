@@ -46,6 +46,18 @@ jobs:
       - name: Lint
         run: python3 tools/lint.py
 
+      # The PNGs under resources/ are build output: tools/make-icons.py holds
+      # the art as ASCII so that changing an icon is a readable diff rather
+      # than a binary blob nobody can review. That claim is only true while the
+      # two agree, so regenerate them and fail on any difference - a hand-edited
+      # PNG would otherwise silently become the real source and the ASCII a
+      # decorative lie.
+      - name: Icon art regenerates byte for byte
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 tools/make-icons.py
+          git diff --exit-code -- resources/
+
       # Every source file has to at least parse. `ghost <file>` reports a syntax
       # fault before it evaluates anything, so a file that only fails on a
       # `lumen:` import is fine - a file that fails to parse is not.
