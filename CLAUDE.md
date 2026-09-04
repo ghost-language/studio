@@ -33,25 +33,33 @@ calls into — widgets that belong to an application read it, the framework does
 ## Ghost rules this codebase is shaped around
 
 These were verified by running them, not read from the spec. See `docs/papercuts.md` for
-the full list and what would fix each one upstream.
+the full list, what would fix each one upstream, and the priority Ghost has assigned it.
+
+Three of them — outward assignment, loop-variable capture, and block scoping — are **fixed
+in Ghost after `1.0.0-beta.3`** and are marked below. They are kept as rules because they
+still hold against a released Ghost, and because writing code that works under both costs
+nothing: state on instances and `make…` factories are correct either way. Drop them once
+this repository requires a Ghost that carries the fixes.
 
 - **`and` / `or` do not short-circuit.** Both operands are always evaluated, so
   `x == null or x.field` still dereferences a null `x`. A null check that guards a
   dereference is its own `if`, never folded into the same expression. This has crashed
   this app in production; it is the single easiest mistake to make here.
-- **A function cannot assign to a variable outside itself.** Module-level mutable state
-  does not work; state lives on instances. Mutating an object (`map.set`, `list.push`,
-  `this.field =`) is fine.
-- **Closures cannot capture a loop variable.** Anything built per-item in a loop needs a
-  `make…` factory around the closure.
+- **A function cannot assign to a variable outside itself.** *(Fixed in Ghost post-beta.3.)*
+  Module-level mutable state does not work; state lives on instances. Mutating an object
+  (`map.set`, `list.push`, `this.field =`) is fine.
+- **Closures cannot capture a loop variable.** *(Fixed in Ghost post-beta.3.)* Anything
+  built per-item in a loop needs a `make…` factory around the closure.
 - **Call sibling methods as `this.method()`.** A bare call loses the receiver.
 - **A function held in a field cannot be called as `this.field(...)`** — that parses as a
   method call and method lookup does not see fields. Bind it to a local first.
 - **End a statement with `;` when the next line opens with `[` or `(`.** Ghost has no
   newline rule, so the next line otherwise continues the previous expression. This bites
   every destructuring assignment.
-- **Blocks do not introduce a scope.** An assignment inside an `if` or a loop writes to
-  the enclosing function.
+- **Blocks do not introduce a scope.** *(Fixed in Ghost post-beta.3 — blocks scope now,
+  but assignment also walks outward, so a name bound before the block is still reached.
+  `Dock.arrange()` was checked and is unaffected.)* An assignment inside an `if` or a loop
+  writes to the enclosing function.
 - **`/` always produces a float.** Layout arithmetic goes through `Rect` or `snap()`.
 - **Circular imports are a hard fault.** Keep shared types in leaf modules.
 - **Import by full path from the project root** (`import { Rect } from

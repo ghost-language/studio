@@ -22,7 +22,19 @@ Severity is from the point of view of someone writing a GUI toolkit:
 
 ## Ghost
 
-### `and` / `or` do not short-circuit — *high, shipped a crash, looks exactly like the languages it's borrowing from*
+**Status, reviewed against Ghost at `c31c79d` (2026-09-04).** Every item below
+was re-run against a build of the interpreter at that commit. Three of them —
+outward assignment, loop-variable capture, and block scoping — no longer
+reproduce; they are kept as a record, marked *fixed*, rather than deleted. The
+rest still reproduce exactly as written.
+
+Ghost now carries this list as `SPEC.md` §13.13–§13.24, and ranks the open items
+against each other in `SPEC.md` §15; the `§` reference on each heading below
+points at its entry there. Note that the three fixes landed *after* the
+`1.0.0-beta.3` tag, so code running against a released Ghost still needs the
+workarounds this repository is built around — see `CLAUDE.md`.
+
+### `and` / `or` do not short-circuit — *high, shipped a crash, looks exactly like the languages it's borrowing from* — Ghost §13.21, **priority 1**
 
 ```ghost
 target = null
@@ -56,7 +68,7 @@ check has already returned before the dereferencing side is ever reached.
 as similar to. If a non-short-circuiting form is wanted for some reason, it should not be
 the operator spelled the same way `&&`/`||` are taught.
 
-### A function cannot assign to a variable outside itself — *high, silent*
+### ~~A function cannot assign to a variable outside itself~~ — *fixed*, Ghost §13.13
 
 ```ghost
 scale = 1
@@ -74,7 +86,12 @@ in this toolkit lives on an instance.
 **Would fix it:** assignment walks the scope chain when the name already exists, or an
 explicit declaration keyword makes the shadowing intentional.
 
-### Closures created in a loop cannot capture the loop variable — *high, silent until called*
+**Fixed.** Ghost took the first option: assignment now rebinds the nearest existing name in
+the enclosing chain, and declares locally only when the name is bound nowhere. The state-on-
+instances rule this repository is built around is no longer forced, though nothing here
+needs changing for it.
+
+### ~~Closures created in a loop cannot capture the loop variable~~ — *fixed*, Ghost §13.14
 
 ```ghost
 // BROKEN: every handler raises `name error: name is not defined` when it runs
@@ -89,14 +106,26 @@ closure in a `make…` factory. This is the most common shape in UI code.
 
 **Would fix it:** a per-iteration binding, the way `let` behaves in JavaScript.
 
-### Blocks do not introduce a scope — *high, and the spec says otherwise*
+**Fixed.** Both loop forms now bind their control variable once per iteration, so the
+closure above captures `'pencil'` and `'eraser'` as written. The `make…` factories here are
+no longer load-bearing, though they remain correct.
+
+### ~~Blocks do not introduce a scope~~ — *fixed*, Ghost §13.15
 
 An assignment inside an `if`, `switch` or loop body writes to the enclosing function scope.
 `Dock.arrange()` depends on this; it is also how a stray temporary leaks across a long
 method. `SPEC.md` §8.3 states that blocks each introduce an enclosed environment. They do
 not.
 
-### Everything at the top level is exported — *high, design*
+**Fixed, and it did not break `Dock.arrange()`** — checked, because Ghost documents this as
+the one breaking change in the batch. Blocks scope now, but assignment walks outward at the
+same time (the two were fixed as a single decision), and `arrange()` binds both `area` and
+`taken` *before* the `switch`, so the `[taken, area] = ...` inside each case still rebinds
+the outer pair rather than declaring a local one. The whole 132-case suite passes against
+Ghost at `c31c79d`. What no longer works is a name whose *first* assignment is inside a
+branch — `if (c) { result = 1 }` then reading `result` — which this codebase does not do.
+
+### Everything at the top level is exported — *high, design* — Ghost §13.16, **priority 5**
 
 A file cannot have a private helper beside a public class, and importing a module drags
 its own imports' names along. One-class-per-file makes this survivable rather than solving
@@ -105,7 +134,7 @@ it.
 **Would fix it:** an explicit `export`, with today's behaviour as the fallback for files
 that declare nothing.
 
-### A method's own name shadows a same-named import, in every method of its class — *high, shipped a crash*
+### A method's own name shadows a same-named import, in every method of its class — *high, shipped a crash* — Ghost §13.22, **priority 2**
 
 ```ghost
 import "lumen:font"        // binds `font` to the module
@@ -142,7 +171,7 @@ would not help here — this is member resolution order, not visibility. A class
 shadowing an import warrants at least a compile-time warning, since nothing else marks the
 two as unrelated.
 
-### A function held in a field cannot be called through the field — *mid, loud*
+### A function held in a field cannot be called through the field — *mid, loud* — Ghost §13.23, **priority 6**
 
 ```ghost
 this.guard = function (studio) { return true }
@@ -162,32 +191,32 @@ test(studio)
 Found by `tests/core.gs` failing on `Command.isEnabled()`. It makes callbacks-as-fields —
 a normal shape for a command, a validator, a comparator — quietly awkward.
 
-### No statics: no named constructors, no class constants — *mid*
+### No statics: no named constructors, no class constants — *mid* — Ghost §14 decision 5, **declined**
 
 `Rect.fromBounds(...)` and `Button.HEIGHT` are both impossible, so factories become
 free functions (`asepriteDark()`) and constants move onto the theme. Workable, but it is
 the single thing that most distorts library shape.
 
-### Calling a sibling method by bare name loses the receiver — *mid, and the spec says otherwise*
+### Calling a sibling method by bare name loses the receiver — *mid, and the spec says otherwise* — Ghost §13.17, **priority 3**
 
 `describe()` inside another method raises ``name error: `this` can only be used inside a
 class`` the moment the callee touches `this`, though `SPEC.md` §8.8 says bare sibling calls
 are supported. Always write `this.describe()`. The error also points at the callee rather
 than the call.
 
-### A field and a method may share one name — *mid*
+### A field and a method may share one name — *mid* — Ghost §13.18, **priority 4**
 
 With both defined, `x.thing` reads the field and `x.thing()` calls the method, silently.
 Worth a diagnostic.
 
-### Division always promotes to float — *mid*
+### Division always promotes to float — *mid* — Ghost §12 `floorDiv`, **priority 8**
 
 Correct, and a tax on every line of pixel layout. `Rect` and `snap()` exist partly to pay
 it once.
 
 **Would fix it:** `math.floorDiv(a, b)` — `//` is taken by comments.
 
-### Import ergonomics — *mid*
+### Import ergonomics — *mid* — Ghost §13.19, **priority 10**
 
 `import "path" as name` (whole module) and `import name from "path"` (a named export) look
 nearly identical and mean different things. Search paths are global and accumulate as
@@ -198,7 +227,7 @@ imports by full path from the project root.
 Also: a file's imports resolve relative to the file the interpreter was *handed*, which is
 why `tests/core.gs` is launched through a root-level `test.gs`.
 
-### Reserved words are unusable as method names *and* at call sites — *mid*
+### Reserved words are unusable as method names *and* at call sites — *mid* — Ghost §13.24, **priority 7**
 
 `use` is a keyword (it pulls traits into a class), so a method called `use` will not parse
 — and neither will `cursors.use('arrow')`, which is a call on an unrelated object that
@@ -216,7 +245,8 @@ the sting.
 - `continue` is a keyword, so a tool's middle verb is `drag`.
 - No `const`.
 - No `%=`; `++` is postfix only.
-- `length()` is a method — `list.length` hands back the function with no error.
+- ~~`length()` is a method — `list.length` hands back the function with no error.~~
+  *Fixed*: it now raises a proper `property error`.
 - A line beginning with `[` or `(` continues the previous statement, so a destructuring
   assignment needs a `;` on the line above it. This bit two code samples in the tutorial
   before they were run.
