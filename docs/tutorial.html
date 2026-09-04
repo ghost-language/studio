@@ -403,48 +403,49 @@ td code { white-space: nowrap; }
   padding: 4px 9px; margin-bottom: 18px;
 }
 
-/* --- workspace mock ------------------------------------------------------ */
+/* --- workspace mock ------------------------------------------------------
+   Catppuccin Mocha, hard-coded, because this depicts one specific product
+   rather than participating in this page's own light/dark theming. Flat fills
+   and single-pixel rules only: there is not an inset highlight anywhere below,
+   which is the whole difference between this and the interface it replaced. */
 
 .mock {
-  border: 1px solid var(--bevel-dark);
-  background: var(--surface);
+  --m-base:  #1e1e2e;   --m-mantle: #181825;
+  --m-s0:    #313244;   --m-s1:     #45475a;   --m-s2: #585b70;
+  --m-text:  #cdd6f4;   --m-dim:    #7f849c;   --m-accent: #89b4fa;
+
+  border: 1px solid var(--m-mantle);
+  background: var(--m-base);
   box-shadow: 0 0 0 1px var(--line);
   font-family: "IBM Plex Mono", monospace;
-  font-size: 10px; color: var(--ink-soft);
+  font-size: 10px; color: var(--m-dim);
   user-select: none; max-width: 920px; margin: 0 0 12px;
 }
 .mock .bar {
   display: flex; align-items: center; gap: 14px;
-  padding: 3px 8px; background: var(--raised);
-  border-bottom: 1px solid var(--bevel-dark);
-  box-shadow: inset 0 1px 0 var(--bevel-light);
+  padding: 3px 8px; background: var(--m-s0); color: var(--m-text);
 }
-.mock .bar.title { background: var(--teal); color: #fff; font-weight: 600; letter-spacing: 0.05em; }
-.mock .tab {
-  padding: 2px 12px; background: var(--surface);
-  border: 1px solid var(--bevel-dark); border-bottom: 0;
-  box-shadow: inset 1px 1px 0 var(--bevel-light); margin-bottom: -1px;
-}
-.mock .tab.on { background: var(--select); color: var(--select-ink); box-shadow: none; }
+.mock .bar.title { background: var(--m-s1); color: var(--m-text); font-weight: 600; letter-spacing: 0.05em; }
+.mock .tab { padding: 2px 12px; background: var(--m-s0); color: var(--m-dim); }
+.mock .tab.on { background: var(--m-s2); color: var(--m-text); }
 .mock .body { display: grid; grid-template-columns: 68px minmax(0,1fr) 30px; }
-.mock .col { border-right: 1px solid var(--bevel-dark); padding: 6px; display: flex; flex-direction: column; gap: 6px; }
-.mock .col.right { border-right: 0; border-left: 1px solid var(--bevel-dark); align-items: center; gap: 3px; padding: 5px 3px; }
+.mock .col { background: var(--m-s0); padding: 6px; display: flex; flex-direction: column; gap: 6px; }
+.mock .col.right { align-items: center; gap: 3px; padding: 5px 3px; }
 .mock .swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
-.mock .swatches i { display: block; aspect-ratio: 1; border: 1px solid var(--bevel-dark); }
+.mock .swatches i { display: block; aspect-ratio: 1; border: 1px solid var(--m-mantle); }
+/* A tool button carries no fill at all until it is selected - which is what
+   Aseprite's toolbars actually do. */
 .mock .btn {
-  width: 20px; height: 20px; background: var(--raised);
-  border: 1px solid var(--bevel-dark);
-  box-shadow: inset 1px 1px 0 var(--bevel-light);
-  display: grid; place-items: center; font-size: 9px; color: var(--ink);
+  width: 20px; height: 20px; background: transparent;
+  display: grid; place-items: center; font-size: 9px; color: var(--m-text);
 }
-.mock .btn.on { background: var(--select); color: var(--select-ink); box-shadow: inset 1px 1px 0 rgba(255,255,255,.35); }
+.mock .btn.on { background: var(--m-s2); }
 .mock .canvas {
   min-height: 186px;
-  background: repeating-conic-gradient(var(--sunken) 0% 25%, var(--well) 0% 50%) 0 0 / 12px 12px;
-  box-shadow: inset 1px 1px 0 var(--bevel-dark);
+  background: repeating-conic-gradient(#808080 0% 25%, #c0c0c0 0% 50%) 0 0 / 12px 12px;
   display: grid; place-items: center; padding: 18px;
 }
-.mock .sprite { width: 108px; height: 108px; border: 1px solid var(--bevel-dark); background: var(--accent); position: relative; }
+.mock .sprite { width: 108px; height: 108px; border: 1px solid var(--m-mantle); background: var(--m-accent); position: relative; }
 .mock .sprite::after {
   content: ""; position: absolute; inset: 0;
   background-image:
@@ -452,14 +453,13 @@ td code { white-space: nowrap; }
     linear-gradient(to bottom, rgba(0,0,0,.14) 1px, transparent 1px);
   background-size: 12px 12px;
 }
-.mock .timeline { border-top: 1px solid var(--bevel-dark); background: var(--surface); padding: 4px 6px; display: flex; flex-direction: column; gap: 3px; }
+.mock .timeline { background: var(--m-s0); padding: 4px 6px; display: flex; flex-direction: column; gap: 3px; }
 .mock .frames { display: flex; gap: 2px; }
-.mock .frames span { width: 18px; height: 12px; border: 1px solid var(--bevel-dark); background: var(--well); }
-.mock .frames span.on { background: var(--select); }
+.mock .frames span { width: 18px; height: 12px; background: var(--m-mantle); }
+.mock .frames span.on { background: var(--m-s2); }
 .mock .status {
   display: flex; justify-content: space-between;
-  border-top: 1px solid var(--bevel-dark); background: var(--raised);
-  padding: 3px 8px; box-shadow: inset 0 1px 0 var(--bevel-light);
+  background: var(--m-s0); color: var(--m-dim); padding: 3px 8px;
 }
 .mock-legend {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -492,17 +492,7 @@ footer { margin-top: 68px; padding-top: 20px; border-top: 1px solid var(--line);
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
-  .stale-notice {
-    margin: 1.6rem 0 2rem;
-    padding: 1rem 1.15rem;
-    border-left: 4px solid #d08b2a;
-    background: rgba(208, 139, 42, 0.09);
-    border-radius: 0 6px 6px 0;
-    font-size: 0.95rem;
-    line-height: 1.6;
-  }
 
-  .stale-notice b { color: #d08b2a; }
 </style>
 
 <div class="shell">
@@ -520,14 +510,15 @@ footer { margin-top: 68px; padding-top: 20px; border-top: 1px solid var(--line);
       <li><a href="#p6"><span class="n">06</span><span>Widget</span></a></li>
       <li><a href="#p7"><span class="n">07</span><span>Ui and Pointer</span></a></li>
       <li><a href="#p8"><span class="n">08</span><span>Button</span></a></li>
-      <li><a href="#p9"><span class="n">09</span><span>Dock</span></a></li>
-      <li><a href="#p10"><span class="n">10</span><span>Studio</span></a></li>
-      <li><a href="#p11"><span class="n">11</span><span>Commands, keymap</span></a></li>
-      <li><a href="#p12"><span class="n">12</span><span>Editor chrome</span></a></li>
-      <li><a href="#p13"><span class="n">13</span><span>Document, viewport</span></a></li>
-      <li><a href="#p14"><span class="n">14</span><span>The map editor</span></a></li>
-      <li><a href="#p15"><span class="n">15</span><span>Room for sound</span></a></li>
-      <li><a href="#p16"><span class="n">16</span><span>Ship it</span></a></li>
+      <li><a href="#p9"><span class="n">09</span><span>The playground</span></a></li>
+      <li><a href="#p10"><span class="n">10</span><span>Dock</span></a></li>
+      <li><a href="#p11"><span class="n">11</span><span>Studio</span></a></li>
+      <li><a href="#p12"><span class="n">12</span><span>Commands, keymap</span></a></li>
+      <li><a href="#p13"><span class="n">13</span><span>Editor chrome</span></a></li>
+      <li><a href="#p14"><span class="n">14</span><span>Document, viewport</span></a></li>
+      <li><a href="#p15"><span class="n">15</span><span>The map editor</span></a></li>
+      <li><a href="#p16"><span class="n">16</span><span>Room for sound</span></a></li>
+      <li><a href="#p17"><span class="n">17</span><span>Ship it</span></a></li>
     </ol>
     <h2>Reference</h2>
     <ol>
@@ -548,21 +539,11 @@ footer { margin-top: 68px; padding-top: 20px; border-top: 1px solid var(--line);
     eventually — a sound editor.
   </p>
 
-  <div class="stale-notice" role="note">
-    <b>This document is out of date, and knowingly so.</b>
-    It builds the interface Studio had before it was rebuilt on
-    <a href="picotron.md">Picotron</a>: bevelled surfaces with a highlight-and-shadow
-    pair, circular corner profiles, a 16px icon grid, free hex colour per theme, and
-    rendering at the window's own resolution. The code now does none of those things —
-    it draws flat fills into a magnified 480×270 framebuffer, cuts its corners rather
-    than rounding them, outlines windows but not controls, and indexes every colour to
-    a fixed palette.
-    <br><br>
-    The reasoning about <em>structure</em> — the widget tree, the dock, capture-based
-    input, commands and the keymap, and every Ghost papercut in the reference section —
-    is still accurate and still worth reading. The chapters on painting and theming are
-    not. <code>docs/picotron.md</code> is the current spec.
-  </div>
+  <p class="standfirst">
+    The interface is measured rather than invented: every metric comes off a real Aseprite
+    screenshot, every colour off the published Catppuccin palette, and a pixel-comparison tool in
+    the repository holds the result against the references on every commit.
+  </p>
 
   <dl class="facts">
     <div class="fact"><dt>Layers</dt><dd>chisel → studio → editors</dd></div>
@@ -675,6 +656,42 @@ touch main.gs</code></pre>
 └── <b>resources/</b>           <i>fonts, icons</i></div>
 
 <p>
+  One file before the entry point, because the very first line of <code>load()</code> needs it.
+  This is the whole of the framebuffer decision, and it is nine lines:
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/support/logical-size.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "ghost:math"
+
+// The framebuffer to draw into, given a real window.
+//
+// `target` is the logical height the design was drawn for - 540 for Aseprite's
+// chrome. Returns the integer magnification that puts the window nearest that,
+// and the window divided by it.
+function logicalSize(width, height, preferred = null, target = 540) {
+  scale = preferred
+
+  if (scale == null) {
+    scale = math.floor((height / (target * 1.0)) + 0.5)
+  }
+
+  scale = math.floor(scale)
+
+  if (scale &lt; 1) {
+    scale = 1
+  }
+
+  // A window smaller than one magnification would otherwise divide to nothing.
+  return {
+    w: math.max(1, math.floor(width / scale)),
+    h: math.max(1, math.floor(height / scale)),
+    scale: scale
+  }
+}</code></pre>
+</figure>
+
+<p>
   Lumen calls <code>load()</code> once, then <code>update(dt)</code> and <code>draw()</code> every
   frame, and hands input to optional callbacks. That is the entire contract. Type this:
 </p>
@@ -684,18 +701,50 @@ touch main.gs</code></pre>
 <pre><code class="gs">import "lumen:window"
 import "lumen:canvas"
 import "lumen:color"
+import { logicalSize } from "chisel/support/logical-size"
 
 function load() {
   window.setTitle('Studio')
-  window.setMode(1280, 800)
+  window.setMode(1440, 900)
   window.setResizable(true)
   window.setVsync(true)
+
+  // Draw into a small framebuffer and let the engine magnify the whole frame.
+  // A 12px menu bar and a 16x16 icon only read correctly if one drawn pixel
+  // covers several screen pixels; at the window's own resolution they are not
+  // chunky, they are microscopic.
+  frame = logicalSize(1440, 900)
+
+  window.setLogicalSize(frame.w, frame.h)
+  window.setPixelPerfect(true)
 }
 
 function draw() {
-  canvas.clear(color.hex('#2c2c34'))
+  canvas.clear(color.hex('#1e1e2e'))
 }</code></pre>
 </figure>
+
+<div class="callout">
+  <p>
+    <strong>That framebuffer is the decision everything else rests on</strong>, so it is worth being
+    precise about now rather than discovering later. Aseprite's chrome is drawn for a 960×540 grid
+    and magnified twice on screen. Its measurements — a 12px menu bar, an 11px tab, 15px tool slots
+    — are meaningless anywhere else: at 1× on a modern display they are a few millimetres tall.
+  </p>
+  <p>
+    The magnification is picked rather than fixed. <code>logicalSize()</code> takes the height the
+    design was drawn for, finds the integer magnification that puts the window nearest it, and
+    divides. 1920×1080 gives exactly 960×540 at 2×; 1440×900 gives 720×450 at the same 2×. A wider
+    monitor therefore buys <em>workspace</em> rather than bigger chrome, which matters because this
+    is an editor inside a window rather than an operating system that owns the screen.
+  </p>
+  <p>
+    Whole numbers only, and this is the one rule that cannot bend: a fractional magnification draws
+    some source pixels two screen pixels wide and their neighbours three. That is precisely how
+    pixel art comes out looking uneven, and a program for making pixel art cannot be the thing that
+    does it.
+  </p>
+</div>
 
 <div class="runit">
   <div class="head">▶ Run it</div>
@@ -785,7 +834,7 @@ mouse      → pick the deepest widget under the point, or route to whoever capt
 <p>
   Before any widget exists we need four things, and they are the next four parts:
   a <strong>Rect</strong> (where), a <strong>Theme</strong> (what colour), a
-  <strong>Painter</strong> (how to draw a bevel), and a <strong>Widget</strong> (a node in the tree).
+  <strong>Painter</strong> (how to draw a surface), and a <strong>Widget</strong> (a node in the tree).
   Then a <strong>Ui</strong> to own the tree and the input state. Six files and you have a working
   toolkit; everything after is widgets.
 </p>
@@ -944,11 +993,11 @@ class Rect {
 
 function draw() {
   // That semicolon is not optional — see the note below.
-  canvas.clear(color.hex('#2c2c34'));
+  canvas.clear(color.hex('#1e1e2e'));
 
   [bar, rest] = new Rect(0, 0, window.width, window.height).splitTop(40)
 
-  canvas.setColor(color.hex('#3a3a44'))
+  canvas.setColor(color.hex('#313244'))
   canvas.filledRectangle(bar.x, bar.y, bar.w, bar.h)
 
   canvas.setColor(color.hex('#191a1e'))
@@ -978,7 +1027,7 @@ function draw() {
 <p>
   A UI kit lives or dies on whether a colour can be changed in one place. The rule: <strong>widgets
   ask for roles, never shades.</strong> <code>theme.of('button.face')</code> survives a theme swap;
-  <code>color.hex('#3a3a44')</code> sprayed through forty files does not.
+  <code>color.hex('#313244')</code> sprayed through forty files does not.
 </p>
 
 <p>
@@ -1148,32 +1197,80 @@ class Theme {
 </p>
 
 <figure class="code">
-  <figcaption><span>chisel/themes/aseprite-dark.gs</span><span class="chip new">new</span></figcaption>
+  <figcaption><span>chisel/themes/aseprite-mocha.gs</span><span class="chip new">new</span></figcaption>
 <pre><code class="gs">import "lumen:color"
 import { Theme } from "chisel/theme"
+import { catppuccinMocha } from "chisel/support/catppuccin"
 
-// Three greys, two bevel lines, one saturated selection. The artwork is the
-// only thing on screen allowed to be loud; the chrome recedes on purpose.
-function asepriteDark() {
-  return new Theme('aseprite.dark').set({
-    'window.face':     color.hex('#2c2c34'),
-    'panel.face':      color.hex('#3a3a44'),
-    'panel.well':      color.hex('#191a1e'),
-    'bevel.light':     color.hex('#54545f'),
-    'bevel.dark':      color.hex('#121216'),
-    'button.face':     color.hex('#3a3a44'),
-    'button.hover':    color.hex('#474751'),
-    'button.pressed':  color.hex('#2a2a32'),
-    'button.selected': color.hex('#4f7bb5'),
-    'text.normal':     color.hex('#e9e6e1'),
-    'text.dim':        color.hex('#948f9c'),
-    'text.selected':   color.hex('#ffffff'),
-    'accent':          color.hex('#f2a340'),
-    'checker.light':   color.hex('#6b6b6b'),
-    'checker.dark':    color.hex('#535353')
+// Every colour comes from a named lookup, never a literal. That indirection is
+// the whole point: a hex two off a real palette entry looks fine on its own and
+// wrong beside everything else, and forty of those that only nearly agree is
+// most of what "this interface looks messy" turns out to mean.
+function asepriteMocha() {
+  palette = catppuccinMocha()
+
+  theme = new Theme('aseprite.mocha').set({
+    // The workspace is `base`; every bar on it is `surface0`. That one step is
+    // the whole separation between chrome and canvas - there are no outlines
+    // doing that job.
+    'window.face':     color.hex(palette.base),
+    'panel.face':      color.hex(palette.surface0),
+    'panel.well':      color.hex(palette.mantle),
+    'field.face':      color.hex(palette.mantle),
+
+    'outline':         color.hex(palette.mantle),
+
+    // A control climbs the surface ramp as things happen to it. Measured: the
+    // selected tool sits on surface2 while its neighbours sit on the bar.
+    'button.face':     color.hex(palette.surface0),
+    'button.hover':    color.hex(palette.surface1),
+    'button.pressed':  color.hex(palette.surface2),
+    'button.selected': color.hex(palette.surface2),
+
+    'text.normal':     color.hex(palette.text),
+    'text.dim':        color.hex(palette.overlay1),
+    'text.selected':   color.hex(palette.text),
+
+    'accent':          color.hex(palette.blue),
+    'focus':           color.hex(palette.sapphire),
+
+    // Aseprite's own, not the theme's. Both the light and the dark reference
+    // show the same two greys, which is how you can tell the application paints
+    // the checkerboard rather than letting a theme near it.
+    'checker.light':   color.hex('#c0c0c0'),
+    'checker.dark':    color.hex('#808080')
+  }).sized({
+    row: 12, bar: 12, tab: 11, tool: 15, icon: 16,
+    radius: 2,   // a window's corner
+    cut: 1       // a control's
   })
+
+  theme.native = 12
+
+  return theme
 }</code></pre>
 </figure>
+
+<div class="callout">
+  <p>
+    <strong>The colours are identified, not chosen.</strong> The reference screenshots are Aseprite
+    themed with <a href="https://catppuccin.com">Catppuccin</a>, whose values are published — so
+    this file does not contain a single judgement about what shade of grey a toolbar should be.
+  </p>
+  <p>
+    That mattered more than expected. The screenshots arrived as lossy WebP: thirty thousand colours
+    in a picture of an interface that uses about thirty. Nothing could be recovered from that by
+    measurement, because the damage is not a function — the same true colour comes back differently
+    depending on what surrounds it. But five Catppuccin values survive the compression at
+    <em>distance nought</em>, which is enough to identify the palette; and once you know which
+    palette it is, you look the rest up rather than measuring them. What was uncertain was the name,
+    not the numbers.
+  </p>
+  <p>
+    <code>tools/lint.py</code> enforces it: a raw hex in a theme that claims a palette fails the
+    build. The two exceptions are listed by name, and both are measured facts rather than taste.
+  </p>
+</div>
 
 <div class="note warn">
   <h4>The trap this design avoids — and it is a nasty one</h4>
@@ -1210,25 +1307,57 @@ console.log(scale)   // 1</code></pre>
   an off-screen thumbnail you hand a widget a different painter and nothing else changes.
 </p>
 
+<div class="callout">
+  <p>
+    <strong>There is no 3D vocabulary here, and that is the whole point.</strong> An earlier version
+    of this chapter taught a <code>bevel</code> — a light line on the top and left, a dark one on the
+    bottom and right, swapped to make the same box read as a hole. It is the obvious way to build a
+    retro interface and it is not what Aseprite does.
+  </p>
+  <p>
+    Measured off two of its controls: a button is a flat <code>#c2c3c7</code> fill on the
+    <code>#fff1e8</code> body with one pixel off each corner and <em>no border of any kind</em>; a
+    tab strip is a flat <code>#83769c</code>. Only windows are outlined. Putting a one-pixel line
+    around forty controls that the real thing leaves as flat tone against flat tone reads as heavy
+    and busy without any single control being identifiably wrong — which is exactly why it can
+    survive a long time unnoticed, and why this chapter was rewritten.
+  </p>
+</div>
+
 <p>The six, from first principles:</p>
 
 <ul>
-  <li><strong>fill</strong> — a solid rectangle. Everything else is edges on top of one of these.</li>
-  <li><strong>bevel</strong> — one light line on the top and left, one dark line on the bottom and
-    right. Swap them and the same box reads as a hole. That is the entire 3D vocabulary of this
-    interface; there are no shadows and no gradients.</li>
-  <li><strong>panel</strong> — fill plus a raised bevel. The most-called function in the kit.</li>
-  <li><strong>well</strong> — fill plus a sunken bevel: the canvas surround, a text field, a list.</li>
-  <li><strong>groove</strong> — a dark line with a light line under it. This separator does more for
-    the "real tool" feeling than any other single detail.</li>
+  <li><strong>fill</strong> — a solid rectangle. Everything else is a shape cut out of one of these.</li>
+  <li><strong>chamfered</strong> — a fill with its corners cut on a 45° diagonal rather than rounded.
+    Two pixels off a window's first row and one off its second; one pixel on a control. A cut, not a
+    curve: at this size a circular quadrant and a straight diagonal differ by a pixel or two, and
+    those are the pixels a reader compares against a screenshot.</li>
+  <li><strong>surface</strong> — a chamfered fill inside a one-pixel outline, the inner shape
+    deflated by one and cut one less deeply so the border stays even around the corner. This is a
+    window. It is <em>not</em> a button.</li>
+  <li><strong>raised</strong> / <strong>sunk</strong> — a control: a flat chamfered fill, no outline.
+    They differ by their fill alone rather than by which edge catches the light. That sounds like a
+    loss of vocabulary and is not — with a tone ramp behind it, pressed is one step darker and
+    hovered one step lighter, which reads better at these sizes than a one-pixel highlight ever did.</li>
+  <li><strong>well</strong> — the same construction with a different fill: the canvas surround, a
+    text field, a list. A well is not an inverted button here, it is a surface in a lower tone.</li>
   <li><strong>text</strong> — placed on whole pixels, aligned inside a rect rather than positioned
-    by hand.</li>
+    by hand, and centred on the <em>cap band</em> rather than the em box.</li>
 </ul>
+
+<p>
+  <code>groove</code> survives as a single line rather than a pair. A dark rule with a light one
+  under it does more for the "real tool" feeling than any other detail in a bevelled interface — and
+  at a 12px row in a flat one it reads as a thick black bar. The same three pixels, exactly wrong in
+  the new context.
+</p>
 
 <figure class="code">
   <figcaption><span>chisel/painter.gs</span><span class="chip new">new</span></figcaption>
 <pre><code class="gs">import "lumen:canvas"
+import { Rect } from "chisel/geometry/rect"
 import { snap } from "chisel/support/snap"
+import { chamfer } from "chisel/support/chamfer"
 
 class Painter {
   constructor(theme) {
@@ -1256,38 +1385,114 @@ class Painter {
     canvas.line(snap(x), snap(y), snap(x), snap(y + height))
   }
 
-  bevel(rect, raised) {
-    light = this.theme.of('bevel.light')
-    dark = this.theme.of('bevel.dark')
-
-    if (!raised) {
-      light = this.theme.of('bevel.dark')
-      dark = this.theme.of('bevel.light')
+  // A fill with its corners cut. `cut` is how many pixels come off the first
+  // row; each row after that takes one fewer, which is a 45-degree diagonal.
+  //
+  // `corners` is [topLeft, topRight, bottomRight, bottomLeft]. A title bar
+  // cuts its top two and leaves the bottom square, because cutting all four
+  // leaves a notch of the body showing through at each end.
+  chamfered(rect, paint, cut, corners = null) {
+    if (cut < 1) {
+      return this.fill(rect, paint)
     }
 
-    this.hline(rect.x, rect.y, rect.w - 1, light)
-    this.vline(rect.x, rect.y, rect.h - 1, light)
-    this.hline(rect.x, rect.bottom() - 1, rect.w - 1, dark)
-    this.vline(rect.right() - 1, rect.y, rect.h - 1, dark)
+    if (corners == null) {
+      corners = [true, true, true, true]
+    }
+
+    insets = chamfer(cut)
+
+    this.fill(new Rect(rect.x, rect.y + cut, rect.w, rect.h - cut * 2), paint)
+
+    for (step = 0; step < cut; step++) {
+      inset = insets[step]
+
+      left = 0
+      right = 0
+
+      if (corners[0]) { left = inset }
+      if (corners[1]) { right = inset }
+
+      this.fill(new Rect(rect.x + left, rect.y + step, rect.w - left - right, 1), paint)
+
+      left = 0
+      right = 0
+
+      if (corners[3]) { left = inset }
+      if (corners[2]) { right = inset }
+
+      this.fill(new Rect(rect.x + left, rect.bottom() - 1 - step, rect.w - left - right, 1), paint)
+    }
   }
 
-  panel(rect, face) {
+  // A window: a flat fill inside a one-pixel outline. The inner shape is
+  // deflated by one and cut one less deeply, which is what keeps the border an
+  // even pixel wide as it goes round the corner.
+  surface(rect, fill, edge, cut, corners = null) {
+    this.chamfered(rect, edge, cut, corners)
+    this.chamfered(rect.inset(1), fill, cut - 1, corners)
+  }
+
+  // The corner a control takes, which is not the one a window takes:
+  // measured at one pixel against a window's two.
+  controlCut() {
+    return this.theme.metric('cut')
+  }
+
+  // A control. A flat chamfered fill and NO OUTLINE - measured, not
+  // simplified. Only windows are outlined.
+  raised(rect, face = null, corners = null) {
+    if (face == null) {
+      face = this.theme.of('button.face')
+    }
+
+    this.chamfered(rect, face, this.controlCut(), corners)
+  }
+
+  // A pressed control. Same shape, darker fill. There is no bevel to invert.
+  sunk(rect, face = null, corners = null) {
+    if (face == null) {
+      face = this.theme.of('button.pressed')
+    }
+
+    this.chamfered(rect, face, this.controlCut(), corners)
+  }
+
+  // A bar or a card. Panels are the ground rather than objects on it, so they
+  // are square and unoutlined: a bar that meets the window edge has nothing to
+  // be outlined against.
+  panel(rect, face = null) {
     if (face == null) {
       face = this.theme.of('panel.face')
     }
 
     this.fill(rect, face)
-    this.bevel(rect, true)
   }
 
-  well(rect) {
-    this.fill(rect, this.theme.of('panel.well'))
-    this.bevel(rect, false)
+  // A hole: the canvas surround, a text field, a list, a scroll track.
+  well(rect, face = null, corners = null) {
+    if (face == null) {
+      face = this.theme.of('panel.well')
+    }
+
+    this.chamfered(rect, face, this.controlCut(), corners)
   }
 
+  // A small square control that IS outlined - the exception, and a measured
+  // one. A checkbox is 9x9 with a 1px border: it earns the border by being
+  // small, where a 9px flat fill one tone from its ground is a smudge and a
+  // 40px button is plainly a button.
+  boxed(rect, fill, edge = null) {
+    if (edge == null) {
+      edge = this.theme.of('outline')
+    }
+
+    this.surface(rect, fill, edge, 0)
+  }
+
+  // One line, not two.
   groove(x, y, width) {
-    this.hline(x, y, width, this.theme.of('bevel.dark'))
-    this.hline(x, y + 1, width, this.theme.of('bevel.light'))
+    this.hline(x, y, width, this.theme.of('outline'))
   }
 
   // ---- text -----------------------------------------------------------
@@ -1359,7 +1564,7 @@ class Painter {
 import "lumen:canvas"
 import { Rect } from "chisel/geometry/rect"
 import { Painter } from "chisel/painter"
-import { asepriteDark } from "chisel/themes/aseprite-dark"
+import { asepriteMocha } from "chisel/themes/aseprite-mocha"
 
 app = {}
 
@@ -1368,7 +1573,7 @@ function load() {
   window.setMode(1280, 800)
   window.setResizable(true)
 
-  app.theme = asepriteDark().useScale(1).loadFonts(null)
+  app.theme = asepriteMocha().useScale(1).loadFonts(null)
   app.painter = new Painter(app.theme)
 }
 
@@ -1386,8 +1591,9 @@ function draw() {
   painter.groove(rest.x + 24, rest.y + 60, 200)
 }</code></pre>
     <p>
-      A raised menu bar with a label, a sunken well, and a groove. It already looks like a tool
-      rather than a game — that is the bevel doing all the work. <em>(A bare <code>app</code> map at
+      A bar with a label, a well, and a rule between them. It already looks like a tool rather than
+      a game, and nothing is drawing a highlight to achieve that — it is one tone step between the
+      bar and the ground, which is the entire trick. <em>(A bare <code>app</code> map at
       the top of <code>main.gs</code> is the one place module-level state is fine: it is mutated
       through <code>.set</code>-style property assignment on an object, never rebound.)</em>
     </p>
@@ -2017,7 +2223,7 @@ class Ui {
 import { Ui } from "chisel/ui"
 import { Painter } from "chisel/painter"
 import { Panel } from "chisel/widgets/panel"
-import { asepriteDark } from "chisel/themes/aseprite-dark"
+import { asepriteMocha } from "chisel/themes/aseprite-mocha"
 
 // The one map of module-level state in the program. It is only ever mutated
 // through property assignment (app.ui = ...), which does work — unlike
@@ -2030,7 +2236,7 @@ function load() {
   window.setResizable(true)
   window.setVsync(true)
 
-  theme = asepriteDark().useScale(1).loadFonts(null)
+  theme = asepriteMocha().useScale(1).loadFonts(null)
 
   app.ui = new Ui(theme, new Painter(theme))
   app.ui.mount(new Panel('hello').well())
@@ -2066,9 +2272,16 @@ function keypressed(key, isRepeat)          { app.ui.keyed(key, isRepeat) }</cod
 
 <p>
   Aseprite's controls have exactly five appearances, and nothing in between: <strong>normal, hover,
-  pressed, selected, disabled</strong>. Hover lightens by one step, pressed inverts the bevel,
-  selected takes the accent, disabled dims the label and keeps the face. No transitions, no
-  animation — the state <em>is</em> the feedback.
+  pressed, selected, disabled</strong>. Every one of them is <em>a step on a tone ramp</em>: hover is
+  one lighter, pressed one darker, selected further along again, disabled dims the label and keeps
+  the face. No transitions, no animation — the state <em>is</em> the feedback.
+</p>
+
+<p>
+  With no bevel to invert, that ramp is doing all the work, and it turns out to read better at these
+  sizes than a one-pixel highlight ever did. It also imposes a rule that the bevelled version could
+  ignore: <strong>a control is read entirely by its tone against its ground, so there must always be
+  a step between them.</strong> Get that wrong and the control does not look flat, it looks absent.
 </p>
 
 <div class="states">
@@ -2119,13 +2332,24 @@ class Button extends Widget {
   paint(ui) {
     painter = ui.painter
 
-    // Pressed inverts the bevel and nudges the contents one pixel down and
+    // Pressed takes a darker fill and nudges the contents one pixel down and
     // right. That single pixel is the whole animation budget of this
     // interface, and it is enough.
     raised = !ui.isActive(this)
 
-    painter.fill(this.bounds, this.face(ui))
-    painter.bevel(this.bounds, raised)
+    // A toolbar item draws no fill at all until something happens to it. That
+    // is not a style choice - Aseprite's toolbars carry bare icons with no
+    // button shape behind them, and a filled button only ever appears on the
+    // light body. Modelling both is what lets one button.face serve the whole
+    // interface: without it, a fill that reads on a grey bar disappears on a
+    // white one and the other way round.
+    if (this.filled(ui)) {
+      if (raised) {
+        painter.raised(this.bounds, this.face(ui))
+      } else {
+        painter.sunk(this.bounds, this.face(ui))
+      }
+    }
 
     body = this.bounds
 
@@ -2188,7 +2412,7 @@ root.add(new Button('Pencil')
 
 app.ui.mount(root)</code></pre>
     <p>
-      Hover it: one step lighter. Hold it: the bevel inverts. Hold, slide off, release: nothing
+      Hover it: one step lighter. Hold it: one step darker. Hold, slide off, release: nothing
       happens — that is the rule most hand-rolled UIs get wrong. Dwell on it for half a second and
       the tooltip appears with its shortcut.
     </p>
@@ -2203,7 +2427,139 @@ app.ui.mount(root)</code></pre>
 <hr class="rule">
 
 <section id="p9">
-<h2><span class="num">Part 09</span>Dock — carving the workspace</h2>
+<h2><span class="num">Part 09</span>The playground — see what you have built</h2>
+
+<p>
+  Eight parts in and nothing has been looked at. That is the wrong way round, and it is worth fixing
+  before another widget is written, because <strong>every serious fault in this project was found by
+  rendering something and measuring the pixels — never by reasoning about the code.</strong> A test
+  suite cannot see a one-pixel fringe. A linter cannot see an icon that is taller than the row
+  containing it. You have to draw it.
+</p>
+
+<p>
+  So: a second entry point that mounts nothing but widgets. No Studio, no documents, no editors — the
+  framework has to stand up on its own before an application leans on it.
+</p>
+
+<figure class="code">
+  <figcaption><span>playground.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "lumen:window"
+import { Ui } from "chisel/ui"
+import { Painter } from "chisel/painter"
+import { asepriteMocha } from "chisel/themes/aseprite-mocha"
+import { logicalSize } from "chisel/support/logical-size"
+import { Gallery } from "playground/gallery"
+
+app = {}
+
+function load() {
+  window.setTitle('Chisel - widget playground')
+  window.setMode(1440, 900)
+  window.setResizable(true)
+
+  frame = logicalSize(1440, 900)
+
+  window.setLogicalSize(frame.w, frame.h)
+  window.setPixelPerfect(true)
+
+  // Scale 1: the framebuffer does the magnifying, so every metric is used at
+  // the size it was measured at.
+  theme = asepriteMocha().useScale(1).loadFonts(null)
+
+  app.ui = new Ui(theme, new Painter(theme))
+  app.ui.mount(new Gallery(theme))
+}
+
+function update(dt) { app.ui.tick(dt) }
+function draw()     { app.ui.paint() }
+
+// Lumen reports the resize in real window pixels; everything above works in
+// framebuffer pixels. Recomputing the magnification here is what makes a wider
+// window buy workspace rather than bigger chrome.
+function resize(width, height) {
+  frame = logicalSize(width, height)
+
+  window.setLogicalSize(frame.w, frame.h)
+
+  return app.ui.resized(frame.w, frame.h)
+}
+
+function mousepressed(x, y, button, clicks) { app.ui.pressed(x, y, button, clicks) }
+function mousereleased(x, y, button)        { app.ui.released(x, y, button) }
+function mousemoved(x, y, dx, dy)           { app.ui.moved(x, y, dx, dy) }</code></pre>
+</figure>
+
+<div class="runit">
+  <p><code>lumen playground.gs</code> — every control you own, on one screen.</p>
+</div>
+
+<p>
+  The gallery itself is a plain widget holding cards of controls; there is nothing to teach in it
+  beyond what Part 06 already covered, so it lives in the repository rather than on this page. What
+  matters is the habit.
+</p>
+
+<div class="note warn">
+  <h4>A gallery is the only place a design fault is visible</h4>
+  <p>
+    A control looks fine on its own and wrong beside twenty others. Every one of these was invisible
+    until the gallery was rendered, and none of them would have failed a test:
+  </p>
+  <ul>
+    <li>Heading text drawn in the colour used for title bars — perfectly legible as a large flat
+      area, and <em>invisible</em> as text on toolbar grey.</li>
+    <li>Buttons that vanished entirely, because removing their outlines left the fill matching the
+      panel beneath it. Correct code; nothing to see.</li>
+    <li>Palette swatches with a one-pixel fringe of their own colour leaking past the border,
+      because outlines were drawn with line primitives and pixel snapping while fills were drawn as
+      rectangles, and the two disagree by a pixel.</li>
+  </ul>
+</div>
+
+<p>
+  There is a second habit worth forming here, and it costs about twenty lines: make the app able to
+  render one frame and quit, so a screen can be looked at without a display and a build can check
+  that the thing still draws.
+</p>
+
+<figure class="code">
+  <figcaption><span>chisel/support/wants-screenshot.gs</span><span class="chip new">new</span></figcaption>
+<pre><code class="gs">import "ghost:os"
+
+// Whether the app was asked to render one frame, save it, and quit:
+//
+//   lumen . --shot
+//
+// Every bug in this project that survived to a real run lived in a file the
+// test suite cannot execute, because it imports `lumen:`. Being able to run the
+// whole app headlessly is worth the six lines.
+function wantsScreenshot() {
+  for (argument in os.args()) {
+    if (argument == '--shot') {
+      return true
+    }
+  }
+
+  return false
+}</code></pre>
+</figure>
+
+<p>
+  Wire that into <code>draw()</code> — screenshot on the second frame, then <code>lumen.quit()</code>
+  — and add a variant that runs a command first, so screens reachable only by clicking can be
+  rendered too. <code>lumen . --shot run:app.preferences</code> opens the preferences dialog, draws
+  it once and exits. Those are exactly the screens least likely to have been looked at, and doing it
+  found four faults in that one dialog: a modal scrim so opaque it blanked the workspace instead of
+  putting it out of reach, a dialog sized for two thirds of the screen, a theme missing from its own
+  theme picker, and buttons that had disappeared.
+</p>
+</section>
+
+<hr class="rule">
+
+<section id="p10">
+<h2><span class="num">Part 10</span>Dock — carving the workspace</h2>
 
 <p>
   Aseprite's workspace is not floating windows. Regions are carved off the edges of the available
@@ -2288,7 +2644,7 @@ function load() {
   window.setResizable(true)
   window.setVsync(true)
 
-  theme = asepriteDark().useScale(1).loadFonts(null)
+  theme = asepriteMocha().useScale(1).loadFonts(null)
 
   app.ui = new Ui(theme, new Painter(theme))
 
@@ -2329,8 +2685,8 @@ canvas: [0,20 1250x762]</code></pre>
 
 <hr class="rule">
 
-<section id="p10">
-<h2><span class="num">Part 10</span>Studio — the shell, and what we deliberately did not build</h2>
+<section id="p11">
+<h2><span class="num">Part 11</span>Studio — the shell, and what we deliberately did not build</h2>
 
 <p>
   Chisel is finished as a framework: rectangles, painting, widgets, input. What it cannot do is host
@@ -2589,8 +2945,8 @@ class Studio {
 
 <hr class="rule">
 
-<section id="p11">
-<h2><span class="num">Part 11</span>Commands and the keymap — a desktop app's routes file</h2>
+<section id="p12">
+<h2><span class="num">Part 12</span>Commands and the keymap — a desktop app's routes file</h2>
 
 <p>
   Here is the one place the Laravel analogy earns its keep rather than decorating. A menu item, a
@@ -3006,7 +3362,7 @@ function registerSpriteCommands(studio) {
       Build a <code>Studio</code> in <code>load()</code>, register one throwaway command, bind it,
       and forward keys to the shell:
     </p>
-<pre><code class="gs">app.studio = new Studio(asepriteDark().useScale(1).loadFonts(null))
+<pre><code class="gs">app.studio = new Studio(asepriteMocha().useScale(1).loadFonts(null))
 app.ui = app.studio.ui
 
 app.studio.commands.add(new Command('hello', 'Say Hello')
@@ -3026,8 +3382,8 @@ function keypressed(key, isRepeat) { app.studio.keyed(key, isRepeat) }</code></p
 
 <hr class="rule">
 
-<section id="p12">
-<h2><span class="num">Part 12</span>The editor chrome</h2>
+<section id="p13">
+<h2><span class="num">Part 13</span>The editor chrome</h2>
 
 <p>
   Four widgets fill the dock. They are all the same two ideas — a container that arranges children,
@@ -3164,10 +3520,17 @@ class Swatches extends Widget {
 
       painter.fill(cell, this.colors[index])
 
+      // The selected swatch is marked by the colour of its own border, not by
+      // anything drawn beside it. A tick is unreadable at this size and would
+      // have to be light on dark swatches and dark on light ones; a mark in the
+      // gap between them just reads as a smudge.
+      edge = ui.theme.of('outline')
+
       if (index == this.index) {
-        painter.bevel(cell, false)
-        painter.hline(cell.x, cell.y - 1, cell.w, ui.theme.of('accent'))
+        edge = ui.theme.of('accent')
       }
+
+      painter.surface(cell, this.colors[index], edge, 1)
     }
   }
 
@@ -3258,8 +3621,8 @@ class Swatches extends Widget {
 
 <hr class="rule">
 
-<section id="p13">
-<h2><span class="num">Part 13</span>The document, the tools, and the canvas</h2>
+<section id="p14">
+<h2><span class="num">Part 14</span>The document, the tools, and the canvas</h2>
 
 <p>
   Everything so far is editor-agnostic. Now the pixel editor: a document, a tool, and the viewport
@@ -3683,7 +4046,7 @@ class Viewport extends Widget {
       return null
     }
 
-    grid = ui.theme.of('bevel.dark')
+    grid = ui.theme.of('outline')
     width = this.document.width() * this.zoom
     height = this.document.height() * this.zoom
 
@@ -3818,7 +4181,7 @@ class SpriteEditor {
   window.setResizable(true)
   window.setVsync(true)
 
-  app.studio = new Studio(asepriteDark().useScale(1).loadFonts(null))
+  app.studio = new Studio(asepriteMocha().useScale(1).loadFonts(null))
 
   editor = app.studio.register(new SpriteEditor(app.studio))
 
@@ -3849,8 +4212,8 @@ class SpriteEditor {
 
 <hr class="rule">
 
-<section id="p14">
-<h2><span class="num">Part 14</span>The map editor, mostly for free</h2>
+<section id="p15">
+<h2><span class="num">Part 15</span>The map editor, mostly for free</h2>
 
 <p>
   The map editor is the same shell with a different document, a different tool set and one changed
@@ -3975,7 +4338,7 @@ class Stamp extends Tool {
 
 <figure class="code">
   <figcaption><span>main.gs</span><span class="chip edit">edit</span></figcaption>
-<pre><code class="gs">  app.studio = new Studio(asepriteDark().useScale(1).loadFonts(null))
+<pre><code class="gs">  app.studio = new Studio(asepriteMocha().useScale(1).loadFonts(null))
 
   sprites = app.studio.register(new SpriteEditor(app.studio))
   maps = app.studio.register(new MapEditor(app.studio))
@@ -3986,8 +4349,8 @@ class Stamp extends Tool {
 
 <hr class="rule">
 
-<section id="p15">
-<h2><span class="num">Part 15</span>Leaving room for the sound editor</h2>
+<section id="p16">
+<h2><span class="num">Part 16</span>Leaving room for the sound editor</h2>
 
 <p>
   The sound editor is the third tenant of this toolkit, and it is worth designing <em>for</em> now
@@ -4085,8 +4448,8 @@ class Ruler extends Widget {
 
 <hr class="rule">
 
-<section id="p16">
-<h2><span class="num">Part 16</span>Ship it</h2>
+<section id="p17">
+<h2><span class="num">Part 17</span>Ship it</h2>
 
 <p>
   Preferences belong in the player's own data directory, which <code>Preferences</code> already
@@ -4232,12 +4595,42 @@ lumen package . -o studio.lumen    # one archive, for people who have Lumen</cod
   <p class="fix"><b>Would fix it</b> a compile-time warning when a class member shadows an import — the same fix the everything-is-exported item needs would not reach this, since it is member resolution order, not visibility.</p>
 </div>
 
+<div class="cut sev-high">
+  <div class="title"><strong>A local variable permanently destroys a same-named method on the object</strong><span class="tag">high · shipped twice</span></div>
+  <p>
+    The same resolution order as the item above, cutting deeper. A method's locals are not scoped to
+    that method: assigning <code>gap = 4</code> inside one method <em>replaces the method
+    <code>gap()</code> on that object</em>, for the object's lifetime, and every later call from
+    anywhere in the class raises <code>is a number, which cannot be called</code>.
+  </p>
+<pre style="margin:8px 0"><code class="gs">class Probe {
+  gap() { return 7 }
+  first() { gap = 99; return gap }
+  second() { return this.gap() }
+}
+
+p = new Probe()
+
+p.second()   // 7
+p.first()
+p.second()   // type error: `Probe.gap` is a number, which cannot be called</code></pre>
+  <p>
+    The dangerous property is that it is <strong>time-dependent</strong>. The same call works before
+    the poisoning line has run and fails after, so whether a test catches it depends on the order
+    the methods happen to be exercised in. It shipped here twice: once in a scrollbar that had never
+    been painted, and again — after a linter had been written for it — in a colour bar, because the
+    first version of that check only looked for the call in the <em>same</em> method as the local.
+    It is any local sharing a name with any method of its class.
+  </p>
+  <p class="fix"><b>Would fix it</b> function-local scoping for assignments, which is the same underlying change as the "assignment does not walk outward" item — one design decision producing two opposite-looking bugs.</p>
+</div>
+
 <div class="cut sev-mid">
   <div class="title"><strong>No statics: no named constructors, no class constants</strong><span class="tag">mid</span></div>
   <p>
     <code>Rect.fromBounds(...)</code> and <code>Button.HEIGHT</code> are both impossible, so factories
     become free functions in helper files and constants move onto a theme object. Workable — it is
-    why <code>asepriteDark()</code> is a function — but it is the single thing that most distorts
+    why <code>asepriteMocha()</code> is a function — but it is the single thing that most distorts
     library shape.
   </p>
 </div>
@@ -4414,7 +4807,7 @@ lumen package . -o studio.lumen    # one archive, for people who have Lumen</cod
 ├── traits/<b>tappable.gs</b>       <i>trait Tappable</i>
 ├── traits/<b>emits-events.gs</b>   <i>trait EmitsEvents</i>
 ├── <b>theme.gs</b> <b>painter.gs</b> <b>pointer.gs</b> <b>ui.gs</b> <b>widget.gs</b>
-├── themes/<b>aseprite-dark.gs</b>  <i>function asepriteDark()</i>
+├── themes/<b>aseprite-mocha.gs</b> <i>function asepriteMocha()</i>
 ├── layout/<b>dock.gs</b>
 └── widgets/<b>panel.gs</b> <b>button.gs</b> <b>toolbar.gs</b> <b>swatches.gs</b> <b>menu.gs</b> <b>statusbar.gs</b> <b>ruler.gs</b>
 
@@ -4435,7 +4828,8 @@ new Rect(x, y, w, h)   .inset(n)  .offset(dx, dy)  .contains(x, y)  .cell(col, r
 [taken, rest] = rect.splitTop(n)   // splitBottom, splitLeft, splitRight
 
 // painting (inside paint(ui))
-ui.painter.panel(rect, face)   .well(rect)   .bevel(rect, raised)   .groove(x, y, w)
+ui.painter.panel(rect, face)   .raised(rect, face)   .sunk(rect, face)   .well(rect, face)
+ui.painter.surface(rect, fill, edge, cut)      .chamfered(rect, paint, cut)   .groove(x, y, w)
 ui.painter.textIn('body', text, rect, 'center', 'middle', ink)
 ui.theme.of('button.face')     ui.theme.metric('row')   ui.theme.font('small')
 
