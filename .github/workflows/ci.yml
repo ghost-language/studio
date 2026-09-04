@@ -58,6 +58,15 @@ jobs:
           python3 tools/make-icons.py
           git diff --exit-code -- resources/
 
+      # The tutorial tells a reader to type out whole files. If one stops
+      # parsing they find out by typing it in and getting a syntax error, with
+      # no way to tell whether they mistyped it or the page is wrong - the worst
+      # failure available to a document whose premise is "type this". The page
+      # spent two rebuilds describing an interface the code no longer had; prose
+      # going stale is hard to catch, code going stale is not.
+      - name: The tutorial's code still parses
+        run: python3 tools/check-tutorial.py
+
       # Every source file has to at least parse. `ghost <file>` reports a syntax
       # fault before it evaluates anything, so a file that only fails on a
       # `lumen:` import is fine - a file that fails to parse is not.
